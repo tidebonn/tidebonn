@@ -1,0 +1,63 @@
+{
+  "name": "PrayerLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Bruker-ID"
+    },
+    "prayer_id": {
+      "type": "string",
+      "description": "B\u00f8nn-ID"
+    },
+    "series_id": {
+      "type": "string",
+      "description": "B\u00f8nneserie-ID"
+    },
+    "day": {
+      "type": "number",
+      "description": "Dag"
+    },
+    "time_of_day": {
+      "type": "string",
+      "enum": [
+        "laudes",
+        "dagbonn",
+        "vesper",
+        "kompletorium"
+      ],
+      "description": "Tidspunkt"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Varighet i minutter"
+    },
+    "reading_mode": {
+      "type": "string",
+      "enum": [
+        "alone",
+        "group1",
+        "group2",
+        "leader"
+      ],
+      "description": "Lesemodus brukt"
+    },
+    "completed": {
+      "type": "boolean",
+      "description": "Om b\u00f8nnen ble fullf\u00f8rt",
+      "default": true
+    },
+    "location_country": {
+      "type": "string",
+      "description": "Land"
+    },
+    "location_city": {
+      "type": "string",
+      "description": "By"
+    }
+  },
+  "required": [
+    "user_id",
+    "prayer_id"
+  ]
+}

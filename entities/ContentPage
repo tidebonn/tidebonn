@@ -1,0 +1,26 @@
+{
+  "name": "ContentPage",
+  "type": "object",
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "Unik identifikator (f.eks. 'om-tidebonn', 'om-appen')"
+    },
+    "title": {
+      "type": "string",
+      "description": "Sidetittel"
+    },
+    "content": {
+      "type": "string",
+      "description": "Innhold i markdown/HTML format"
+    },
+    "last_edited_by": {
+      "type": "string",
+      "description": "Sist redigert av"
+    }
+  },
+  "required": [
+    "slug",
+    "title"
+  ]
+}

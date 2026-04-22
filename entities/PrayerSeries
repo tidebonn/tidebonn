@@ -1,0 +1,105 @@
+{
+  "name": "PrayerSeries",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Navn p\u00e5 b\u00f8nneserien"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beskrivelse av b\u00f8nneserien"
+    },
+    "author": {
+      "type": "string",
+      "description": "Forfatter/utgiver"
+    },
+    "year": {
+      "type": "number",
+      "description": "Utgivelses\u00e5r"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Om serien er aktiv og tilgjengelig",
+      "default": true
+    },
+    "sort_by": {
+      "type": "string",
+      "enum": [
+        "days",
+        "weeks"
+      ],
+      "description": "Om serien sorteres etter dager eller uker",
+      "default": "days"
+    },
+    "total_days": {
+      "type": "number",
+      "description": "Antall dager i syklusen (brukes hvis sort_by er 'days')",
+      "default": 30
+    },
+    "total_weeks": {
+      "type": "number",
+      "description": "Antall uker i syklusen (brukes hvis sort_by er 'weeks')",
+      "default": 4
+    },
+    "series_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Seriens startdato i kalenderen (dag 1 / uke 1)"
+    },
+    "available_prayer_times": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "matutin",
+          "laudes",
+          "prim",
+          "ters",
+          "sekst",
+          "non",
+          "vesper",
+          "kompletorium"
+        ]
+      },
+      "description": "Hvilke b\u00f8nnetider denne serien inneholder"
+    },
+    "start_day": {
+      "type": "string",
+      "enum": [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ],
+      "description": "Hvilken ukedag Uke 1 starter p\u00e5",
+      "default": "saturday"
+    },
+    "start_time": {
+      "type": "string",
+      "enum": [
+        "matutin",
+        "laudes",
+        "prim",
+        "ters",
+        "sekst",
+        "non",
+        "vesper",
+        "kompletorium"
+      ],
+      "description": "Hvilken b\u00f8nn Uke 1 starter med",
+      "default": "laudes"
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidspunkt for soft delete (brukes kun av superadmin)"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

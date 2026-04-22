@@ -1,0 +1,126 @@
+{
+  "name": "Prayer",
+  "type": "object",
+  "properties": {
+    "series_id": {
+      "type": "string",
+      "description": "ID til b\u00f8nneserien dette tilh\u00f8rer"
+    },
+    "day": {
+      "type": "number",
+      "description": "Dag i syklusen (1-30)"
+    },
+    "time_of_day": {
+      "type": "string",
+      "enum": [
+        "matutin",
+        "laudes",
+        "prim",
+        "ters",
+        "sekst",
+        "non",
+        "vesper",
+        "kompletorium"
+      ],
+      "description": "Tidspunkt for b\u00f8nnen"
+    },
+    "title": {
+      "type": "string",
+      "description": "Tittel p\u00e5 b\u00f8nnen"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "structured",
+        "freetext"
+      ],
+      "default": "freetext",
+      "description": "Om innholdet er strukturert eller fritekst"
+    },
+    "free_text_content": {
+      "type": "string",
+      "description": "Fritekstinnhold med HTML formatering (brukes hvis content_type er freetext)"
+    },
+    "opening": {
+      "type": "string",
+      "description": "\u00c5pningsord/innledning"
+    },
+    "hymne": {
+      "type": "string",
+      "description": "Hymne"
+    },
+    "psalm": {
+      "type": "string",
+      "description": "Salme/hymne med antifon"
+    },
+    "psalm_2": {
+      "type": "string",
+      "description": "Andre salme (hvis relevant)"
+    },
+    "psalm_3": {
+      "type": "string",
+      "description": "Tredje salme (hvis relevant)"
+    },
+    "canticle": {
+      "type": "string",
+      "description": "Lovsang (Benedictus/Magnificat/Nunc dimittis/Canticum)"
+    },
+    "reading": {
+      "type": "string",
+      "description": "Skriftlesning/evangelium"
+    },
+    "short_reading": {
+      "type": "string",
+      "description": "Kort skriftlesning"
+    },
+    "response": {
+      "type": "string",
+      "description": "Responsorie"
+    },
+    "examination": {
+      "type": "string",
+      "description": "Ransakelse og syndsbekjennelse"
+    },
+    "kyrie": {
+      "type": "string",
+      "description": "Kyrie eleison"
+    },
+    "intercession": {
+      "type": "string",
+      "description": "Forb\u00f8nner"
+    },
+    "lords_prayer": {
+      "type": "boolean",
+      "description": "Om Faderv\u00e5r inkluderes",
+      "default": false
+    },
+    "closing_prayer": {
+      "type": "string",
+      "description": "Slutningsb\u00f8nn"
+    },
+    "blessing": {
+      "type": "string",
+      "description": "Velsignelse/avslutning"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Sorteringsrekkef\u00f8lge"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Om b\u00f8nnen er aktiv og synlig",
+      "default": true
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tidspunkt for soft delete (brukes kun av superadmin)"
+    }
+  },
+  "required": [
+    "series_id",
+    "day",
+    "time_of_day",
+    "title"
+  ]
+}

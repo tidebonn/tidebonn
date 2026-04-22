@@ -1,0 +1,96 @@
+{
+  "name": "UserProgress",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Bruker-ID"
+    },
+    "current_series_id": {
+      "type": "string",
+      "description": "Aktiv b\u00f8nneserie"
+    },
+    "current_day": {
+      "type": "number",
+      "description": "N\u00e5v\u00e6rende dag i progresjonen",
+      "default": 1
+    },
+    "current_time": {
+      "type": "string",
+      "enum": [
+        "laudes",
+        "dagbonn",
+        "vesper",
+        "kompletorium"
+      ],
+      "description": "N\u00e5v\u00e6rende tideb\u00f8nn",
+      "default": "laudes"
+    },
+    "follow_date": {
+      "type": "boolean",
+      "description": "Om b\u00f8nnene f\u00f8lger dato (true) eller egen progresjon (false)",
+      "default": true
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "description": "Fargetema",
+      "default": "system"
+    },
+    "reading_mode": {
+      "type": "string",
+      "enum": [
+        "alone",
+        "group1",
+        "group2",
+        "leader"
+      ],
+      "description": "Lesemodus",
+      "default": "alone"
+    },
+    "show_group_markers": {
+      "type": "boolean",
+      "description": "Om gruppemark\u00f8rer (I/II) vises med innrykk i b\u00f8nnevisningen",
+      "default": false
+    },
+    "total_prayers_completed": {
+      "type": "number",
+      "description": "Totalt antall fullf\u00f8rte b\u00f8nner",
+      "default": 0
+    },
+    "total_minutes": {
+      "type": "number",
+      "description": "Totalt antall minutter i b\u00f8nn",
+      "default": 0
+    },
+    "location_country": {
+      "type": "string",
+      "description": "Land (satt automatisk av API)"
+    },
+    "location_city": {
+      "type": "string",
+      "description": "By (satt automatisk av API)"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "mann",
+        "kvinne",
+        "annet"
+      ],
+      "description": "Kj\u00f8nn (valgfritt)"
+    },
+    "birth_date": {
+      "type": "string",
+      "format": "date",
+      "description": "F\u00f8dselsdato (valgfritt)"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}
