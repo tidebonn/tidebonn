@@ -90,7 +90,7 @@ create table if not exists user_progress (
   user_id uuid not null unique references auth.users(id) on delete cascade,
   current_series_id uuid references prayer_series(id) on delete set null,
   current_day int not null default 1,
-  current_time time_of_day not null default 'laudes',
+  current_prayer_time time_of_day not null default 'laudes',
   follow_date boolean not null default true,
   theme text not null default 'system' check (theme in ('light','dark','system')),
   reading_mode text not null default 'alone' check (reading_mode in ('alone','group1','group2','leader')),
