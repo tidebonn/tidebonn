@@ -22,8 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast as sonnerToast } from 'sonner';
 import { motion } from 'framer-motion';
 
-import PrayerUploader from '../components/admin/PrayerUploader';
-import { useNavigate } from 'react-router-dom';
 import { getAdminSeriesWeek } from '../components/prayer/PrayerSeriesCycleUtils';
 import Statistics from '../components/admin/Statistics';
 import PrayerContent from '../components/prayer/PrayerContent';
@@ -32,7 +30,6 @@ import SeriesStartDatePicker from '../components/admin/SeriesStartDatePicker';
 const COLORS = ['#6B9EA0', '#89B5B7', '#4D8082', '#A8CBCD', '#C8602A'];
 
 export default function Admin() {
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('statistics');
@@ -812,16 +809,7 @@ export default function Admin() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
-                    onClick={() => navigate('/PdfUploadTest')}
-                    className="border-[#DECCB4] text-[#6B9EA0] hover:bg-[#F5F0EB]"
-                  >
-                    <span className="hidden sm:inline">Test visjon</span>
-                    <span className="sm:hidden">🔬</span>
-                  </Button>
-                  <PrayerUploader prayerSeries={prayerSeries} onPrayerCreated={loadData} />
-                  <Button 
-                    onClick={() => setEditingPrayer({ 
+                    onClick={() => setEditingPrayer({
                       day: 1, 
                       time_of_day: 'laudes', 
                       lords_prayer: false, 

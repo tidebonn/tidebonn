@@ -94,22 +94,6 @@ export default function Prayers() {
           let progress = progressList[0];
           setUserProgress(progress);
           if (progress.current_series_id) chosenSeriesId = progress.current_series_id;
-
-          // Fetch and store geolocation if not already set
-          if (!progress.location_country) {
-            try {
-              const geoRes = await db.functions.invoke('getGeolocation', {});
-              if (geoRes.data?.country) {
-                const updated = await db.entities.UserProgress.update(progress.id, {
-                  location_country: geoRes.data.country,
-                  location_city: geoRes.data.city || null,
-                });
-                setUserProgress(prev => ({ ...prev, location_country: geoRes.data.country, location_city: geoRes.data.city || null }));
-              }
-            } catch (e) {
-              console.log('Geolocation fetch failed:', e);
-            }
-          }
         }
         const logs = await db.entities.PrayerLog.filter({ user_id: currentUser.id, completed: true });
         setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
@@ -247,8 +231,6 @@ export default function Prayers() {
       time_of_day: selectedPrayer.time_of_day,
       duration_minutes: duration,
       completed: true,
-      location_country: userProgress?.location_country,
-      location_city: userProgress?.location_city
     });
 
     setCompletedPrayers(prev => [...prev, `${selectedPrayer.series_id}-${selectedPrayer.day}-${selectedPrayer.time_of_day}`]);
