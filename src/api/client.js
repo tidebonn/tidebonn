@@ -135,16 +135,23 @@ const auth = {
       data: { user },
     } = await sb.auth.getUser();
     if (!user) return null;
-    const { data: profile } = await sb
+    const { data: profile, error: profileErr } = await sb
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
+    if (profileErr) {
+      // eslint-disable-next-line no-console
+      console.error('me() profile-feil:', profileErr);
+    }
     return {
       id: user.id,
       email: user.email,
+      // Felt fra auth.users.user_metadata (settes via updateMe)
+      ...(user.user_metadata ?? {}),
+      // Felt fra profiles-tabellen overskriver om duplikat
+      ...(profile ?? {}),
       role: profile?.role ?? 'user',
-      ...profile,
     };
   },
 
@@ -168,6 +175,36 @@ const auth = {
   async logout() {
     await sb.auth.signOut();
     window.location.assign('/');
+  },
+
+  // Oppdater brukerens egne profil-felt. Skriver display_name og
+  // andre fritekst-felt til auth.users.user_metadata; profil-rolle
+  // og andre tabell-felt skrives til public.profiles.
+  async updateMe(patch) {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('Ikke innlogget');
+
+    const metadataKeys = ['display_name', 'full_name'];
+    const profileKeys = ['gender', 'birth_date'];
+
+    const metadata = {};
+    const profilePatch = {};
+    for (const [key, value] of Object.entries(patch ?? {})) {
+      if (metadataKeys.includes(key)) metadata[key] = value;
+      else if (profileKeys.includes(key)) profilePatch[key] = value;
+    }
+
+    if (Object.keys(metadata).length > 0) {
+      const { error } = await sb.auth.updateUser({ data: metadata });
+      if (error) throw error;
+    }
+    if (Object.keys(profilePatch).length > 0) {
+      const { error } = await sb
+        .from('profiles')
+        .update(profilePatch)
+        .eq('id', user.id);
+      if (error) throw error;
+    }
   },
 
   // Base44 brukte dette for full-page redirect til en hostet login.

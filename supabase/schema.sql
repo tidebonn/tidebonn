@@ -185,13 +185,21 @@ alter table prayer_logs    enable row level security;
 alter table content_pages  enable row level security;
 
 -- Hjelpefunksjon: er innlogget bruker admin?
-create or replace function is_admin()
-returns boolean language sql stable security definer as $$
+-- search_path = public må settes eksplisitt; ellers feiler den når
+-- den kalles fra RLS-context (auth.signUp m.fl.).
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
   select coalesce(
-    (select role = 'admin' from profiles where id = auth.uid()),
+    (select role = 'admin' from public.profiles where id = auth.uid()),
     false
   );
 $$;
+grant execute on function public.is_admin() to authenticated, anon;
 
 -- profiles: du ser egen rad; admin ser alle. Du kan ikke endre din egen rolle.
 drop policy if exists profiles_self_read on profiles;

@@ -96,7 +96,7 @@ export default function Admin() {
         setSelectedSeriesFilter(userProgress[0].current_series_id);
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.error('Admin loadData feilet:', error);
     } finally {
       setLoading(false);
     }
