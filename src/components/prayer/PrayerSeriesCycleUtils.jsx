@@ -110,13 +110,14 @@ export function getCurrentSeriesPosition(series, now = new Date()) {
 
   const week = isWeekMode ? Math.ceil(seriesDayNumber / 7) : null;
 
-  // weekdayOffset: the index in the orderedWeekdays array (starting from start_day)
-  // We need the actual JS day-of-week of 'now', then find its position in orderedWeekdays.
+  // weekdayOffset: posisjon innenfor uka i serien (0–6), derivert fra
+  // seriesDayNumber. Tidligere ble dette regnet fra kalender-ukedag,
+  // men det er feil for vesper-anchored døgn: f.eks. søndag morgen
+  // (laudes) hører til døgn 1 (= weekdayOffset 0), ikke døgn 2.
+  // seriesDayNumber håndterer 24t-vinduer fra start_time korrekt.
   let weekdayOffset = null;
   if (isWeekMode) {
-    const todayJsDay = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    const rawOffset = (todayJsDay - startDayJs + 7) % 7;
-    weekdayOffset = rawOffset;
+    weekdayOffset = (seriesDayNumber - 1) % 7;
   }
 
   return {
