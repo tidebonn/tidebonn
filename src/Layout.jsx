@@ -8,11 +8,13 @@ import { Menu, X, Home, BookOpen, Info, Settings, Heart, Users, LogOut, User } f
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
+import LoginDialog from '@/components/LoginDialog';
 
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [userProgress, setUserProgress] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -168,7 +170,7 @@ export default function Layout({ children }) {
                 </svg>
               </button>
             ) : (
-              <button onClick={() => db.auth.redirectToLogin()} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]" style={{background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+              <button onClick={() => setLoginOpen(true)} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]" style={{background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
                 Logg inn
               </button>
             )}
@@ -198,7 +200,7 @@ export default function Layout({ children }) {
                           <LogOut className="w-4 h-4" /> Logg ut
                         </button>
                       </div> :
-                      <button onClick={() => db.auth.redirectToLogin()} style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(244,240,233,0.55)', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                      <button onClick={() => setLoginOpen(true)} style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(244,240,233,0.55)', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
                         <User className="w-4 h-4" /> Logg inn
                       </button>
                     }
@@ -224,6 +226,7 @@ export default function Layout({ children }) {
         </div>
       </footer>
       <Toaster />
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </div>);
 
 }

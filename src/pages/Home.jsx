@@ -78,7 +78,7 @@ export default function Home() {
         
         if (loadedProgress && loadedProgress.follow_date === false) {
           targetDay = loadedProgress.current_day || 1;
-          targetTime = loadedProgress.current_time || 'laudes';
+          targetTime = loadedProgress.current_prayer_time || 'laudes';
         } else {
           targetTime = getCurrentTimeOfDay();
 
