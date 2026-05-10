@@ -463,6 +463,12 @@ export default function Prayers() {
           <div>
             {filteredPrayers
               .filter(p => p.time_of_day !== selectedTime)
+              .slice()
+              .sort(
+                (a, b) =>
+                  TIME_ORDER.indexOf(a.time_of_day) -
+                  TIME_ORDER.indexOf(b.time_of_day)
+              )
               .map(prayer => (
                 <PrayerCard
                   key={prayer.id}
