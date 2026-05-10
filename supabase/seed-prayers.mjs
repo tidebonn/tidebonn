@@ -30,9 +30,18 @@ const TIME_MAP = {
   completorium: 'kompletorium',
 };
 
-const WEEKDAY_NUM = {
-  mandag: 1, tirsdag: 2, onsdag: 3, torsdag: 4,
-  fredag: 5, lørdag: 6, søndag: 7,
+// Døgn-mapping: hver døgn i serien starter ved vesper. Et døgn inneholder
+// 4 bønner: vesper + kompletorium fra ukedag X, og laudes + sekst fra
+// ukedag X+1. Konsekvens:
+//   - vesper / kompletorium på ukedag X → starten på et nytt døgn
+//   - laudes / sekst   på ukedag X → siste halvdel av forrige døgn
+//
+// Med start_day = lørdag og start_time = vesper er døgn 1 = lør-vesper →
+// søn-sekst, døgn 2 = søn-vesper → man-sekst, ..., døgn 7 = fre-vesper →
+// lør-sekst.
+const WEEKDAY_OFFSET_FROM_LORDAG = {
+  lørdag: 0, søndag: 1, mandag: 2, tirsdag: 3,
+  onsdag: 4, torsdag: 5, fredag: 6,
 };
 
 function parseFilename(name) {
@@ -40,12 +49,19 @@ function parseFilename(name) {
   if (!m) throw new Error(`Kan ikke parse filnavn: ${name}`);
   const [, weekStr, weekday, timeRaw] = m;
   const week = parseInt(weekStr, 10);
-  const weekdayNum = WEEKDAY_NUM[weekday];
+  const offset = WEEKDAY_OFFSET_FROM_LORDAG[weekday];
   const time_of_day = TIME_MAP[timeRaw];
-  if (!weekdayNum) throw new Error(`Ukjent ukedag: ${weekday}`);
+  if (offset === undefined) throw new Error(`Ukjent ukedag: ${weekday}`);
   if (!time_of_day) throw new Error(`Ukjent tid: ${timeRaw}`);
-  const day = (week - 1) * 7 + weekdayNum;
-  return { week, weekday, weekdayNum, time_of_day, timeRaw, day };
+
+  // Hvilket døgn (1-7) hører bønnen til innenfor uka?
+  const isLateInDay = time_of_day === 'vesper' || time_of_day === 'kompletorium';
+  const dognInWeek = isLateInDay
+    ? offset + 1
+    : ((offset - 1 + 7) % 7) + 1;
+
+  const day = (week - 1) * 7 + dognInWeek;
+  return { week, weekday, dognInWeek, time_of_day, timeRaw, day };
 }
 
 function extractArticle(html) {
@@ -107,8 +123,9 @@ async function ensureSeries() {
       total_weeks: 4,
       total_days: 28,
       available_prayer_times: ['laudes', 'sekst', 'vesper', 'kompletorium'],
-      start_day: 'mandag',
-      start_time: 'laudes',
+      start_day: 'saturday',
+      start_time: 'vesper',
+      series_start_date: '2026-05-09',
       is_active: true,
     })
     .select()
@@ -136,7 +153,7 @@ async function importOne(filename, series) {
   };
 
   const label =
-    `${filename} → day=${parsed.day} (uke ${parsed.week}, ` +
+    `${filename} → day=${parsed.day} (uke ${parsed.week}, døgn ${parsed.dognInWeek}, ` +
     `${parsed.weekday}), time=${parsed.time_of_day}` +
     ` [${parsed.timeRaw}], title="${title}", html=${article.length}b`;
 
