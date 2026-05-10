@@ -135,9 +135,12 @@ const entities = new Proxy(
 
 const auth = {
   async me() {
+    // getSession() leser fra localStorage uten nettverkskall — mye
+    // raskere enn getUser() som validerer JWT mot Supabase.
     const {
-      data: { user },
-    } = await sb.auth.getUser();
+      data: { session },
+    } = await sb.auth.getSession();
+    const user = session?.user;
     if (!user) return null;
     const { data: profile, error: profileErr } = await sb
       .from('profiles')
