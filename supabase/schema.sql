@@ -148,14 +148,20 @@ create trigger content_pages_touch
   before update on content_pages
   for each row execute function touch_updated_at();
 
-create or replace function handle_new_user()
-returns trigger language plpgsql security definer as $$
+-- search_path = public må settes eksplisitt; uten det vil funksjonen
+-- ikke finne public-tabellene når auth.signUp trigger den.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
 begin
-  insert into profiles (id, email)
+  insert into public.profiles (id, email)
   values (new.id, new.email)
   on conflict (id) do nothing;
 
-  insert into user_progress (user_id)
+  insert into public.user_progress (user_id)
   values (new.id)
   on conflict (user_id) do nothing;
 
@@ -166,7 +172,7 @@ $$;
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function handle_new_user();
+  for each row execute function public.handle_new_user();
 
 -- =============================================================
 -- Row Level Security
