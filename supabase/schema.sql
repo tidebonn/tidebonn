@@ -20,6 +20,7 @@ exception when duplicate_object then null; end $$;
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
+  display_name text,
   role app_role not null default 'user',
   created_at timestamptz not null default now()
 );

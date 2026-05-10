@@ -184,27 +184,22 @@ const auth = {
     window.location.assign('/');
   },
 
-  // Oppdater brukerens egne profil-felt. Skriver display_name og
-  // andre fritekst-felt til auth.users.user_metadata; profil-rolle
-  // og andre tabell-felt skrives til public.profiles.
+  // Oppdater brukerens egne profil-felt. Alt skrives til public.profiles
+  // (vanlig PostgREST-PATCH). Vi unngår sb.auth.updateUser fordi det
+  // går via auth-serveren og har vist seg å henge i praksis.
   async updateMe(patch) {
-    const { data: { user } } = await sb.auth.getUser();
+    const {
+      data: { session },
+    } = await sb.auth.getSession();
+    const user = session?.user;
     if (!user) throw new Error('Ikke innlogget');
 
-    const metadataKeys = ['display_name', 'full_name'];
-    const profileKeys = ['gender', 'birth_date'];
-
-    const metadata = {};
+    const profileFields = ['display_name', 'full_name'];
     const profilePatch = {};
     for (const [key, value] of Object.entries(patch ?? {})) {
-      if (metadataKeys.includes(key)) metadata[key] = value;
-      else if (profileKeys.includes(key)) profilePatch[key] = value;
+      if (profileFields.includes(key)) profilePatch[key] = value;
     }
 
-    if (Object.keys(metadata).length > 0) {
-      const { error } = await sb.auth.updateUser({ data: metadata });
-      if (error) throw error;
-    }
     if (Object.keys(profilePatch).length > 0) {
       const { error } = await sb
         .from('profiles')
