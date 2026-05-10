@@ -76,3 +76,86 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Bønne-rendring (article.bønn fra ekstrakterte HTML-filer).
+ * Tittel-headeren (h1 + tom h3) skjules her: appen viser sin egen
+ * tittel via UI-en, så å gjenta den ovenfor bønneteksten gir bare
+ * støy. Senere CSS-arbeid (typografi, indrykk, antifoner) legges
+ * til samme sted. */
+.bønn > header.header-henvisning:first-of-type {
+  display: none;
+}
+
+.bønn .linje {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.1em 0;
+}
+
+.bønn .markør {
+  min-width: 2.2rem;
+  font-size: 0.8em;
+  font-variant: small-caps;
+  color: rgba(85, 85, 85, 0.85);
+  flex-shrink: 0;
+  padding-top: 0.15em;
+}
+
+.dark .bønn .markør {
+  color: rgba(220, 215, 200, 0.7);
+}
+
+.bønn .tekst {
+  flex: 1;
+}
+
+.bønn .tekst p {
+  margin: 0;
+}
+
+.bønn p.strofe,
+.bønn p.strofe-nomargin,
+.bønn p.antifontekst {
+  margin-bottom: 1.5em;
+}
+
+.bønn p.strofe-nomargin {
+  margin-top: 0;
+}
+
+.bønn header.header-henvisning {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.bønn header.header-henvisning h2 {
+  margin: 0;
+  flex: 1;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bønn header.header-henvisning h3.henvisning,
+.bønn h3.henvisning {
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: rgba(85, 85, 85, 0.7);
+  white-space: nowrap;
+}
+
+.dark .bønn header.header-henvisning h3.henvisning,
+.dark .bønn h3.henvisning {
+  color: rgba(220, 215, 200, 0.55);
+}
+
+.bønn p.info {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: rgba(102, 102, 102, 0.85);
+}

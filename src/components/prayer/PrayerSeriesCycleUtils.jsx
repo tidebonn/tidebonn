@@ -72,10 +72,13 @@ export function getCurrentSeriesPosition(series, now = new Date()) {
   const anchorDate = new Date(seriesStartDate);
   anchorDate.setDate(anchorDate.getDate() + daysToStartDay);
 
-  // The anchor datetime is anchorDate at the start_time hour
-  const anchorHour = SLOT_START_HOURS[startTime] || 0;
+  // Anchor ved midnatt på første start_day. seriesDayNumber er
+  // kalender-dag i syklusen — brukervisningen viser alle 4 bønner
+  // for én kalenderdag samlet. start_time brukes IKKE her; den er
+  // kun en liturgisk uke-grense som getAdminSeriesWeek bruker for
+  // admin-gruppering.
   const anchorDatetime = new Date(anchorDate);
-  anchorDatetime.setHours(Math.floor(anchorHour), 0, 0, 0);
+  anchorDatetime.setHours(0, 0, 0, 0);
 
   // Minutes elapsed since anchor
   const elapsedMs = now - anchorDatetime;
@@ -93,32 +96,19 @@ export function getCurrentSeriesPosition(series, now = new Date()) {
     ? (series.total_weeks || 4) * 7
     : (series.total_days || 30);
 
-  // Position within cycle (0-based)
+  // Posisjon i syklusen (0-basert)
   const posInCycle = ((Math.floor(elapsedDays)) % cycleLengthDays + cycleLengthDays) % cycleLengthDays;
 
-  // But also check within the current day: has start_time passed yet today?
-  // The current fractional day position
-  const currentTimeIndex = TIME_ORDER.indexOf(currentTimeSlot);
-
-  // Day boundary: a new series-day begins when clock passes start_time
-  // elapsedDays fractional part tells us where we are within current series-day
-  const fracDay = elapsedDays - Math.floor(elapsedDays);
-  const startTimeFrac = anchorHour / 24;
-
-  // Compute series day number (1-based)
-  let seriesDayNumber = posInCycle + 1;
+  // 1-basert kalender-dag i syklusen
+  const seriesDayNumber = posInCycle + 1;
 
   const week = isWeekMode ? Math.ceil(seriesDayNumber / 7) : null;
 
-  // weekdayOffset: posisjon innenfor uka i serien (0–6), derivert fra
-  // seriesDayNumber. Tidligere ble dette regnet fra kalender-ukedag,
-  // men det er feil for vesper-anchored døgn: f.eks. søndag morgen
-  // (laudes) hører til døgn 1 (= weekdayOffset 0), ikke døgn 2.
-  // seriesDayNumber håndterer 24t-vinduer fra start_time korrekt.
-  let weekdayOffset = null;
-  if (isWeekMode) {
-    weekdayOffset = (seriesDayNumber - 1) % 7;
-  }
+  // weekdayOffset: posisjon innenfor uka i serien (0–6). Med
+  // midnatt-anchored seriesDayNumber er dette ganske enkelt
+  // (seriesDayNumber - 1) % 7 — tilsvarer kalender-ukedag fra
+  // start_day.
+  const weekdayOffset = isWeekMode ? (seriesDayNumber - 1) % 7 : null;
 
   return {
     seriesDayNumber,

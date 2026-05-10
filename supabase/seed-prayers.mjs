@@ -30,15 +30,14 @@ const TIME_MAP = {
   completorium: 'kompletorium',
 };
 
-// Døgn-mapping: hver døgn i serien starter ved vesper. Et døgn inneholder
-// 4 bønner: vesper + kompletorium fra ukedag X, og laudes + sekst fra
-// ukedag X+1. Konsekvens:
-//   - vesper / kompletorium på ukedag X → starten på et nytt døgn
-//   - laudes / sekst   på ukedag X → siste halvdel av forrige døgn
+// Kalenderbasert mapping: alle 4 bønner fra én ukedag (laudes, sekst,
+// vesper, kompletorium) hører til SAMME `day`-verdi. Brukervisningen
+// viser dermed alle Saturdays prayers under "Lørdag", uavhengig av at
+// liturgisk uke faktisk skifter ved Sat-vesper.
 //
-// Med start_day = lørdag og start_time = vesper er døgn 1 = lør-vesper →
-// søn-sekst, døgn 2 = søn-vesper → man-sekst, ..., døgn 7 = fre-vesper →
-// lør-sekst.
+// Med start_day = lørdag: lørdag = day 1, søndag = day 2, ..., fredag
+// = day 7. Liturgisk uke-grensen håndteres separat i admin-visningen
+// via getAdminSeriesWeek (som bruker time_of_day-skift).
 const WEEKDAY_OFFSET_FROM_LORDAG = {
   lørdag: 0, søndag: 1, mandag: 2, tirsdag: 3,
   onsdag: 4, torsdag: 5, fredag: 6,
@@ -54,14 +53,8 @@ function parseFilename(name) {
   if (offset === undefined) throw new Error(`Ukjent ukedag: ${weekday}`);
   if (!time_of_day) throw new Error(`Ukjent tid: ${timeRaw}`);
 
-  // Hvilket døgn (1-7) hører bønnen til innenfor uka?
-  const isLateInDay = time_of_day === 'vesper' || time_of_day === 'kompletorium';
-  const dognInWeek = isLateInDay
-    ? offset + 1
-    : ((offset - 1 + 7) % 7) + 1;
-
-  const day = (week - 1) * 7 + dognInWeek;
-  return { week, weekday, dognInWeek, time_of_day, timeRaw, day };
+  const day = (week - 1) * 7 + offset + 1;
+  return { week, weekday, time_of_day, timeRaw, day };
 }
 
 function extractArticle(html) {
@@ -153,7 +146,7 @@ async function importOne(filename, series) {
   };
 
   const label =
-    `${filename} → day=${parsed.day} (uke ${parsed.week}, døgn ${parsed.dognInWeek}, ` +
+    `${filename} → day=${parsed.day} (uke ${parsed.week}, ` +
     `${parsed.weekday}), time=${parsed.time_of_day}` +
     ` [${parsed.timeRaw}], title="${title}", html=${article.length}b`;
 
