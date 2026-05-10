@@ -89,26 +89,35 @@ export default function Settings() {
   };
 
   const saveSettings = async (updates = {}) => {
+    console.log('[Settings] saveSettings start, updates=', updates);
     try {
-      await db.auth.updateMe({
-        display_name: displayName,
-        ...updates.user
-      });
+      // Bare kall updateMe når det faktisk er user-felter å oppdatere
+      // (display_name etc.). Ellers risikerer vi en hengende auth-call
+      // med tom metadata.
+      if (updates.user && Object.keys(updates.user).length > 0) {
+        console.log('[Settings] kaller db.auth.updateMe', updates.user);
+        await db.auth.updateMe(updates.user);
+        console.log('[Settings] updateMe OK');
+      }
 
       const progressData = {
         user_id: user.id,
         theme,
-        current_series_id: selectedSeries,
+        current_series_id: selectedSeries || null,
         gender: gender || null,
         birth_date: birthDate || null,
         ...updates.progress
       };
 
       if (userProgress) {
+        console.log('[Settings] UserProgress.update', userProgress.id, progressData);
         await db.entities.UserProgress.update(userProgress.id, progressData);
+        console.log('[Settings] UserProgress.update OK');
       } else {
+        console.log('[Settings] UserProgress.create (ingen eksisterende rad)', progressData);
         const created = await db.entities.UserProgress.create(progressData);
         setUserProgress(created);
+        console.log('[Settings] UserProgress.create OK', created);
       }
 
       toast.success('Innstillinger lagret');
