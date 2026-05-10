@@ -92,14 +92,18 @@ function makeEntity(entityName) {
     },
 
     async update(id, patch) {
-      const { data, error } = await sb
+      const { data, error, count } = await sb
         .from(table)
-        .update(patch)
+        .update(patch, { count: 'exact' })
         .eq('id', id)
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      if (!data || data.length === 0) {
+        // eslint-disable-next-line no-console
+        console.error(`UPDATE ${table} (id=${id}) returnerte 0 rader. RLS-blokkering? count=${count}, patch=`, patch);
+        throw new Error(`Update på ${table} traff 0 rader (RLS?). Se konsoll.`);
+      }
+      return data[0];
     },
 
     async delete(id) {

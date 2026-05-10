@@ -114,7 +114,7 @@ export default function Settings() {
       toast.success('Innstillinger lagret');
       if (updates.progress?.theme) setTimeout(() => window.location.reload(), 500);
     } catch (error) {
-      console.log('Error saving:', error);
+      console.error('Settings.saveSettings feilet:', error);
       toast.error('Kunne ikke lagre');
     }
   };
