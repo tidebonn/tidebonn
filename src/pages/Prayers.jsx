@@ -69,7 +69,10 @@ export default function Prayers() {
   const [selectedPrayer, setSelectedPrayer] = useState(null);
   const [prayerStartTime, setPrayerStartTime] = useState(null);
   const [prayerFullscreen, setPrayerFullscreen] = useState(false);
-  const prayerScrollRef = useRef(null);
+  // Callback-ref via useState: Radix Dialog mounter innholdet asynkront
+  // (animasjon / portal), så vanlig useRef er null på effect-tid. State
+  // trigger effecten på nytt når DOM-en finnes.
+  const [prayerScrollEl, setPrayerScrollEl] = useState(null);
   const completionTriggeredRef = useRef(false);
 
   useEffect(() => {
@@ -227,18 +230,13 @@ export default function Prayers() {
   // gjennom hele bønnen (innenfor 40px fra bunn), marker som fullført
   // automatisk. completionTriggeredRef hindrer dobbeltkjøring.
   useEffect(() => {
-    if (!selectedPrayer) return;
-    const el = prayerScrollRef.current;
-    console.log('[Prayers] useEffect scroll-listener, selectedPrayer=', selectedPrayer?.id, 'el=', el);
-    if (!el) return;
+    if (!selectedPrayer || !prayerScrollEl) return;
+    const el = prayerScrollEl;
 
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const remaining = scrollHeight - clientHeight - scrollTop;
-      console.log('[Prayers] scroll', { scrollTop, scrollHeight, clientHeight, remaining });
       if (completionTriggeredRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = el;
       if (scrollTop + clientHeight >= scrollHeight - 40) {
-        console.log('[Prayers] nådde bunn, trigger handlePrayerComplete');
         completionTriggeredRef.current = true;
         handlePrayerComplete();
       }
@@ -246,7 +244,7 @@ export default function Prayers() {
 
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
-  }, [selectedPrayer]);
+  }, [selectedPrayer, prayerScrollEl]);
 
   const handlePrayerComplete = async () => {
     console.log('[Prayers] handlePrayerComplete start, user=', user?.id, 'selectedPrayer=', selectedPrayer?.id);
@@ -565,7 +563,7 @@ export default function Prayers() {
               </div>
             </div>
           </DialogHeader>
-          <div ref={prayerScrollRef} className="flex-1 overflow-y-auto py-4">
+          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
               <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
             )}
