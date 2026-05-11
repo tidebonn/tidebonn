@@ -114,14 +114,20 @@
   margin: 0;
 }
 
-.bønn p.strofe,
-.bønn p.strofe-nomargin,
-.bønn p.antifontekst {
-  margin-bottom: 1.5em;
+/* Strofe: luft øverst (separerer fra forrige blokk), ingen i bunn. */
+.bønn p.strofe {
+  margin-top: 1.5em;
+  margin-bottom: 0;
 }
 
+/* Strofe-nomargin: brukes når strofen følger umiddelbart etter en
+ * annen strofe og ikke skal ha ny avstand. */
 .bønn p.strofe-nomargin {
-  margin-top: 0;
+  margin: 0;
+}
+
+.bønn p.antifontekst {
+  margin: 1.5em 0;
 }
 
 .bønn header.header-henvisning {
@@ -147,6 +153,13 @@
   font-style: italic;
   color: rgba(85, 85, 85, 0.7);
   white-space: nowrap;
+}
+
+/* Bibel/notereferansen skal falle til bunn av .linje-blokken, slik at
+ * den ligger på linje med siste tekstlinje i strofen. */
+.bønn .linje > h3.henvisning {
+  align-self: flex-end;
+  align-self: last baseline;
 }
 
 .dark .bønn header.header-henvisning h3.henvisning,
