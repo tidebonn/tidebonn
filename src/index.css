@@ -156,10 +156,13 @@
 }
 
 /* Bibel/notereferansen skal falle til bunn av .linje-blokken, slik at
- * den ligger på linje med siste tekstlinje i strofen. */
+ * den ligger på linje med siste tekstlinje i strofen. Liten
+ * padding-top justerer optisk siden h3 har større ascender enn
+ * brødteksten. */
 .bønn .linje > h3.henvisning {
   align-self: flex-end;
   align-self: last baseline;
+  padding-top: 0.2em;
 }
 
 .dark .bønn header.header-henvisning h3.henvisning,

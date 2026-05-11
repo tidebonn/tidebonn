@@ -1,6 +1,7 @@
 import db from '@/api/client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 
 import { ChevronLeft, ChevronRight, BookOpen, Calendar, CalendarDays, Maximize2, Minimize2 } from 'lucide-react';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
@@ -68,6 +69,8 @@ export default function Prayers() {
   const [selectedPrayer, setSelectedPrayer] = useState(null);
   const [prayerStartTime, setPrayerStartTime] = useState(null);
   const [prayerFullscreen, setPrayerFullscreen] = useState(false);
+  const prayerScrollRef = useRef(null);
+  const completionTriggeredRef = useRef(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -212,6 +215,7 @@ export default function Prayers() {
   const openPrayer = (prayer) => {
     setSelectedPrayer(prayer);
     setPrayerStartTime(Date.now());
+    completionTriggeredRef.current = false;
   };
 
   const closePrayer = () => {
@@ -219,38 +223,67 @@ export default function Prayers() {
     setPrayerStartTime(null);
   };
 
+  // Scroll-deteksjon på dialog-wrapperen: når brukeren har scrollet
+  // gjennom hele bønnen (innenfor 40px fra bunn), marker som fullført
+  // automatisk. completionTriggeredRef hindrer dobbeltkjøring.
+  useEffect(() => {
+    if (!selectedPrayer) return;
+    const el = prayerScrollRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (completionTriggeredRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollTop + clientHeight >= scrollHeight - 40) {
+        completionTriggeredRef.current = true;
+        handlePrayerComplete();
+      }
+    };
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [selectedPrayer]);
+
   const handlePrayerComplete = async () => {
     if (!user || !selectedPrayer) return;
+    if (isPrayerCompleted(selectedPrayer)) {
+      // Allerede markert — ikke dobbel-skriv
+      return;
+    }
     const duration = Math.round((Date.now() - prayerStartTime) / 60000);
 
-    await db.entities.PrayerLog.create({
-      user_id: user.id,
-      prayer_id: selectedPrayer.id,
-      series_id: selectedPrayer.series_id,
-      day: selectedPrayer.day,
-      time_of_day: selectedPrayer.time_of_day,
-      duration_minutes: duration,
-      completed: true,
-    });
-
-    setCompletedPrayers(prev => [...prev, `${selectedPrayer.series_id}-${selectedPrayer.day}-${selectedPrayer.time_of_day}`]);
-
-    if (userProgress) {
-      await db.entities.UserProgress.update(userProgress.id, {
-        total_prayers_completed: (userProgress.total_prayers_completed || 0) + 1,
-        total_minutes: (userProgress.total_minutes || 0) + duration
+    try {
+      await db.entities.PrayerLog.create({
+        user_id: user.id,
+        prayer_id: selectedPrayer.id,
+        series_id: selectedPrayer.series_id,
+        day: selectedPrayer.day,
+        time_of_day: selectedPrayer.time_of_day,
+        duration_minutes: duration,
+        completed: true,
       });
-      setUserProgress(prev => ({
-        ...prev,
-        total_prayers_completed: (prev.total_prayers_completed || 0) + 1,
-        total_minutes: (prev.total_minutes || 0) + duration
-      }));
-    }
 
-    db.analytics.track({
-      eventName: 'prayer_completed',
-      properties: { day: selectedPrayer.day, time_of_day: selectedPrayer.time_of_day, duration_minutes: duration }
-    });
+      setCompletedPrayers(prev => [...prev, `${selectedPrayer.series_id}-${selectedPrayer.day}-${selectedPrayer.time_of_day}`]);
+
+      if (userProgress) {
+        await db.entities.UserProgress.update(userProgress.id, {
+          total_prayers_completed: (userProgress.total_prayers_completed || 0) + 1,
+          total_minutes: (userProgress.total_minutes || 0) + duration
+        });
+        setUserProgress(prev => ({
+          ...prev,
+          total_prayers_completed: (prev.total_prayers_completed || 0) + 1,
+          total_minutes: (prev.total_minutes || 0) + duration
+        }));
+      }
+
+      toast.success('Markert som fullført');
+      closePrayer();
+      setPrayerFullscreen(false);
+    } catch (error) {
+      console.error('handlePrayerComplete feilet:', error);
+      toast.error('Kunne ikke registrere bønnen');
+    }
   };
 
   const isPrayerCompleted = (prayer) => {
@@ -524,9 +557,9 @@ export default function Prayers() {
               </div>
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto py-4">
+          <div ref={prayerScrollRef} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
-              <PrayerContent prayer={selectedPrayer} onScrollComplete={handlePrayerComplete} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
+              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
             )}
           </div>
         </DialogContent>
