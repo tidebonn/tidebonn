@@ -16,7 +16,14 @@ export function htmlToBlocks(html) {
 
   const nextId = () => `block-${++id}-${Date.now()}`;
 
-  root.childNodes.forEach((node) => {
+  // Hvis innholdet er pakket i <article class="bønn">…</article>, gå inn
+  // i article-elementet. Seed-skriptet lagrer alltid med dette wrapping-
+  // elementet for at .bønn CSS-regler skal treffe. Editoren skal jobbe
+  // med blokkene innenfor.
+  const article = root.querySelector(':scope > article');
+  const iterRoot = article || root;
+
+  iterRoot.childNodes.forEach((node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent.trim();
       if (text) {
@@ -30,13 +37,18 @@ export function htmlToBlocks(html) {
 
     // <header class="header-henvisning"> — canonical heading format
     if (tag === 'header') {
-      const headingEl = el.querySelector('h2,h3,h4');
+      const headingEl = el.querySelector('h1,h2,h3,h4');
       const refEl = el.querySelector('.henvisning');
+      // <br> i h1 (f.eks. "Tirsdagens morgenbønn<br>Laudes") konverteres
+      // til mellomrom så tittelen blir lesbar i editoren.
+      const text = headingEl
+        ? headingEl.innerHTML.replace(/<br\s*\/?>/gi, ' – ').replace(/<[^>]+>/g, '').trim()
+        : '';
       blocks.push({
         id: nextId(),
         type: 'heading',
         level: headingEl?.tagName?.toLowerCase() || 'h2',
-        text: headingEl?.textContent?.trim() || '',
+        text,
         reference: refEl?.textContent?.trim() || '',
       });
       return;
@@ -57,12 +69,12 @@ export function htmlToBlocks(html) {
     }
 
     // Bare heading tags
-    if (['h2', 'h3', 'h4'].includes(tag)) {
+    if (['h1', 'h2', 'h3', 'h4'].includes(tag)) {
       blocks.push({
         id: nextId(),
         type: 'heading',
         level: tag,
-        text: el.textContent.trim(),
+        text: el.innerHTML.replace(/<br\s*\/?>/gi, ' – ').replace(/<[^>]+>/g, '').trim(),
         reference: '',
       });
       return;
@@ -120,7 +132,7 @@ export function htmlToBlocks(html) {
  * with <h3 class="henvisning"> for the reference (empty string if none).
  */
 export function blocksToHtml(blocks) {
-  return blocks
+  const inner = blocks
     .map((block) => {
       if (block.type === 'heading') {
         const tag = block.level || 'h2';
@@ -149,6 +161,12 @@ export function blocksToHtml(blocks) {
       return '';
     })
     .join('\n');
+
+  // Bevar <article class="bønn">-wrapperen så .bønn CSS-reglene treffer
+  // (skjuler første header, styler markører, henvisninger osv.). Hvis
+  // blokkene er tomme returner vi tom streng for å unngå en tom artikkel.
+  if (!inner.trim()) return '';
+  return `<article class="bønn">\n${inner}\n</article>`;
 }
 
 /**
