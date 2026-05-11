@@ -247,16 +247,11 @@ export default function Prayers() {
   }, [selectedPrayer, prayerScrollEl]);
 
   const handlePrayerComplete = async () => {
-    console.log('[Prayers] handlePrayerComplete start, user=', user?.id, 'selectedPrayer=', selectedPrayer?.id);
-    if (!user || !selectedPrayer) {
-      console.warn('[Prayers] avbryter — user eller selectedPrayer mangler');
-      return;
-    }
-    if (isPrayerCompleted(selectedPrayer)) {
-      console.log('[Prayers] allerede fullført, hopper over');
-      return;
-    }
-    const duration = Math.round((Date.now() - prayerStartTime) / 60000);
+    if (!user || !selectedPrayer) return;
+    if (isPrayerCompleted(selectedPrayer)) return;
+    // Minst 1 minutt per fullført bønn (en rask scroll skal også
+     // gi et lite avtrykk i totalen)
+    const duration = Math.max(1, Math.round((Date.now() - prayerStartTime) / 60000));
 
     try {
       await db.entities.PrayerLog.create({
@@ -284,8 +279,8 @@ export default function Prayers() {
       }
 
       toast.success('Markert som fullført');
-      closePrayer();
-      setPrayerFullscreen(false);
+      // Lukker IKKE dialogen automatisk — brukeren kan lese videre
+      // eller eksplisitt lukke (krysset, klikk utenfor, Esc).
     } catch (error) {
       console.error('handlePrayerComplete feilet:', error);
       toast.error('Kunne ikke registrere bønnen');
