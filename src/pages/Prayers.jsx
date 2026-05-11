@@ -229,12 +229,16 @@ export default function Prayers() {
   useEffect(() => {
     if (!selectedPrayer) return;
     const el = prayerScrollRef.current;
+    console.log('[Prayers] useEffect scroll-listener, selectedPrayer=', selectedPrayer?.id, 'el=', el);
     if (!el) return;
 
     const handleScroll = () => {
-      if (completionTriggeredRef.current) return;
       const { scrollTop, scrollHeight, clientHeight } = el;
+      const remaining = scrollHeight - clientHeight - scrollTop;
+      console.log('[Prayers] scroll', { scrollTop, scrollHeight, clientHeight, remaining });
+      if (completionTriggeredRef.current) return;
       if (scrollTop + clientHeight >= scrollHeight - 40) {
+        console.log('[Prayers] nådde bunn, trigger handlePrayerComplete');
         completionTriggeredRef.current = true;
         handlePrayerComplete();
       }
@@ -245,9 +249,13 @@ export default function Prayers() {
   }, [selectedPrayer]);
 
   const handlePrayerComplete = async () => {
-    if (!user || !selectedPrayer) return;
+    console.log('[Prayers] handlePrayerComplete start, user=', user?.id, 'selectedPrayer=', selectedPrayer?.id);
+    if (!user || !selectedPrayer) {
+      console.warn('[Prayers] avbryter — user eller selectedPrayer mangler');
+      return;
+    }
     if (isPrayerCompleted(selectedPrayer)) {
-      // Allerede markert — ikke dobbel-skriv
+      console.log('[Prayers] allerede fullført, hopper over');
       return;
     }
     const duration = Math.round((Date.now() - prayerStartTime) / 60000);
