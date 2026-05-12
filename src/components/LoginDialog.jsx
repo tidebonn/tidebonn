@@ -11,24 +11,56 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// Magic-link login. Bruker skriver inn e-post, vi ber Supabase
-// sende en innloggings-lenke. Klikk på lenken i mailen logger
-// brukeren inn og redirecter tilbake til appen.
+// Innlogging: passord (rask, autofylles av Keychain/Android) ELLER
+// magic-link (klikk-i-mail, ingen passord å huske). To likeverdige
+// stier i samme form.
+//
+// Formet er korrekt merket for passord-administratorer:
+//   - autoComplete="email" + autoComplete="current-password"
+//   - <form> rundt alt så autofyll trigger
+//   - method="post" gjør at Safari/iOS godtar autofyll selv om vi
+//     håndterer submit i JS
 export default function LoginDialog({ open, onOpenChange }) {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | sending-pw | sending-link | sent | error
   const [errorMsg, setErrorMsg] = useState('');
 
   const reset = () => {
     setEmail('');
+    setPassword('');
     setStatus('idle');
     setErrorMsg('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handlePasswordLogin = async (e) => {
+    e?.preventDefault?.();
+    if (!email.trim() || !password) return;
+    setStatus('sending-pw');
+    setErrorMsg('');
+    try {
+      const { error } = await db.auth.loginWithPassword(email.trim(), password);
+      if (error) {
+        setStatus('error');
+        setErrorMsg(
+          error.message?.toLowerCase().includes('invalid')
+            ? 'Feil e-post eller passord.'
+            : error.message || 'Kunne ikke logge inn.'
+        );
+      } else {
+        onOpenChange(false);
+        // Refresh så Layout plukker opp ny user.
+        window.location.reload();
+      }
+    } catch (err) {
+      setStatus('error');
+      setErrorMsg(err?.message || 'Uventet feil.');
+    }
+  };
+
+  const handleMagicLink = async () => {
     if (!email.trim()) return;
-    setStatus('sending');
+    setStatus('sending-link');
     setErrorMsg('');
     try {
       const { error } = await db.auth.login(email.trim());
@@ -56,8 +88,7 @@ export default function LoginDialog({ open, onOpenChange }) {
         <DialogHeader>
           <DialogTitle>Logg inn</DialogTitle>
           <DialogDescription>
-            Skriv inn e-postadressen din. Du får tilsendt en lenke som
-            logger deg inn med ett klikk – ingen passord.
+            Bruk passord eller få tilsendt en innloggings-lenke på e-post.
           </DialogDescription>
         </DialogHeader>
 
@@ -69,30 +100,75 @@ export default function LoginDialog({ open, onOpenChange }) {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form
+            onSubmit={handlePasswordLogin}
+            method="post"
+            action="#"
+            className="space-y-3"
+          >
             <div className="space-y-1.5">
               <Label htmlFor="login-email">E-post</Label>
               <Input
                 id="login-email"
+                name="email"
                 type="email"
                 autoComplete="email"
                 placeholder="navn@eksempel.no"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={status === 'sending'}
+                disabled={status === 'sending-pw' || status === 'sending-link'}
               />
             </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="login-password">Passord</Label>
+              <Input
+                id="login-password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Passord"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={status === 'sending-pw' || status === 'sending-link'}
+              />
+            </div>
+
             {status === 'error' && (
               <p className="text-sm text-red-600">{errorMsg}</p>
             )}
-            <Button
-              type="submit"
-              disabled={status === 'sending' || !email.trim()}
-              className="w-full"
-            >
-              {status === 'sending' ? 'Sender …' : 'Send lenke'}
-            </Button>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <Button
+                type="submit"
+                disabled={
+                  !email.trim() ||
+                  !password ||
+                  status === 'sending-pw' ||
+                  status === 'sending-link'
+                }
+              >
+                {status === 'sending-pw' ? 'Logger inn …' : 'Logg inn'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleMagicLink}
+                disabled={
+                  !email.trim() ||
+                  status === 'sending-pw' ||
+                  status === 'sending-link'
+                }
+              >
+                {status === 'sending-link' ? 'Sender …' : 'Send lenke'}
+              </Button>
+            </div>
+
+            <p className="text-xs text-[#B6B9B3] pt-1">
+              Har du ikke passord ennå? Logg inn med lenke først – så kan du
+              sette et passord under Oppsett.
+            </p>
           </form>
         )}
       </DialogContent>

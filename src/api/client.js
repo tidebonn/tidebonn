@@ -3,7 +3,8 @@
 //
 // Fasade:
 //   db.entities.<Name>.{ list, filter, get, create, update, delete }
-//   db.auth.{ me, isAuthenticated, login, logout, redirectToLogin }
+//   db.auth.{ me, isAuthenticated, login, loginWithPassword,
+//             setPassword, logout, updateMe, redirectToLogin }
 //
 // Lesing er offentlig der RLS-policy tillater det (prayers,
 // prayer_series, content_pages). Skriving krever innlogging og
@@ -177,6 +178,20 @@ const auth = {
       email,
       options: { emailRedirectTo: window.location.origin },
     });
+  },
+
+  // Tradisjonell e-post + passord. Returnerer Supabase-svaret slik at
+  // kallesiden kan håndtere { data, error } direkte.
+  async loginWithPassword(email, password) {
+    if (!email || !password) throw new Error('E-post og passord kreves');
+    return sb.auth.signInWithPassword({ email, password });
+  },
+
+  // Sett/endre passord på innlogget bruker. Supabase håndterer hashing
+  // server-side; vi sender bare klartekst over TLS.
+  async setPassword(password) {
+    if (!password) throw new Error('Passord mangler');
+    return sb.auth.updateUser({ password });
   },
 
   async logout() {
