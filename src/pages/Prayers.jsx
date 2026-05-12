@@ -280,6 +280,10 @@ export default function Prayers() {
     const duration = Math.max(1, Math.round((Date.now() - prayerStartTime) / 60000));
 
     try {
+      // Geolokasjon-lookup parallelt med (eller før) loggen.
+      // Stille feil — vi vil aldri at geo skal hindre fullføringen.
+      const geoData = await db.geo.lookup().catch(() => ({}));
+
       await db.entities.PrayerLog.create({
         user_id: user.id,
         prayer_id: selectedPrayer.id,
@@ -288,6 +292,9 @@ export default function Prayers() {
         time_of_day: selectedPrayer.time_of_day,
         duration_minutes: duration,
         completed: true,
+        location_country: geoData?.country ?? null,
+        location_country_code: geoData?.country_code ?? null,
+        location_city: geoData?.city ?? null,
       });
 
       setCompletedPrayers(prev => [...prev, `${selectedPrayer.series_id}-${selectedPrayer.day}-${selectedPrayer.time_of_day}`]);

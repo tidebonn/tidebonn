@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Clock, BookOpen, CheckCircle, Activity, Hourglass } from 'lucide-react';
+import { Users, Clock, BookOpen, Activity, Hourglass, MapPin } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line,
@@ -145,6 +145,25 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     const byReadingMode = Object.entries(readingMap)
       .map(([name, value]) => ({ name: readingLabels[name] || name, value }));
 
+    // Geo-fordeling (fra Edge Function geo-lookup ved fullføring)
+    const countryMap = {};
+    filtered.forEach((l) => {
+      if (l.location_country) countryMap[l.location_country] = (countryMap[l.location_country] || 0) + 1;
+    });
+    const byCountry = Object.entries(countryMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+
+    const cityMap = {};
+    filtered.forEach((l) => {
+      if (l.location_city) cityMap[l.location_city] = (cityMap[l.location_city] || 0) + 1;
+    });
+    const byCity = Object.entries(cityMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+
     // Mest populær bønn (kun navn på serien er kjent her, vi har ikke
     // hentet prayers her — viser kun serie/dag/tid-kombinasjon).
     const prayerCombo = {};
@@ -195,6 +214,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       active24h, active7d, active30d,
       byTime, bySeries, dailyActivity, byHour, byWeekday, byReadingMode,
       topPrayer,
+      byCountry, byCity,
       byGender, byAge,
     };
   }, [filtered, prayerLogs, prayerSeries, userProgressList]);
@@ -435,6 +455,65 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
           </CardContent>
         </Card>
       </div>
+
+      {/* Geo distribution */}
+      {(stats.byCountry.length > 0 || stats.byCity.length > 0) && (
+        <div className="grid md:grid-cols-2 gap-6">
+          {stats.byCountry.length > 0 && (
+            <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#4A6B65]" />
+                  Fordelt på land
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {stats.byCountry.map((item, i) => {
+                    const max = stats.byCountry[0].value;
+                    return (
+                      <div key={item.name} className="flex items-center gap-3">
+                        <span className="text-sm w-32 truncate text-[#4A4A4A] dark:text-gray-300">{item.name}</span>
+                        <div className="flex-1 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-full h-2">
+                          <div className="h-2 rounded-full" style={{ width: `${(item.value / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }} />
+                        </div>
+                        <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {stats.byCity.length > 0 && (
+            <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#BD7B59]" />
+                  Topp byer
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {stats.byCity.map((item, i) => {
+                    const max = stats.byCity[0].value;
+                    return (
+                      <div key={item.name} className="flex items-center gap-3">
+                        <span className="text-sm w-32 truncate text-[#4A4A4A] dark:text-gray-300">{item.name}</span>
+                        <div className="flex-1 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-full h-2">
+                          <div className="h-2 rounded-full" style={{ width: `${(item.value / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }} />
+                        </div>
+                        <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Top prayer */}
       {stats.topPrayer && (

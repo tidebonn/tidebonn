@@ -363,10 +363,46 @@ const auth = {
   },
 };
 
+// Geolokasjon via Supabase Edge Function (get-geolocation).
+// Edge functionen kaller AbstractAPI IP-geolocation med klientens IP
+// fra request-headers. Returnerer { country, country_code, city }.
+// Stille feil — geo er kun for admin-statistikk og må aldri blokkere
+// bønne-fullføring.
+const geo = {
+  async lookup() {
+    try {
+      const {
+        data: { session },
+      } = await sb.auth.getSession();
+      if (!session) return { country: null, city: null };
+
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/get-geolocation`, {
+          method: 'GET',
+          signal: ctrl.signal,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: SUPABASE_KEY,
+          },
+        });
+        if (!res.ok) return { country: null, city: null };
+        return await res.json();
+      } finally {
+        clearTimeout(t);
+      }
+    } catch {
+      return { country: null, city: null };
+    }
+  },
+};
+
 export const db = {
   entities,
   auth,
-  // Tomme stubs for kall som ble fjernet i Fase A (PDF, geo).
+  geo,
+  // Tomme stubs for kall som ble fjernet i Fase A (PDF).
   // Kaster slik at evt. gjenværende referanser blir synlige i runtime.
   integrations: {
     Core: {
