@@ -63,9 +63,10 @@ export default function Home() {
         }
       }
 
-      // Load prayers and active series
+      // Load prayers and active series (skjuler bønner med
+      // is_active=false fra brukervisning)
       const [allPrayers, allSeries] = await Promise.all([
-        db.entities.Prayer.list(),
+        db.entities.Prayer.filter({ is_active: true }),
         db.entities.PrayerSeries.filter({ is_active: true })
       ]);
 
