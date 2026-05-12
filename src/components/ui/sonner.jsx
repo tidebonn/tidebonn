@@ -10,11 +10,16 @@ const Toaster = ({
   return (
     (<Sonner
       theme={theme}
+      // bottom-center på mobil unngår at den tomme toast-containeren
+      // ligger oppå header (z-100 > vår header z-50 og dekket de
+      // øverste ~30px). Brukerne ser uansett enkeltvarsler hvor de
+      // selv velger fokus.
+      position="bottom-center"
       className="toaster group"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg pointer-events-auto",
           description: "group-[.toast]:text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
@@ -22,6 +27,8 @@ const Toaster = ({
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
       }}
+      // Tom container skal aldri fange klikk — bare selve toasten.
+      style={{ pointerEvents: 'none' }}
       {...props} />)
   );
 }
