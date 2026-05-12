@@ -106,11 +106,32 @@ export default function Layout({ children }) {
         }
       `}</style>
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{borderBottom: '0.5px solid #DECCB4'}}>
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between" style={{height: '3.25rem'}}>
-          {/* Logo */}
-          <Link to={createPageUrl('Home')} className="text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', textDecoration: 'none'}}>
+      {/* Header — w-full + box-sizing eksplisitt så vi vet at den
+          alltid dekker viewport-bredden. Tidligere oppførsel: hele
+          header-elementet var smalere enn skjermen på mobil, så hit-
+          areas så ut til å være kuttet til en tredjedel. */}
+      <header className="sticky top-0 z-50 w-full bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{borderBottom: '0.5px solid #DECCB4', boxSizing: 'border-box'}}>
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between w-full" style={{height: '3.25rem', boxSizing: 'border-box'}}>
+          {/* Logo — display:flex + height:100% gjør at hele
+              headerhøyden (52px) er klikkbar, ikke bare bokstavenes
+              ~14px. paddingRight gir også slingringsmonn til høyre
+              for den ytre justify-between. */}
+          <Link
+            to={createPageUrl('Home')}
+            className="text-[#2C2C2A] dark:text-[#F4F0E9]"
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
+              paddingRight: '1rem',
+            }}
+          >
             TIDEBØNN
           </Link>
 
