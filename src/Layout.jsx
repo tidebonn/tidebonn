@@ -5,8 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 
 import { Menu, X, Home, BookOpen, Info, Settings, Heart, Users, LogOut, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import LoginDialog from '@/components/LoginDialog';
 
@@ -109,7 +108,7 @@ export default function Layout({ children }) {
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{borderBottom: '0.5px solid #DECCB4'}}>
-        <div className="max-w-4xl mx-auto px-4" style={{height: '3.25rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center'}}>
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between" style={{height: '3.25rem'}}>
           {/* Logo */}
           <Link to={createPageUrl('Home')} className="text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', textDecoration: 'none'}}>
             TIDEBØNN
@@ -160,12 +159,10 @@ export default function Layout({ children }) {
             </>}
           </nav>
 
-          {/* Right: user icon + mobile menu.
-              w-full + justify-end er kritisk — uten det blir flex-
-              containeren content-sized og kollapser til venstre i
-              sin grid-celle, så hamburgeren havner i midten av
-              skjermen i stedet for på høyre kant. */}
-          <div className="flex items-center justify-end gap-1 w-full">
+          {/* Right side: desktop login/logout + mobile hamburger.
+              Med flex justify-between på parent kommer denne diven
+              automatisk til høyre kant. */}
+          <div className="flex items-center gap-1">
             {user ? (
               <button onClick={handleLogout} className="hidden md:flex items-center text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
@@ -176,22 +173,35 @@ export default function Layout({ children }) {
               </button>
             )}
 
-            {/* Mobile Menu — alltid synlig på mobil (også innlogget),
-                logg-ut ligger inne i menyen. Plain <button> i stedet
-                for shadcn Button fordi sistnevntes 'size=icon' (h-9
-                w-9 = 36px) overstyrte h-11 og kappet hit-targetet
-                til en tredjedel. Her får vi garantert 44×44px hele
-                veien, mens Menu-ikonet visuelt er w-5 h-5 (20px). */}
+            {/* Mobile hamburger — inline-styles for å garantere
+                44×44px hit target uten å bli overstyrt av Tailwind
+                eller cva-variants. State-styrt Sheet (ikke asChild)
+                så onClick går rett på vår button uten Radix-Slot
+                i mellom. */}
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              aria-label="Åpne meny"
+              className="md:hidden"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '44px',
+                height: '44px',
+                marginRight: '-0.5rem',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                color: 'currentColor',
+                cursor: 'pointer',
+                borderRadius: '4px',
+              }}
+            >
+              <Menu className="w-5 h-5 text-[#2C2C2A] dark:text-[#F4F0E9]" />
+            </button>
+
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Åpne meny"
-                  className="md:hidden inline-flex items-center justify-center h-11 w-11 -mr-2 rounded text-[#2C2C2A] dark:text-[#F4F0E9] hover:bg-[#DECCB4]/30 active:bg-[#DECCB4]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6B65]"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
-              </SheetTrigger>
               <SheetContent side="right" className="w-64 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{border: 'none'}}>
                 {/* Radix krever DialogTitle/Description for skjerm-
                     lesere — visuelt skjult med sr-only. */}
