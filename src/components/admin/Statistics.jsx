@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line, Legend
 } from 'recharts';
 
-const COLORS = ['#6B9EA0', '#C8602A', '#89B5B7', '#4D8082', '#A8CBCD', '#E8A87C', '#2D6A6C', '#F0C9A0'];
+const COLORS = ['#4A6B65', '#BD7B59', '#7A9690', '#3a5550', '#A8CBCD', '#DECCB4', '#2D5450', '#E8A87C'];
 
 const PERIOD_OPTIONS = [
   { id: 'all', label: 'Totalt' },
@@ -28,9 +28,9 @@ function filterByPeriod(logs, period) {
   return logs.filter(l => new Date(l.created_date) >= cutoff);
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = '#6B9EA0' }) {
+function StatCard({ icon: Icon, label, value, sub, color = '#4A6B65' }) {
   return (
-    <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+    <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardContent className="pt-5 pb-4">
         <div className="flex items-start justify-between">
           <div>
@@ -172,7 +172,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             onClick={() => setPeriod(opt.id)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               period === opt.id
-                ? 'bg-[#6B9EA0] text-white'
+                ? 'bg-[#4A6B65] text-[#F4F0E9]'
                 : 'bg-[#E8E3DC] dark:bg-[#2A2A2A] text-[#4A4A4A] dark:text-gray-300 hover:bg-[#DDD8D0]'
             }`}
           >
@@ -184,31 +184,31 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       {/* Key metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={BookOpen} label="Bønner totalt" value={stats.totalPrayers} />
-        <StatCard icon={CheckCircle} label="Fullført" value={stats.completed} sub={stats.totalPrayers > 0 ? `${Math.round(stats.completed / stats.totalPrayers * 100)}%` : '–'} color="#C8602A" />
+        <StatCard icon={CheckCircle} label="Fullført" value={stats.completed} sub={stats.totalPrayers > 0 ? `${Math.round(stats.completed / stats.totalPrayers * 100)}%` : '–'} color="#BD7B59" />
         <StatCard icon={Clock} label="Tid i bønn" value={timeStr} sub={`${stats.totalMinutes} minutter`} color="#4D8082" />
         <StatCard icon={Users} label="Unike brukere" value={stats.uniqueUsers} sub={totalUsers > 0 ? `${totalUsers} brukere totalt` : undefined} />
       </div>
 
       {/* Active users */}
-      <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+      <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm text-[#1A1A1A] dark:text-white flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#6B9EA0]" />
+          <CardTitle className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#4A6B65]" />
             Aktive brukere
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#6B9EA0]">{stats.active24h}</p>
+              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active24h}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 24 timer</p>
             </div>
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#6B9EA0]">{stats.active7d}</p>
+              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active7d}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 7 dager</p>
             </div>
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#6B9EA0]">{stats.active30d}</p>
+              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active30d}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 30 dager</p>
             </div>
           </div>
@@ -217,18 +217,18 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
       {/* Daily activity chart */}
       {stats.dailyActivity.length > 0 && (
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm">Daglig aktivitet</CardTitle>
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Daglig aktivitet</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={stats.dailyActivity}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D8" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#DECCB4" />
                 <XAxis dataKey="date" stroke="#6A6A6A" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#6A6A6A" tick={{ fontSize: 11 }} allowDecimals={false} />
                 <Tooltip />
-                <Line type="monotone" dataKey="count" stroke="#6B9EA0" strokeWidth={2} dot={false} name="Bønner" />
+                <Line type="monotone" dataKey="count" stroke="#4A6B65" strokeWidth={2} dot={false} name="Bønner" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -237,18 +237,18 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* By time of day */}
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm">Bønner bedt per tidebønn</CardTitle>
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Bønner bedt per tidebønn</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={stats.byTime} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D8" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#DECCB4" />
                 <XAxis type="number" stroke="#6A6A6A" tick={{ fontSize: 11 }} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" stroke="#6A6A6A" tick={{ fontSize: 11 }} width={90} />
                 <Tooltip />
-                <Bar dataKey="count" fill="#6B9EA0" radius={[0, 4, 4, 0]} name="Antall" />
+                <Bar dataKey="count" fill="#4A6B65" radius={[0, 4, 4, 0]} name="Antall" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -256,9 +256,9 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
         {/* By series */}
         {stats.bySeries.length > 0 && (
-          <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+          <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A] dark:text-white text-sm">Bønner bedt per serie</CardTitle>
+              <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Bønner bedt per serie</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
@@ -281,10 +281,10 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
       {/* Gender & Age */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#6B9EA0]" />
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#4A6B65]" />
               Kjønnsfordeling (registrerte brukere)
             </CardTitle>
           </CardHeader>
@@ -301,7 +301,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
                       <div className="flex-1 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-full h-2">
                         <div className="h-2 rounded-full" style={{ width: `${(item.value / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }} />
                       </div>
-                      <span className="text-sm font-medium text-[#1A1A1A] dark:text-white w-8 text-right">{item.value}</span>
+                      <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.value}</span>
                     </div>
                   );
                 })}
@@ -310,9 +310,9 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
           </CardContent>
         </Card>
 
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm">Aldersfordeling (registrerte brukere)</CardTitle>
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Aldersfordeling (registrerte brukere)</CardTitle>
           </CardHeader>
           <CardContent>
             {stats.byAge.length === 0 ? (
@@ -320,11 +320,11 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             ) : (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={stats.byAge}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E8E0D8" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#DECCB4" />
                   <XAxis dataKey="name" stroke="#6A6A6A" tick={{ fontSize: 11 }} />
                   <YAxis stroke="#6A6A6A" tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#C8602A" radius={[4, 4, 0, 0]} name="Antall" />
+                  <Bar dataKey="count" fill="#BD7B59" radius={[4, 4, 0, 0]} name="Antall" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -334,10 +334,10 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
       {/* Geolocation */}
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#6B9EA0]" />
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#4A6B65]" />
               Fordelt på land
             </CardTitle>
           </CardHeader>
@@ -357,7 +357,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
                           style={{ width: `${(item.value / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-[#1A1A1A] dark:text-white w-8 text-right">{item.value}</span>
+                      <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.value}</span>
                     </div>
                   );
                 })}
@@ -366,10 +366,10 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
           </CardContent>
         </Card>
 
-        <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
-            <CardTitle className="text-[#1A1A1A] dark:text-white text-sm flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#C8602A]" />
+            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#BD7B59]" />
               Topp byer
             </CardTitle>
           </CardHeader>
@@ -389,7 +389,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
                           style={{ width: `${(item.value / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-[#1A1A1A] dark:text-white w-8 text-right">{item.value}</span>
+                      <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.value}</span>
                     </div>
                   );
                 })}

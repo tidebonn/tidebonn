@@ -2,10 +2,10 @@ import db from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 
-import { 
-  BarChart3, Users, BookOpen, FileEdit, Plus, Trash2, Save, 
+import {
+  BarChart3, Users, BookOpen, FileEdit, Plus, Trash2, Save,
   Loader2, ChevronDown, ChevronRight, Shield, UserCog,
-  Eye, EyeOff, RotateCcw, Search
+  Eye, EyeOff, RotateCcw, Search, CalendarDays, Clock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ import Statistics from '../components/admin/Statistics';
 import PrayerContent from '../components/prayer/PrayerContent';
 import SeriesStartDatePicker from '../components/admin/SeriesStartDatePicker';
 
-const COLORS = ['#6B9EA0', '#89B5B7', '#4D8082', '#A8CBCD', '#C8602A'];
+const COLORS = ['#4A6B65', '#7A9690', '#3a5550', '#BD7B59', '#B6B9B3'];
 
 export default function Admin() {
   const [user, setUser] = useState(null);
@@ -389,7 +389,7 @@ export default function Admin() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-[#6B9EA0] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#4A6B65] animate-spin" />
       </div>
     );
   }
@@ -397,8 +397,8 @@ export default function Admin() {
   if (!user || user.role !== 'admin') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <Shield className="w-16 h-16 text-[#6B9EA0] mx-auto mb-4" />
-        <h2 className="text-2xl font-semibold text-[#1A1A1A] dark:text-white mb-4">
+        <Shield className="w-16 h-16 text-[#4A6B65] mx-auto mb-4" />
+        <h2 className="text-2xl font-semibold text-[#2C2C2A] dark:text-[#F4F0E9] mb-4">
           Ingen tilgang
         </h2>
         <p className="text-[#6A6A6A] dark:text-gray-400">
@@ -409,7 +409,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -417,7 +417,10 @@ export default function Admin() {
       >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-[#1A1A1A] dark:text-white mb-2">
+            <h1
+              style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem', marginBottom: '0.75rem'}}
+              className="text-[#2C2C2A] dark:text-[#F4F0E9]"
+            >
               Administrasjon
             </h1>
             <Badge style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className="border-0">
@@ -428,24 +431,24 @@ export default function Admin() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-8 bg-transparent p-0 h-auto" style={{borderBottom: '1px solid #DECCB4'}}>
-            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? '2px solid #BD7B59' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
               <BarChart3 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Statistikk</span>
             </TabsTrigger>
-            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? '2px solid #BD7B59' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
               <BookOpen className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønneserier</span>
             </TabsTrigger>
-            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? '2px solid #BD7B59' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønner</span>
             </TabsTrigger>
-            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? '2px solid #BD7B59' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Innhold</span>
             </TabsTrigger>
             {user.is_superadmin && (
-              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? '2px solid #BD7B59' : '2px solid transparent', marginBottom: '-1px'}}>
+              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
                 <Users className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Brukere</span>
               </TabsTrigger>
@@ -464,9 +467,9 @@ export default function Admin() {
 
           {/* Prayer Series Tab */}
           <TabsContent value="series">
-            <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+            <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
               <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">
-                <CardTitle className="text-[#1A1A1A] dark:text-white">Bønneserier</CardTitle>
+                <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Bønneserier</CardTitle>
                 <Button 
                   onClick={() => setEditingSeries({ 
                     title: '', 
@@ -480,7 +483,7 @@ export default function Admin() {
                     start_time: 'laudes',
                     is_active: true
                   })}
-                  className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Ny serie
@@ -673,7 +676,7 @@ export default function Admin() {
                           <Button 
                             onClick={handleSaveSeries}
                             disabled={saving}
-                            className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                            className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                           >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             Lagre
@@ -687,11 +690,11 @@ export default function Admin() {
                   {prayerSeries
                     .filter(s => !s.deleted_at)
                     .map(series => (
-                    <Card key={series.id} className="p-4 border-[#E8E0D8] dark:border-gray-700">
+                    <Card key={series.id} className="p-4 border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-[#1A1A1A] dark:text-white">{series.title}</h3>
+                            <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{series.title}</h3>
                             {series.is_active ? (
                               <Badge className="border-0" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Aktiv</Badge>
                             ) : (
@@ -699,15 +702,20 @@ export default function Admin() {
                             )}
                           </div>
                           <p className="text-sm text-[#6A6A6A] dark:text-gray-400 mb-2">{series.description}</p>
-                          <div className="flex flex-wrap gap-2 text-xs text-[#6A6A6A] dark:text-gray-400">
-                            <span>📅 {series.sort_by === 'weeks' ? `${series.total_weeks || 4} uker` : `${series.total_days} dager`}</span>
-                            <span>•</span>
-                            <span>🙏 {(series.available_prayer_times || []).length} bønnetider</span>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#6A6A6A] dark:text-gray-400">
+                            <span className="inline-flex items-center gap-1.5">
+                              <CalendarDays className="w-3.5 h-3.5" />
+                              {series.sort_by === 'weeks' ? `${series.total_weeks || 4} uker` : `${series.total_days} dager`}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5" />
+                              {(series.available_prayer_times || []).length} bønnetider
+                            </span>
                             {series.author && (
-                              <>
-                                <span>•</span>
-                                <span>✍️ {series.author}</span>
-                              </>
+                              <span className="inline-flex items-center gap-1.5">
+                                <UserCog className="w-3.5 h-3.5" />
+                                {series.author}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -762,7 +770,7 @@ export default function Admin() {
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 opacity-60">
                                   <div className="flex items-center gap-3 mb-2">
-                                    <h3 className="font-semibold text-[#1A1A1A] dark:text-white">{series.title}</h3>
+                                    <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{series.title}</h3>
                                     <Badge variant="outline" className="text-red-600 border-red-300">
                                       Slettes om {daysLeft} {daysLeft === 1 ? 'dag' : 'dager'}
                                     </Badge>
@@ -802,10 +810,10 @@ export default function Admin() {
 
           {/* Prayers Tab */}
           <TabsContent value="prayers">
-            <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+            <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
               <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4 flex-wrap">
-                  <CardTitle className="text-[#1A1A1A] dark:text-white">Bønner</CardTitle>
+                  <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Bønner</CardTitle>
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -817,7 +825,7 @@ export default function Admin() {
                       content_type: 'freetext',
                       free_text_content: ''
                     })}
-                    className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                    className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                     >
                     <Plus className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Ny bønn</span>
@@ -935,7 +943,7 @@ export default function Admin() {
                           <Button 
                             onClick={handleSavePrayer}
                             disabled={saving}
-                            className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                            className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                           >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             Lagre
@@ -1009,13 +1017,13 @@ export default function Admin() {
                       });
 
                       return (
-                        <Card key={series.id} className="border-[#E8E0D8] dark:border-gray-800">
+                        <Card key={series.id} className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
                           <CardHeader 
                             className="cursor-pointer hover:bg-[#F5F0EB] dark:hover:bg-[#2A2A2A] transition-colors"
                             onClick={() => setCollapsedSeries({...collapsedSeries, [series.id]: !collapsedSeries[series.id]})}
                           >
                             <div className="flex items-center justify-between">
-                              <CardTitle className="text-lg text-[#1A1A1A] dark:text-white">
+                              <CardTitle className="text-lg text-[#2C2C2A] dark:text-[#F4F0E9]">
                                 {series.title}
                               </CardTitle>
                               <div className="flex items-center gap-2">
@@ -1081,11 +1089,11 @@ export default function Admin() {
                                                       />
                                                       <div className="flex-1">
                                                         <div className="flex items-center gap-2">
-                                                          <span className="text-xs font-medium uppercase text-[#6B9EA0] shrink-0">
+                                                          <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
                                                             <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Sek','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                             <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
                                                           </span>
-                                                          <span className="text-sm text-[#1A1A1A] dark:text-white">{prayer.title}</span>
+                                                          <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
                                                           {prayer.is_active === false && (
                                                             <Badge className="border-0 text-xs" style={{backgroundColor: '#B6B9B3', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Skjult</Badge>
                                                           )}
@@ -1179,14 +1187,14 @@ export default function Admin() {
                           });
 
                           return (
-                            <Card key={series.id} className="border-[#E8E0D8] dark:border-gray-800 opacity-80">
+                            <Card key={series.id} className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] opacity-80">
                               <CardHeader
                                 className="cursor-pointer hover:bg-[#F5F0EB] dark:hover:bg-[#2A2A2A] transition-colors"
                                 onClick={() => setCollapsedSeries({...collapsedSeries, [`hidden-${series.id}`]: !collapsedSeries[`hidden-${series.id}`]})}
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
-                                    <CardTitle className="text-lg text-[#1A1A1A] dark:text-white">{series.title}</CardTitle>
+                                    <CardTitle className="text-lg text-[#2C2C2A] dark:text-[#F4F0E9]">{series.title}</CardTitle>
                                     <Badge variant="outline" className="text-[#6A6A6A]">Skjult</Badge>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -1246,11 +1254,11 @@ export default function Admin() {
                                                               }}
                                                               className="w-4 h-4 rounded border-gray-300"
                                                             />
-                                                            <span className="text-xs font-medium uppercase text-[#6B9EA0] shrink-0">
+                                                            <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
                                                               <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Sek','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                               <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
                                                             </span>
-                                                            <span className="text-sm text-[#1A1A1A] dark:text-white">{prayer.title}</span>
+                                                            <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
                                                           </div>
                                                           <div className="flex gap-1">
                                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setPreviewingPrayer(prayer)} title="Forhåndsvisning">
@@ -1419,12 +1427,12 @@ export default function Admin() {
 
           {/* Content Tab */}
           <TabsContent value="content">
-            <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+            <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-[#1A1A1A] dark:text-white">Innholdssider</CardTitle>
+                <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Innholdssider</CardTitle>
                 <Button 
                   onClick={() => setEditingPage({ slug: '', title: '', content: '' })}
-                   className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                   className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Ny side
@@ -1433,10 +1441,10 @@ export default function Admin() {
               <CardContent>
                 <div className="space-y-4">
                   {contentPages.map(page => (
-                    <Card key={page.id} className="p-4 border-[#E8E0D8] dark:border-gray-700">
+                    <Card key={page.id} className="p-4 border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-[#1A1A1A] dark:text-white">{page.title}</h3>
+                          <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{page.title}</h3>
                           <p className="text-sm text-[#6A6A6A] dark:text-gray-400">/{page.slug}</p>
                         </div>
                         <Button variant="ghost" onClick={() => setEditingPage(page)}>
@@ -1490,7 +1498,7 @@ export default function Admin() {
                       <Button 
                         onClick={handleSavePage}
                         disabled={saving}
-                        className="bg-[#6B9EA0] hover:bg-[#4D8082]"
+                        className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
                       >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                         Lagre
@@ -1505,10 +1513,10 @@ export default function Admin() {
           {/* Users Tab (Superadmin only) */}
           {user.is_superadmin && (
             <TabsContent value="users">
-              <Card className="border-[#E8E0D8] dark:border-gray-800 bg-white dark:bg-[#2A2A2A]">
+              <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
                 <CardHeader>
-                  <CardTitle className="text-[#1A1A1A] dark:text-white flex items-center gap-2">
-                    <UserCog className="w-5 h-5 text-[#6B9EA0]" />
+                  <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
+                    <UserCog className="w-5 h-5 text-[#4A6B65]" />
                     Brukerstyring
                   </CardTitle>
                 </CardHeader>
