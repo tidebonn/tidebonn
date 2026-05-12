@@ -2,7 +2,7 @@ import db from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 
-import { User, Moon, Sun, Monitor, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Moon, Sun, Monitor, BookOpen, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,38 @@ export default function Settings() {
   const [completedLogs, setCompletedLogs] = useState([]);
   const [showIncomplete, setShowIncomplete] = useState(false);
   const [loadingIncomplete, setLoadingIncomplete] = useState(false);
+
+  // Password change
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const handleSavePassword = async (e) => {
+    e?.preventDefault?.();
+    if (!newPassword || newPassword.length < 8) {
+      toast.error('Passordet må være minst 8 tegn');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passordene er ikke like');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const { error } = await db.auth.setPassword(newPassword);
+      if (error) {
+        toast.error(error.message || 'Kunne ikke lagre passord');
+      } else {
+        toast.success('Passord lagret');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Kunne ikke lagre passord');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -217,6 +249,70 @@ export default function Settings() {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Password */}
+          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+                <Lock className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                Passord
+              </CardTitle>
+              <CardDescription>Sett eller endre passord (minst 8 tegn). Du kan også logge inn med magic-link.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSavePassword} method="post" action="#" className="space-y-3">
+                {/* Skjult username-felt så passord-administratorer (macOS
+                    Keychain, Android Autofill, 1Password osv.) knytter
+                    passordet til riktig konto. */}
+                <input
+                  type="text"
+                  name="username"
+                  autoComplete="username"
+                  value={user?.email || ''}
+                  readOnly
+                  tabIndex={-1}
+                  style={{ position: 'absolute', left: '-9999px', height: 0, width: 0, opacity: 0 }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="newPassword">Nytt passord</Label>
+                    <Input
+                      id="newPassword"
+                      name="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
+                      disabled={savingPassword}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Bekreft passord</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
+                      disabled={savingPassword}
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={savingPassword || !newPassword || !confirmPassword}
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                >
+                  {savingPassword ? 'Lagrer …' : 'Lagre passord'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 
