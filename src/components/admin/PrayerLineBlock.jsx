@@ -7,6 +7,7 @@ const MARKERS = ['', 'A', 'L', 'L+A', 'I', 'II'];
 const MARKER_NONE = '__none__';
 const P_CLASSES = [
   { value: 'strofe', label: 'Strofe' },
+  { value: 'strofe-nomargin', label: 'Strofe (no-margin)' },
   { value: 'veksellesning', label: 'Veksellesning' },
   { value: 'antifontekst', label: 'Antifon' },
   { value: 'info', label: 'Info' },

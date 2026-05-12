@@ -107,7 +107,8 @@ export default function Prayers() {
 
       setSelectedSeries(chosenSeriesId);
 
-      const allPrayers = await db.entities.Prayer.list();
+      // Filter ut bønner som er skjult i admin (is_active=false)
+      const allPrayers = await db.entities.Prayer.filter({ is_active: true });
       const activePrayers = allPrayers.filter(p => !p.deleted_at);
       setPrayers(activePrayers);
 

@@ -102,7 +102,7 @@ export default function Settings() {
     setLoadingIncomplete(true);
     try {
       const [allPrayers, logs] = await Promise.all([
-        db.entities.Prayer.filter({ series_id: selectedSeries }),
+        db.entities.Prayer.filter({ series_id: selectedSeries, is_active: true }),
         db.entities.PrayerLog.filter({ user_id: user.id, series_id: selectedSeries, completed: true })
       ]);
       setSeriesPrayers(allPrayers.filter(p => !p.deleted_at));
