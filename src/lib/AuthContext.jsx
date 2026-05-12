@@ -11,7 +11,11 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  // Starter på false: appen rendres umiddelbart. user-state
+  // populeres i bakgrunnen av me() / onAuthStateChange. Header
+  // viser "Logg inn" et øyeblikk før det evt. flipper til
+  // "Logg ut" — bedre UX enn 6-sek spinner ved første load.
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   // Disse to feltene var Base44-spesifikke (app config + auth-feil
   // fra hosted endpoint). Vi beholder dem som no-op for at App.jsx
   // og pages skal kunne destrukturere uten å krasje.
@@ -19,21 +23,10 @@ export const AuthProvider = ({ children }) => {
   const [authError] = useState(null);
   const [appPublicSettings] = useState(null);
 
-  // Initial sjekk + abonnement på auth-endringer
+  // Initial sjekk + abonnement på auth-endringer.
+  // Kjører i bakgrunnen — appen er allerede rendret når dette starter.
   useEffect(() => {
     let mounted = true;
-
-    // Watchdog: garanter at appen rendrer innen 6 sek selv om
-    // db.auth.me() henger (Supabase JS init-bug kan blokkere
-    // første load). User-state oppdateres senere når me() lander
-    // eller via onAuthStateChange.
-    const watchdog = setTimeout(() => {
-      if (mounted) {
-        // eslint-disable-next-line no-console
-        console.warn('AuthContext watchdog: tvinger isLoadingAuth=false etter 6s');
-        setIsLoadingAuth(false);
-      }
-    }, 6000);
 
     (async () => {
       try {
@@ -44,11 +37,6 @@ export const AuthProvider = ({ children }) => {
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('Auth-init feilet:', e);
-      } finally {
-        if (mounted) {
-          clearTimeout(watchdog);
-          setIsLoadingAuth(false);
-        }
       }
     })();
 
@@ -74,7 +62,6 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      clearTimeout(watchdog);
       subscription?.subscription?.unsubscribe?.();
     };
   }, []);
