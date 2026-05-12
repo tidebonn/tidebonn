@@ -160,8 +160,12 @@ export default function Layout({ children }) {
             </>}
           </nav>
 
-          {/* Right: user icon + mobile menu */}
-          <div className="flex items-center justify-end gap-1">
+          {/* Right: user icon + mobile menu.
+              w-full + justify-end er kritisk — uten det blir flex-
+              containeren content-sized og kollapser til venstre i
+              sin grid-celle, så hamburgeren havner i midten av
+              skjermen i stedet for på høyre kant. */}
+          <div className="flex items-center justify-end gap-1 w-full">
             {user ? (
               <button onClick={handleLogout} className="hidden md:flex items-center text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
@@ -174,14 +178,16 @@ export default function Layout({ children }) {
 
             {/* Mobile Menu — alltid synlig på mobil (også innlogget),
                 logg-ut ligger inne i menyen så hamburgeren ikke
-                forsvinner. Tidligere bug: color: #F4F0E9 gjorde
-                ikonet usynlig på cream-bakgrunn i light mode. */}
+                forsvinner. h-11 w-11 = 44×44px = Apples anbefalte
+                minimum touch target, mens Menu-ikonet visuelt fortsatt
+                er w-5 h-5 (20px). Ekstra unngåelig "padding" gjør at
+                tommelen treffer fint. */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden text-[#2C2C2A] dark:text-[#F4F0E9]"
+                  className="md:hidden h-11 w-11 -mr-2 text-[#2C2C2A] dark:text-[#F4F0E9]"
                 >
                   <Menu className="w-5 h-5" />
                 </Button>
