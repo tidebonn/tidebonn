@@ -34,6 +34,38 @@ function filterByPeriod(logs, period) {
   });
 }
 
+function CompactStatList({ title, data, valueKey = 'count' }) {
+  const total = data.reduce((s, d) => s + (d[valueKey] || 0), 0);
+  return (
+    <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {data.length === 0 ? (
+          <p className="text-sm text-[#6A6A6A] dark:text-gray-400 italic">Ingen data ennå</p>
+        ) : (
+          <div className="space-y-2">
+            {data.map((item, i) => {
+              const v = item[valueKey] || 0;
+              const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+              return (
+                <div key={item.name} className="flex items-center gap-3">
+                  <span className="text-sm flex-1 truncate text-[#4A4A4A] dark:text-gray-300">{item.name}</span>
+                  <div className="w-16 sm:w-20 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-full h-1.5">
+                    <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }} />
+                  </div>
+                  <span className="text-xs w-14 text-right text-[#6A6A6A] dark:text-gray-400 tabular-nums">{v} ({pct}%)</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function StatCard({ icon: Icon, label, value, sub, color = '#4A6B65' }) {
   return (
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
@@ -138,12 +170,18 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     // Reading mode
     const readingMap = {};
     filtered.forEach((l) => {
-      const r = l.reading_mode || 'ukjent';
+      const r = l.reading_mode || 'ikke_satt';
       readingMap[r] = (readingMap[r] || 0) + 1;
     });
-    const readingLabels = { alone: 'Alene', together: 'Sammen', ukjent: 'Ukjent' };
+    const readingLabels = {
+      alone: 'Alene',
+      together: 'Sammen',
+      group: 'Sammen',
+      ikke_satt: 'Ikke spesifisert',
+    };
     const byReadingMode = Object.entries(readingMap)
-      .map(([name, value]) => ({ name: readingLabels[name] || name, value }));
+      .map(([name, value]) => ({ name: readingLabels[name] || name, value }))
+      .sort((a, b) => b.value - a.value);
 
     // Geo-fordeling (fra Edge Function geo-lookup ved fullføring)
     const countryMap = {};
@@ -334,74 +372,12 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
         </Card>
       </div>
 
-      {/* By time-of-day + reading mode */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-          <CardHeader>
-            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Bønner per tidebønn</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={stats.byTime} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#DECCB4" />
-                <XAxis type="number" stroke="#6A6A6A" tick={{ fontSize: 11 }} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" stroke="#6A6A6A" tick={{ fontSize: 11 }} width={90} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#4A6B65" radius={[0, 4, 4, 0]} name="Antall" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {stats.byReadingMode.length > 0 && (
-          <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Lesemodus</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={stats.byReadingMode}
-                    cx="50%" cy="50%" outerRadius={80} dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {stats.byReadingMode.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+      {/* Tre kompakte stat-lister side om side: tidebønn, lesemodus, serie */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <CompactStatList title="Per tidebønn" data={stats.byTime} valueKey="count" />
+        <CompactStatList title="Lesemodus" data={stats.byReadingMode} valueKey="value" />
+        <CompactStatList title="Per serie" data={stats.bySeries} valueKey="value" />
       </div>
-
-      {/* By series */}
-      {stats.bySeries.length > 0 && (
-        <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-          <CardHeader>
-            <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm">Bønner per serie</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie data={stats.bySeries} cx="50%" cy="50%" outerRadius={90} dataKey="value"
-                  label={({ name, percent }) => `${name.length > 14 ? name.slice(0, 14) + '…' : name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {stats.bySeries.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Gender & Age */}
       <div className="grid md:grid-cols-2 gap-6">
