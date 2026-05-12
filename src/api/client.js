@@ -189,9 +189,39 @@ const auth = {
 
   // Sett/endre passord på innlogget bruker. Supabase håndterer hashing
   // server-side; vi sender bare klartekst over TLS.
+  //
+  // OBS: sb.auth.updateUser har historisk hengt for dette prosjektet
+  // (samme grunn til at updateMe bypasser auth-API for profil-felt).
+  // Vi gjør tre ting for å være robuste:
+  //   1) refreshSession() først så vi vet at JWT er gyldig
+  //   2) Promise.race med 15s timeout så UI ikke står og spinner evig
+  //   3) returnerer { data, error } strukturen kallesiden forventer
   async setPassword(password) {
     if (!password) throw new Error('Passord mangler');
-    return sb.auth.updateUser({ password });
+
+    try {
+      await sb.auth.refreshSession();
+    } catch (e) {
+      // Ikke fatalt — vi prøver updateUser uansett.
+      // eslint-disable-next-line no-console
+      console.warn('setPassword: refreshSession feilet, prøver likevel', e);
+    }
+
+    const updatePromise = sb.auth.updateUser({ password });
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            data: null,
+            error: new Error(
+              'Tidsavbrudd mot Supabase – ingen bekreftelse på 15 sek. Prøv igjen om litt.'
+            ),
+          }),
+        15000
+      )
+    );
+
+    return Promise.race([updatePromise, timeoutPromise]);
   },
 
   async logout() {
