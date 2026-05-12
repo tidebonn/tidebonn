@@ -314,7 +314,8 @@ export default function Prayers() {
         }));
       }
 
-      toast.success('Markert som fullført');
+      // Ingen toast — fullføring er stille, brukeren ser hake-ikonet
+      // andre steder hvis ønskelig. Tellingen skjer i bakgrunnen.
       // Lukker IKKE dialogen automatisk — brukeren kan lese videre
       // eller eksplisitt lukke (krysset, klikk utenfor, Esc).
     } catch (error) {
