@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
+import LoginDialog from '@/components/LoginDialog';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -37,6 +38,10 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
+
+  // Lokal LoginDialog (når brukeren ikke er innlogget og trykker
+  // 'Logg inn'-knappen midt på Settings-siden).
+  const [loginOpen, setLoginOpen] = useState(false);
 
   const handleSavePassword = async (e) => {
     e?.preventDefault?.();
@@ -183,9 +188,20 @@ export default function Settings() {
 
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-semibold text-[#1A1A1A] dark:text-white mb-4">Logg inn for å se innstillinger</h2>
-        <Button onClick={() => db.auth.redirectToLogin()} className="bg-[#6B9EA0] hover:bg-[#4D8082]">Logg inn</Button>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <h2
+          style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '1.75rem', marginBottom: '1.5rem'}}
+          className="text-[#2C2C2A] dark:text-[#F4F0E9]"
+        >
+          Logg inn for å se innstillinger
+        </h2>
+        <Button
+          onClick={() => setLoginOpen(true)}
+          className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+        >
+          Logg inn
+        </Button>
+        <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
       </div>
     );
   }
