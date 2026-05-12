@@ -165,11 +165,17 @@ const entities = new Proxy(
 
 const auth = {
   async me() {
-    // getSession() leser fra localStorage uten nettverkskall — mye
-    // raskere enn getUser() som validerer JWT mot Supabase.
-    const {
-      data: { session },
-    } = await sb.auth.getSession();
+    // getSession() skal lese fra localStorage uten nettverkskall, men
+    // Supabase JS sin init-pipeline kan blokkere første kall etter
+    // page load — gi den 3s, fall ellers tilbake til null-session så
+    // appen rendrer.
+    const sessionResult = await withTimeout(sb.auth.getSession(), 3000);
+    if (sessionResult?.__timeout) {
+      // eslint-disable-next-line no-console
+      console.warn('me(): getSession timeout 3s, returnerer null');
+      return null;
+    }
+    const session = sessionResult?.data?.session;
     const user = session?.user;
     if (!user) return null;
 
