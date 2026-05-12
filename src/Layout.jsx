@@ -5,7 +5,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 
 import { Menu, X, Home, BookOpen, Info, Settings, Heart, Users, LogOut, User } from 'lucide-react';
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import LoginDialog from '@/components/LoginDialog';
 
@@ -194,35 +195,19 @@ export default function Layout({ children }) {
               </button>
             )}
 
-            {/* Mobile hamburger — inline-styles for å garantere
-                44×44px hit target uten å bli overstyrt av Tailwind
-                eller cva-variants. State-styrt Sheet (ikke asChild)
-                så onClick går rett på vår button uten Radix-Slot
-                i mellom. */}
-            <button
-              type="button"
-              onClick={() => setIsOpen(true)}
-              aria-label="Åpne meny"
-              className="md:hidden"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '44px',
-                height: '44px',
-                marginRight: '-0.5rem',
-                background: 'transparent',
-                border: 'none',
-                padding: 0,
-                color: 'currentColor',
-                cursor: 'pointer',
-                borderRadius: '4px',
-              }}
-            >
-              <Menu className="w-5 h-5 text-[#2C2C2A] dark:text-[#F4F0E9]" />
-            </button>
-
+            {/* Mobile Menu — shadcn Button (ghost-variant) med
+                korrekt tekstfarge så ikonet er synlig på cream-bg. */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-[#2C2C2A] dark:text-[#F4F0E9]"
+                  aria-label="Åpne meny"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
               <SheetContent side="right" className="w-64 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{border: 'none'}}>
                 {/* Radix krever DialogTitle/Description for skjerm-
                     lesere — visuelt skjult med sr-only. */}
