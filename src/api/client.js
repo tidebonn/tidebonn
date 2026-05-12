@@ -22,6 +22,18 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 export const sb = createClient(SUPABASE_URL ?? '', SUPABASE_KEY ?? '');
 
+// Wrap en lovende-pasient i en timeout. Hvis tiden går ut returnerer
+// vi et sentinel-objekt {__timeout:true, msg} så kallesiden kan velge
+// å sjekke getSession() (auth-kall lykkes ofte server-side selv om
+// klient-Promise henger — kjent Supabase-JS-bug).
+function withTimeout(promise, ms, msg) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ __timeout: true, msg }), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 // Base44-entitetsnavn → Supabase-tabellnavn
 const TABLES = {
   Prayer: 'prayers',
@@ -187,20 +199,52 @@ const auth = {
   },
 
   // Magic-link via e-post. Brukeren får en lenke i mailen som logger
-  // dem inn etter klikk.
+  // dem inn etter klikk. Bruker timeout men har ingen "ble den sendt
+  // likevel"-fallback — brukeren får eventuelt prøvd igjen.
   async login(email) {
     if (!email) throw new Error('E-post mangler');
-    return sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin },
-    });
+    const result = await withTimeout(
+      sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      }),
+      15000
+    );
+    if (result?.__timeout) {
+      return {
+        data: null,
+        error: new Error('Tidsavbrudd – prøv igjen. Lenken kan ha blitt sendt likevel.'),
+      };
+    }
+    return result;
   },
 
-  // Tradisjonell e-post + passord. Returnerer Supabase-svaret slik at
-  // kallesiden kan håndtere { data, error } direkte.
+  // Tradisjonell e-post + passord.
+  //
+  // KJENT BUG: sb.auth.signInWithPassword skriver session til
+  // localStorage server-side OK, men klient-Promise kan henge på
+  // grunn av en lock-bug i @supabase/supabase-js. Vi løser det ved
+  // å sjekke getSession() etter timeout — hvis session finnes,
+  // var login en suksess uansett.
   async loginWithPassword(email, password) {
     if (!email || !password) throw new Error('E-post og passord kreves');
-    return sb.auth.signInWithPassword({ email, password });
+    const result = await withTimeout(
+      sb.auth.signInWithPassword({ email, password }),
+      8000
+    );
+    if (result?.__timeout) {
+      const {
+        data: { session },
+      } = await sb.auth.getSession();
+      if (session) {
+        return { data: { user: session.user, session }, error: null };
+      }
+      return {
+        data: null,
+        error: new Error('Tidsavbrudd – sjekk passord og prøv igjen.'),
+      };
+    }
+    return result;
   },
 
   // Sett/endre passord på innlogget bruker.
