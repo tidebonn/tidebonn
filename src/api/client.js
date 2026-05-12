@@ -143,15 +143,31 @@ const auth = {
     } = await sb.auth.getSession();
     const user = session?.user;
     if (!user) return null;
-    const { data: profile, error: profileErr } = await sb
+
+    // OBS: profil-queryen kan henge umiddelbart etter sign-in
+    // (Supabase-klienten har et bug der queue-en blokkeres til
+    // første token-refresh). Vi gir den 5 sek; hvis den ikke svarer
+    // returnerer vi basisbrukeren så app-bootstrap ikke henger.
+    const profilePromise = sb
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .maybeSingle();
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(
+        () => resolve({ data: null, error: new Error('profile-timeout 5s') }),
+        5000
+      )
+    );
+    const { data: profile, error: profileErr } = await Promise.race([
+      profilePromise,
+      timeoutPromise,
+    ]);
     if (profileErr) {
       // eslint-disable-next-line no-console
-      console.error('me() profile-feil:', profileErr);
+      console.warn('me() profile:', profileErr.message || profileErr);
     }
+
     return {
       id: user.id,
       email: user.email,

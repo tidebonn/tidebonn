@@ -48,9 +48,9 @@ export default function LoginDialog({ open, onOpenChange }) {
             : error.message || 'Kunne ikke logge inn.'
         );
       } else {
+        // onAuthStateChange i AuthContext plukker opp den nye sesjonen
+        // og oppdaterer user-state automatisk — ingen reload trengs.
         onOpenChange(false);
-        // Refresh så Layout plukker opp ny user.
-        window.location.reload();
       }
     } catch (err) {
       setStatus('error');
