@@ -74,11 +74,15 @@ export default function Prayers() {
   // trigger effecten på nytt når DOM-en finnes.
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
   const completionTriggeredRef = useRef(false);
+  // Husk om initial load hadde URL-params, så vi ikke overskriver
+  // dem når selectedSeries blir satt i useEffect [selectedSeries].
+  const initialUrlParamsRef = useRef(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const dayParam = urlParams.get('day');
     const timeParam = urlParams.get('time');
+    if (dayParam || timeParam) initialUrlParamsRef.current = true;
     if (dayParam) setSelectedDay(parseInt(dayParam));
     if (timeParam) setSelectedTime(timeParam);
     loadData(dayParam ? parseInt(dayParam) : null, timeParam);
@@ -182,11 +186,27 @@ export default function Prayers() {
   const filteredPrayers = seriesPrayers.filter(p => p.day === effectiveDay);
   const currentPrayer = filteredPrayers.find(p => p.time_of_day === selectedTime);
 
-  // Reset selectors when series changes
+  // Reset selectors when series changes (manuelt valg i dropdown).
+  // Skipper første gang hvis URL hadde day/time-params — da skal
+  // de respekteres i stedet for å bli overskrevet av dagens posisjon.
+  // I uke-modus konverteres day (1-28) til week + weekday her, siden
+  // vi nå vet seriens sort_by.
   useEffect(() => {
     if (!currentSeriesData) return;
+    if (initialUrlParamsRef.current) {
+      initialUrlParamsRef.current = false;
+      if (currentSeriesData.sort_by === 'weeks') {
+        // selectedDay holder URL-paramet 'day' (1-28). Konverter.
+        const d = selectedDay;
+        if (d > 0) {
+          setSelectedWeek(Math.floor((d - 1) / 7) + 1);
+          setSelectedWeekday((d - 1) % 7);
+        }
+      }
+      return;
+    }
     applyCurrentPosition(currentSeriesData);
-  }, [selectedSeries]);
+  }, [selectedSeries]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Navigation helpers
   const goToPrevDay = () => {
