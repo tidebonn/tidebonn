@@ -167,21 +167,20 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       count: weekdayCounts[dow],
     }));
 
-    // Reading mode
-    const readingMap = {};
+    // Gruppemarkører — viser hvor mange som har lest med I/II-toggle
+    // på vs av. Bare bønner med en eksplisitt boolean teller med
+    // (null = gammel logg uten data → ekskluderes fra %).
+    let usedMarkers = 0;
+    let withoutMarkers = 0;
     filtered.forEach((l) => {
-      const r = l.reading_mode || 'ikke_satt';
-      readingMap[r] = (readingMap[r] || 0) + 1;
+      if (l.used_group_markers === true) usedMarkers++;
+      else if (l.used_group_markers === false) withoutMarkers++;
     });
-    const readingLabels = {
-      alone: 'Alene',
-      together: 'Sammen',
-      group: 'Sammen',
-      ikke_satt: 'Ikke spesifisert',
-    };
-    const byReadingMode = Object.entries(readingMap)
-      .map(([name, value]) => ({ name: readingLabels[name] || name, value }))
-      .sort((a, b) => b.value - a.value);
+    const byGroupMarkers = [];
+    if (usedMarkers > 0 || withoutMarkers > 0) {
+      byGroupMarkers.push({ name: 'Med I/II-markører', value: usedMarkers });
+      byGroupMarkers.push({ name: 'Uten markører', value: withoutMarkers });
+    }
 
     // Geo-fordeling (fra Edge Function geo-lookup ved fullføring)
     const countryMap = {};
@@ -250,7 +249,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     return {
       totalPrayers, completed, totalMinutes, uniqueUsers, avgMinutesPerPrayer,
       active24h, active7d, active30d,
-      byTime, bySeries, dailyActivity, byHour, byWeekday, byReadingMode,
+      byTime, bySeries, dailyActivity, byHour, byWeekday, byGroupMarkers,
       topPrayer,
       byCountry, byCity,
       byGender, byAge,
@@ -372,10 +371,10 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
         </Card>
       </div>
 
-      {/* Tre kompakte stat-lister side om side: tidebønn, lesemodus, serie */}
+      {/* Tre kompakte stat-lister side om side */}
       <div className="grid md:grid-cols-3 gap-6">
         <CompactStatList title="Per tidebønn" data={stats.byTime} valueKey="count" />
-        <CompactStatList title="Lesemodus" data={stats.byReadingMode} valueKey="value" />
+        <CompactStatList title="Gruppemarkører" data={stats.byGroupMarkers} valueKey="value" />
         <CompactStatList title="Per serie" data={stats.bySeries} valueKey="value" />
       </div>
 

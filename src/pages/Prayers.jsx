@@ -295,7 +295,7 @@ export default function Prayers() {
         time_of_day: selectedPrayer.time_of_day,
         duration_minutes: duration,
         completed: true,
-        reading_mode: userProgress?.reading_mode ?? null,
+        used_group_markers: !!(userProgress?.show_group_markers),
         location_country: geoData?.country ?? null,
         location_country_code: geoData?.country_code ?? null,
         location_city: geoData?.city ?? null,
