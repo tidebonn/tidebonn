@@ -163,7 +163,7 @@ export default function Layout({ children }) {
           {/* Right: user icon + mobile menu */}
           <div className="flex items-center justify-end gap-1">
             {user ? (
-              <button onClick={handleLogout} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center'}} title="Logg ut">
+              <button onClick={handleLogout} className="hidden md:flex items-center text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
             ) : (
@@ -172,10 +172,17 @@ export default function Layout({ children }) {
               </button>
             )}
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu — alltid synlig på mobil (også innlogget),
+                logg-ut ligger inne i menyen så hamburgeren ikke
+                forsvinner. Tidligere bug: color: #F4F0E9 gjorde
+                ikonet usynlig på cream-bakgrunn i light mode. */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon" style={{color: '#F4F0E9'}}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden text-[#2C2C2A] dark:text-[#F4F0E9]"
+                >
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>

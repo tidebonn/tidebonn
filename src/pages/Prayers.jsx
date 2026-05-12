@@ -522,13 +522,16 @@ export default function Prayers() {
           ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
           : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
         }>
-          <DialogHeader className="border-b border-[#E8E0D8] dark:border-gray-800 pb-4 flex-shrink-0 text-left">
+          <DialogHeader className="border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
                 {currentDayLabel} • {timeOptions.find(t => t.id === selectedPrayer?.time_of_day)?.name}
               </Badge>
               <div className="flex items-center gap-2">
-              <DialogTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white">
+              <DialogTitle
+                style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '1.5rem'}}
+                className="text-[#2C2C2A] dark:text-[#F4F0E9]"
+              >
                 {selectedPrayer?.title}
               </DialogTitle>
               <button
@@ -541,8 +544,8 @@ export default function Prayers() {
                 }}
                 className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
                   (userProgress?.show_group_markers ?? false)
-                    ? 'bg-[#6B9EA0]/10 text-[#6B9EA0] hover:bg-[#6B9EA0]/20'
-                    : 'hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#9A9A9A]'
+                    ? 'bg-[#4A6B65]/10 text-[#4A6B65] hover:bg-[#4A6B65]/20'
+                    : 'hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3]'
                 }`}
                 title={(userProgress?.show_group_markers ?? false) ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
               >
@@ -550,7 +553,7 @@ export default function Prayers() {
               </button>
               <button
                 onClick={() => setPrayerFullscreen(f => !f)}
-                className="p-1.5 rounded hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#6A6A6A] transition-colors flex-shrink-0"
+                className="p-1.5 rounded hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3] transition-colors flex-shrink-0"
                 title={prayerFullscreen ? 'Avslutt fullskjerm' : 'Fullskjerm'}
               >
                 {prayerFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
