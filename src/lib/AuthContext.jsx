@@ -23,6 +23,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
+    // Watchdog: garanter at appen rendrer innen 6 sek selv om
+    // db.auth.me() henger (Supabase JS init-bug kan blokkere
+    // første load). User-state oppdateres senere når me() lander
+    // eller via onAuthStateChange.
+    const watchdog = setTimeout(() => {
+      if (mounted) {
+        // eslint-disable-next-line no-console
+        console.warn('AuthContext watchdog: tvinger isLoadingAuth=false etter 6s');
+        setIsLoadingAuth(false);
+      }
+    }, 6000);
+
     (async () => {
       try {
         const me = await db.auth.me();
@@ -33,7 +45,10 @@ export const AuthProvider = ({ children }) => {
         // eslint-disable-next-line no-console
         console.error('Auth-init feilet:', e);
       } finally {
-        if (mounted) setIsLoadingAuth(false);
+        if (mounted) {
+          clearTimeout(watchdog);
+          setIsLoadingAuth(false);
+        }
       }
     })();
 
@@ -41,9 +56,15 @@ export const AuthProvider = ({ children }) => {
       async (_event, session) => {
         if (!mounted) return;
         if (session) {
-          const me = await db.auth.me();
-          setUser(me);
-          setIsAuthenticated(!!me);
+          try {
+            const me = await db.auth.me();
+            if (!mounted) return;
+            setUser(me);
+            setIsAuthenticated(!!me);
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn('onAuthStateChange me() feilet:', e);
+          }
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -53,6 +74,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(watchdog);
       subscription?.subscription?.unsubscribe?.();
     };
   }, []);
