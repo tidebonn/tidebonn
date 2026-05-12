@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -72,7 +71,10 @@ function App() {
           <NavigationTracker />
           <AuthenticatedApp />
         </Router>
-        <Toaster />
+        {/* Sonner-Toaster ligger i Layout — Radix-Toaster fjernet
+            fordi den ikke brukes og dens ToastViewport (fixed top-0
+            z-100) dekket toppen av headeren på mobil og fanget
+            klikk. */}
       </QueryClientProvider>
     </AuthProvider>
   )
