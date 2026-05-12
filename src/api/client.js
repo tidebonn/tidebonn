@@ -409,10 +409,51 @@ const geo = {
   },
 };
 
+// Brukerstyring — bare eiere kan kalle disse. Edge Function
+// 'manage-user' validerer rollen og bruker service_role server-side.
+const users = {
+  async setRole(userId, role) {
+    if (!userId || !role) throw new Error('userId og role kreves');
+    return callManageUser({ action: 'set-role', targetUserId: userId, newRole: role });
+  },
+  async deleteUser(userId) {
+    if (!userId) throw new Error('userId kreves');
+    return callManageUser({ action: 'delete', targetUserId: userId });
+  },
+};
+
+async function callManageUser(body) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return { error: new Error('Ikke innlogget') };
+
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/manage-user`, {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: new Error(data?.error || `HTTP ${res.status}`) };
+    return { data, error: null };
+  } catch (e) {
+    return { error: e instanceof Error ? e : new Error('Uventet feil') };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export const db = {
   entities,
   auth,
   geo,
+  users,
   // Tomme stubs for kall som ble fjernet i Fase A (PDF).
   // Kaster slik at evt. gjenværende referanser blir synlige i runtime.
   integrations: {

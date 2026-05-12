@@ -66,7 +66,7 @@ export default function Layout({ children }) {
   const adminItems = [
   { name: 'Admin', page: 'Admin', icon: Users }];
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'owner';
 
   const NavLink = ({ item, mobile }) => {
     const isActive = location.pathname === createPageUrl(item.page);
