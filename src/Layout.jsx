@@ -109,7 +109,7 @@ export default function Layout({ children }) {
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{borderBottom: '0.5px solid #DECCB4'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '0 1rem', height: '3.25rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center'}}>
+        <div className="max-w-4xl mx-auto px-4" style={{height: '3.25rem', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center'}}>
           {/* Logo */}
           <Link to={createPageUrl('Home')} className="text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', textDecoration: 'none'}}>
             TIDEBØNN
@@ -163,11 +163,8 @@ export default function Layout({ children }) {
           {/* Right: user icon + mobile menu */}
           <div className="flex items-center justify-end gap-1">
             {user ? (
-              <button onClick={handleLogout} className="hidden md:flex" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center'}} title="Logg ut">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]">
-                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
+              <button onClick={handleLogout} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center'}} title="Logg ut">
+                <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
             ) : (
               <button onClick={() => setLoginOpen(true)} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]" style={{background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
@@ -219,7 +216,7 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <footer className="bg-[#F4F0E9] dark:bg-[#2C2C2A] py-6" style={{borderTop: '0.5px solid #DECCB4'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '0 1rem', textAlign: 'center'}}>
+        <div className="max-w-4xl mx-auto px-4" style={{textAlign: 'center'}}>
           <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B6B9B3'}}>
             Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; Areopagos / Løys
           </p>
