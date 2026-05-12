@@ -20,7 +20,24 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('Mangler VITE_SUPABASE_URL eller VITE_SUPABASE_PUBLISHABLE_KEY');
 }
 
-export const sb = createClient(SUPABASE_URL ?? '', SUPABASE_KEY ?? '');
+// Default-locken til @supabase/supabase-js bruker navigator.locks som
+// har en kjent bug i Safari der den ikke alltid slipper låsen etter
+// auth-operasjoner — alle påfølgende kall (getSession, query, refresh)
+// henger til siden refreshes. Symptomet vi har sett: "Logger inn…"
+// fryser, profil-query fryser, spinner låser appen.
+//
+// Vi har bare én fane om gangen og trenger ikke serialisering, så vi
+// erstatter låsen med en no-op. Anbefalt workaround fra Supabase-issues.
+const noopLock = async (_name, _acquireTimeout, fn) => fn();
+
+export const sb = createClient(SUPABASE_URL ?? '', SUPABASE_KEY ?? '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    lock: noopLock,
+  },
+});
 
 // Wrap en lovende-pasient i en timeout. Hvis tiden går ut returnerer
 // vi et sentinel-objekt {__timeout:true, msg} så kallesiden kan velge
