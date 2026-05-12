@@ -834,7 +834,7 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <Dialog open={!!editingPrayer} onOpenChange={(open) => { if (!open) { setEditingPrayer(null); setEditorFullscreen(false); } }}>
-                  <DialogContent className={editorFullscreen ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
+                  <DialogContent className={editorFullscreen ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden" : "max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto"}>
                     <DialogHeader>
                       <DialogTitle>
                         {editingPrayer?.id ? 'Rediger bønn' : 'Ny bønn'}
