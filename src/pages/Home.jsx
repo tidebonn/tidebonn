@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import PrayerContent from '@/components/prayer/PrayerContent';
 
@@ -243,6 +243,9 @@ export default function Home() {
                 </button>
               </div>
             </div>
+            <DialogDescription className="sr-only">
+              Tekst og veiledning for bønnen. Bla nedover for å lese hele.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto py-4">
             {nextPrayer && (

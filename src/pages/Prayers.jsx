@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -274,9 +274,12 @@ export default function Prayers() {
 
   const handlePrayerComplete = async () => {
     if (!user || !selectedPrayer) return;
-    if (isPrayerCompleted(selectedPrayer)) return;
+    // OBS: Vi sjekker IKKE lenger isPrayerCompleted — vi vil at
+    // statistikken (inkludert geo) skal telle hver lesning, ikke
+    // kun førstegangslesning. UI viser fortsatt grønn hake på
+    // bønner som finnes i completedPrayers-settet.
     // Minst 1 minutt per fullført bønn (en rask scroll skal også
-     // gi et lite avtrykk i totalen)
+    // gi et lite avtrykk i totalen)
     const duration = Math.max(1, Math.round((Date.now() - prayerStartTime) / 60000));
 
     try {
@@ -593,6 +596,9 @@ export default function Prayers() {
               </button>
               </div>
             </div>
+            <DialogDescription className="sr-only">
+              Tekst og veiledning for bønnen. Bla nedover for å lese hele.
+            </DialogDescription>
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
