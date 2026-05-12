@@ -6,7 +6,7 @@ import { createPageUrl } from './utils';
 
 import { Menu, X, Home, BookOpen, Info, Settings, Heart, Users, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import LoginDialog from '@/components/LoginDialog';
 
@@ -177,22 +177,28 @@ export default function Layout({ children }) {
             )}
 
             {/* Mobile Menu — alltid synlig på mobil (også innlogget),
-                logg-ut ligger inne i menyen så hamburgeren ikke
-                forsvinner. h-11 w-11 = 44×44px = Apples anbefalte
-                minimum touch target, mens Menu-ikonet visuelt fortsatt
-                er w-5 h-5 (20px). Ekstra unngåelig "padding" gjør at
-                tommelen treffer fint. */}
+                logg-ut ligger inne i menyen. Plain <button> i stedet
+                for shadcn Button fordi sistnevntes 'size=icon' (h-9
+                w-9 = 36px) overstyrte h-11 og kappet hit-targetet
+                til en tredjedel. Her får vi garantert 44×44px hele
+                veien, mens Menu-ikonet visuelt er w-5 h-5 (20px). */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden h-11 w-11 -mr-2 text-[#2C2C2A] dark:text-[#F4F0E9]"
+                <button
+                  type="button"
+                  aria-label="Åpne meny"
+                  className="md:hidden inline-flex items-center justify-center h-11 w-11 -mr-2 rounded text-[#2C2C2A] dark:text-[#F4F0E9] hover:bg-[#DECCB4]/30 active:bg-[#DECCB4]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4A6B65]"
                 >
                   <Menu className="w-5 h-5" />
-                </Button>
+                </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-64 bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{border: 'none'}}>
+                {/* Radix krever DialogTitle/Description for skjerm-
+                    lesere — visuelt skjult med sr-only. */}
+                <SheetTitle className="sr-only">Meny</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Navigasjonsmeny med lenker til sidene i appen.
+                </SheetDescription>
                 <div className="flex flex-col h-full pt-8">
                   <nav className="flex flex-col">
                     {navItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
