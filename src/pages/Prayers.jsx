@@ -107,9 +107,14 @@ export default function Prayers() {
 
       setSelectedSeries(chosenSeriesId);
 
-      // Filter ut bønner som er skjult i admin (is_active=false)
+      // Filter ut bønner som er skjult i admin (is_active=false) eller
+      // som tilhører skjult serie. allSeries inneholder bare aktive
+      // serier, så en bønn fra en skjult serie får ikke matche.
       const allPrayers = await db.entities.Prayer.filter({ is_active: true });
-      const activePrayers = allPrayers.filter(p => !p.deleted_at);
+      const activeSeriesIds = new Set(allSeries.map(s => s.id));
+      const activePrayers = allPrayers.filter(
+        p => !p.deleted_at && activeSeriesIds.has(p.series_id)
+      );
       setPrayers(activePrayers);
 
       // Auto-navigate to current position in series
