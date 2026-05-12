@@ -187,41 +187,56 @@ const auth = {
     return sb.auth.signInWithPassword({ email, password });
   },
 
-  // Sett/endre passord på innlogget bruker. Supabase håndterer hashing
-  // server-side; vi sender bare klartekst over TLS.
+  // Sett/endre passord på innlogget bruker.
   //
-  // OBS: sb.auth.updateUser har historisk hengt for dette prosjektet
-  // (samme grunn til at updateMe bypasser auth-API for profil-felt).
-  // Vi gjør tre ting for å være robuste:
-  //   1) refreshSession() først så vi vet at JWT er gyldig
-  //   2) Promise.race med 15s timeout så UI ikke står og spinner evig
-  //   3) returnerer { data, error } strukturen kallesiden forventer
+  // OBS: sb.auth.updateUser og sb.auth.refreshSession henger for dette
+  // prosjektet (samme grunn til at updateMe bypasser auth-API for
+  // profil-felt). Vi ringer derfor en Edge Function (`set-password`)
+  // som verifiserer JWT-en med anon-nøkkelen og oppdaterer passordet
+  // med service-role via admin-API server-side.
   async setPassword(password) {
     if (!password) throw new Error('Passord mangler');
 
-    try {
-      await sb.auth.refreshSession();
-    } catch (e) {
-      // Ikke fatalt — vi prøver updateUser uansett.
-      // eslint-disable-next-line no-console
-      console.warn('setPassword: refreshSession feilet, prøver likevel', e);
+    const {
+      data: { session },
+    } = await sb.auth.getSession();
+    if (!session) {
+      return { data: null, error: new Error('Ikke innlogget') };
     }
 
-    const updatePromise = sb.auth.updateUser({ password });
-    const timeoutPromise = new Promise((resolve) =>
-      setTimeout(
-        () =>
-          resolve({
-            data: null,
-            error: new Error(
-              'Tidsavbrudd mot Supabase – ingen bekreftelse på 15 sek. Prøv igjen om litt.'
-            ),
-          }),
-        15000
-      )
-    );
-
-    return Promise.race([updatePromise, timeoutPromise]);
+    // 20s timeout så UI ikke står og spinner i det uendelige.
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/set-password`, {
+        method: 'POST',
+        signal: ctrl.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_KEY,
+        },
+        body: JSON.stringify({ password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return {
+          data: null,
+          error: new Error(body?.error || `HTTP ${res.status}`),
+        };
+      }
+      return { data: body, error: null };
+    } catch (e) {
+      if (e?.name === 'AbortError') {
+        return {
+          data: null,
+          error: new Error('Tidsavbrudd – Edge Function svarte ikke på 20 sek.'),
+        };
+      }
+      return { data: null, error: e };
+    } finally {
+      clearTimeout(t);
+    }
   },
 
   async logout() {
