@@ -69,13 +69,13 @@ export default function Admin() {
       const currentUser = await db.auth.me();
       setUser(currentUser);
 
-      if (currentUser.role !== 'admin') {
+      if (currentUser.role !== 'admin' && currentUser.role !== 'owner') {
         return;
       }
 
       // Load all data
       const [logs, prayerData, series, pages, users, userProgress, allProgress] = await Promise.all([
-        db.entities.PrayerLog.list('-created_date', 5000),
+        db.entities.PrayerLog.list('-created_at', 5000),
         db.entities.Prayer.list(),
         db.entities.PrayerSeries.list(),
         db.entities.ContentPage.list(),
@@ -363,27 +363,27 @@ export default function Admin() {
     }
   };
 
-  // Update user role (superadmin only)
+  // Eier-eksklusivt: oppdaterer rolle via Edge Function manage-user
+  // som validerer caller-rolle og bruker service_role server-side.
   const handleUpdateUserRole = async (userId, newRole) => {
-    try {
-      await db.entities.User.update(userId, { role: newRole });
-      sonnerToast.success('Brukerrolle oppdatert');
-      loadData();
-    } catch (error) {
-      sonnerToast.error('Kunne ikke oppdatere bruker');
+    const { error } = await db.users.setRole(userId, newRole);
+    if (error) {
+      sonnerToast.error(error.message || 'Kunne ikke oppdatere bruker');
+      return;
     }
+    sonnerToast.success('Brukerrolle oppdatert');
+    loadData();
   };
 
-  // Delete user (superadmin only)
-  const handleDeleteUser = async (userId) => {
-    if (!confirm('Er du sikker på at du vil slette denne brukeren?')) return;
-    try {
-      await db.entities.User.delete(userId);
-      sonnerToast.success('Bruker slettet');
-      loadData();
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette bruker');
+  const handleDeleteUser = async (userId, email) => {
+    if (!confirm(`Slette brukeren ${email ?? userId}? Alle bønne-logger og oppsett blir borte. Kan ikke angres.`)) return;
+    const { error } = await db.users.deleteUser(userId);
+    if (error) {
+      sonnerToast.error(error.message || 'Kunne ikke slette bruker');
+      return;
     }
+    sonnerToast.success('Bruker slettet');
+    loadData();
   };
 
   if (loading) {
@@ -394,7 +394,7 @@ export default function Admin() {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <Shield className="w-16 h-16 text-[#4A6B65] mx-auto mb-4" />
@@ -424,7 +424,7 @@ export default function Admin() {
               Administrasjon
             </h1>
             <Badge style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className="border-0">
-              {user.is_superadmin ? 'Superadministrator' : 'Administrator'}
+              {user.role === 'owner' ? 'Eier' : 'Administrator'}
             </Badge>
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function Admin() {
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Innhold</span>
             </TabsTrigger>
-            {user.is_superadmin && (
+            {user.role === 'owner' && (
               <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
                 <Users className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Brukere</span>
@@ -1510,8 +1510,8 @@ export default function Admin() {
             </Dialog>
           </TabsContent>
 
-          {/* Users Tab (Superadmin only) */}
-          {user.is_superadmin && (
+          {/* Users Tab — kun for eiere */}
+          {user.role === 'owner' && (
             <TabsContent value="users">
               <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
                 <CardHeader>
@@ -1519,6 +1519,9 @@ export default function Admin() {
                     <UserCog className="w-5 h-5 text-[#4A6B65]" />
                     Brukerstyring
                   </CardTitle>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 pt-1">
+                    Eiere kan gi admin-tilgang til andre brukere. Eier-rollen kan kun settes direkte i Supabase.
+                  </p>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -1527,42 +1530,59 @@ export default function Admin() {
                         <TableHead>Navn</TableHead>
                         <TableHead>E-post</TableHead>
                         <TableHead>Rolle</TableHead>
-                        <TableHead>Handlinger</TableHead>
+                        <TableHead>Registrert</TableHead>
+                        <TableHead className="text-right">Handlinger</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allUsers.map(u => (
-                        <TableRow key={u.id}>
-                          <TableCell>{u.full_name || u.display_name || '-'}</TableCell>
-                          <TableCell>{u.email}</TableCell>
-                          <TableCell>
-                            <Select 
-                              value={u.role || 'user'}
-                              onValueChange={(v) => handleUpdateUserRole(u.id, v)}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="user">Bruker</SelectItem>
-                                <SelectItem value="admin">Administrator</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            {u.id !== user.id && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="text-[#C8602A] hover:text-[#A04820]"
-                                onClick={() => handleDeleteUser(u.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {allUsers.map(u => {
+                        const isSelf = u.id === user.id;
+                        const isOwner = u.role === 'owner';
+                        const created = u.created_at ? new Date(u.created_at).toLocaleDateString('no-NO') : '–';
+                        return (
+                          <TableRow key={u.id}>
+                            <TableCell className="text-sm">
+                              {u.display_name || u.full_name || '–'}
+                              {isSelf && <span className="ml-2 text-xs text-[#B6B9B3]">(deg)</span>}
+                            </TableCell>
+                            <TableCell className="text-sm text-[#6A6A6A]">{u.email}</TableCell>
+                            <TableCell>
+                              {isOwner ? (
+                                <Badge className="border-0" style={{backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Eier</Badge>
+                              ) : isSelf ? (
+                                <Badge className="border-0" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>{u.role === 'admin' ? 'Admin' : 'Bruker'}</Badge>
+                              ) : (
+                                <Select
+                                  value={u.role || 'user'}
+                                  onValueChange={(v) => handleUpdateUserRole(u.id, v)}
+                                >
+                                  <SelectTrigger className="w-36 h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="user">Bruker</SelectItem>
+                                    <SelectItem value="admin">Administrator</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs text-[#6A6A6A]">{created}</TableCell>
+                            <TableCell className="text-right">
+                              {!isSelf && !isOwner && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-[#BD7B59] hover:text-[#A04820] hover:bg-[#BD7B59]/10"
+                                  onClick={() => handleDeleteUser(u.id, u.email)}
+                                  title="Slett bruker"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </CardContent>
