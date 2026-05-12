@@ -1,4 +1,4 @@
-import db from '@/api/client';
+import db, { sb } from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 
@@ -72,6 +72,19 @@ export default function Settings() {
 
   useEffect(() => {
     loadData();
+    // Reagér også på fersk innlogging fra LoginDialog-en på siden
+    // (eller andre faner). Uten dette ville Settings vise
+    // 'Logg inn'-skjermen til siden manuelt refreshes.
+    const { data: sub } = sb.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        loadData();
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserProgress(null);
+      }
+    });
+    return () => sub?.subscription?.unsubscribe?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadData = async () => {
