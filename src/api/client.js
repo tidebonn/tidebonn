@@ -374,7 +374,11 @@ const geo = {
       const {
         data: { session },
       } = await sb.auth.getSession();
-      if (!session) return { country: null, city: null };
+      if (!session) {
+        // eslint-disable-next-line no-console
+        console.log('[geo.lookup] no session');
+        return { country: null, city: null };
+      }
 
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 5000);
@@ -387,12 +391,19 @@ const geo = {
             apikey: SUPABASE_KEY,
           },
         });
+        // eslint-disable-next-line no-console
+        console.log('[geo.lookup] HTTP', res.status);
         if (!res.ok) return { country: null, city: null };
-        return await res.json();
+        const body = await res.json();
+        // eslint-disable-next-line no-console
+        console.log('[geo.lookup] response:', body);
+        return body;
       } finally {
         clearTimeout(t);
       }
-    } catch {
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log('[geo.lookup] exception:', e);
       return { country: null, city: null };
     }
   },
