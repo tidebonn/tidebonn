@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PrayerEditor from '../components/admin/PrayerEditor';
+import ContentPageEditor from '../components/admin/ContentPageEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -1459,52 +1460,20 @@ export default function Admin() {
 
             {/* Edit Page Dialog */}
             <Dialog open={!!editingPage} onOpenChange={(open) => !open && setEditingPage(null)}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {editingPage?.id ? 'Rediger side' : 'Ny side'}
                   </DialogTitle>
                 </DialogHeader>
                 {editingPage && (
-                  <div className="space-y-4 py-4">
-                    <div>
-                      <Label>Slug (unik ID)</Label>
-                      <Input
-                        value={editingPage.slug || ''}
-                        onChange={(e) => setEditingPage({...editingPage, slug: e.target.value})}
-                        placeholder="om-tidebonn"
-                      />
-                    </div>
-                    <div>
-                      <Label>Tittel</Label>
-                      <Input
-                        value={editingPage.title || ''}
-                        onChange={(e) => setEditingPage({...editingPage, title: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label>Innhold (Markdown)</Label>
-                      <Textarea
-                        rows={15}
-                        value={editingPage.content || ''}
-                        onChange={(e) => setEditingPage({...editingPage, content: e.target.value})}
-                        placeholder="## Overskrift&#10;&#10;Skriv innhold her..."
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setEditingPage(null)}>
-                        Avbryt
-                      </Button>
-                      <Button 
-                        onClick={handleSavePage}
-                        disabled={saving}
-                        className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
-                      >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                        Lagre
-                      </Button>
-                    </div>
-                  </div>
+                  <ContentPageEditor
+                    page={editingPage}
+                    onChange={setEditingPage}
+                    onSave={handleSavePage}
+                    onCancel={() => setEditingPage(null)}
+                    saving={saving}
+                  />
                 )}
               </DialogContent>
             </Dialog>
