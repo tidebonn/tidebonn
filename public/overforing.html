@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Overføring av Tidebønn-prosjektet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Spectral', Georgia, serif;
+      font-weight: 300;
+      background: #F4F0E9;
+      color: #2C2C2A;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 4rem 1.25rem 6rem;
+    }
+
+    /* Header */
+    header.intro {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding-bottom: 3rem;
+      border-bottom: 0.5px solid #DECCB4;
+    }
+    header.intro svg.cross {
+      color: #4A6B65;
+      display: block;
+      margin: 0 auto 1.5rem;
+    }
+    header.intro .label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #B6B9B3;
+      margin: 0 0 0.75rem;
+    }
+    header.intro h1 {
+      font-family: 'Spectral', Georgia, serif;
+      font-weight: 300;
+      font-size: 2.25rem;
+      margin: 0 0 1rem;
+      line-height: 1.3;
+    }
+    header.intro p {
+      font-family: 'Spectral', Georgia, serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: #6A6A6A;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Steps */
+    .step {
+      margin-bottom: 3.5rem;
+    }
+    .step-num {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4A6B65;
+      margin-bottom: 0.5rem;
+    }
+    .step h2 {
+      font-family: 'Spectral', Georgia, serif;
+      font-weight: 300;
+      font-size: 1.75rem;
+      margin: 0 0 1.25rem;
+      color: #2C2C2A;
+    }
+    .step h3 {
+      font-family: 'Spectral', Georgia, serif;
+      font-weight: 400;
+      font-size: 1.1rem;
+      margin: 1.5rem 0 0.5rem;
+      color: #2C2C2A;
+    }
+    .step p { margin: 0 0 1rem; }
+    .step ul, .step ol {
+      margin: 0 0 1rem;
+      padding-left: 1.5rem;
+    }
+    .step li { margin-bottom: 0.5rem; }
+
+    /* Inline tags */
+    code, .mono {
+      font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 0.85em;
+      background: #EBE4D7;
+      padding: 0.1em 0.4em;
+      border-radius: 2px;
+    }
+    pre {
+      background: #2C2C2A;
+      color: #F4F0E9;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 1rem 0;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    a { color: #4A6B65; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: #3a5550; }
+
+    /* Bjørnulf-block — handlinger som krever ham */
+    .wait {
+      border-left: 3px solid #BD7B59;
+      background: #FAF5EB;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-family: 'Spectral', Georgia, serif;
+    }
+    .wait .tag {
+      display: inline-block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #BD7B59;
+      margin-bottom: 0.5rem;
+    }
+    .wait p { margin: 0; }
+    .wait strong { color: #BD7B59; font-weight: 600; }
+
+    /* Note-block — informasjon */
+    .note {
+      background: #F0EBE0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+      color: #4A4A4A;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 5rem;
+      padding-top: 2rem;
+      border-top: 0.5px solid #DECCB4;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 500;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #B6B9B3;
+    }
+
+    /* Divider between steps */
+    .divider {
+      height: 0.5px;
+      background: #DECCB4;
+      margin: 3rem 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="intro">
+      <svg class="cross" width="32" height="72" viewBox="0 0 32 72">
+        <circle cx="16" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="0.7"/>
+        <circle cx="16" cy="6" r="1.5" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <line x1="2" y1="22" x2="30" y2="22" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+        <circle cx="2" cy="22" r="2" fill="none" stroke="currentColor" stroke-width="0.6"/>
+        <circle cx="30" cy="22" r="2" fill="none" stroke="currentColor" stroke-width="0.6"/>
+        <line x1="16" y1="1" x2="16" y2="72" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <p class="label">Til Areopagos</p>
+      <h1>Overføring av Tidebønn-prosjektet</h1>
+      <p>En steg-for-steg gjennomgang for å overta eierskap til Supabase, Vercel og kodebasen — slik at Bjørnulf fortsatt kan utvikle med adminrettigheter.</p>
+    </header>
+
+    <!-- Steg 1 -->
+    <section class="step">
+      <p class="step-num">Steg 1</p>
+      <h2>Opprett kontoer hos Areopagos</h2>
+      <p>Lag tre kontoer som vil eie hver sin del av prosjektet. Anbefalt: bruk en delt e-postadresse (f.eks. <code>tidebonn@areopagos.no</code>) i stedet for en privatperson — gjør senere overdragelser enklere.</p>
+
+      <h3>GitHub-organisasjon</h3>
+      <ul>
+        <li>Gå til <a href="https://github.com/organizations/new" target="_blank" rel="noopener">github.com/organizations/new</a></li>
+        <li>Velg Free-plan, navn <code>areopagos</code> (eller tilsvarende)</li>
+      </ul>
+
+      <h3>Vercel-team</h3>
+      <ul>
+        <li>Gå til <a href="https://vercel.com/teams/create" target="_blank" rel="noopener">vercel.com/teams/create</a></li>
+        <li>Velg Hobby-plan (gratis, holder for én produksjons-app)</li>
+      </ul>
+
+      <h3>Supabase-organisasjon</h3>
+      <ul>
+        <li>Gå til <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com/dashboard</a> og opprett ny organisasjon</li>
+        <li>Free tier er nok i starten</li>
+      </ul>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 2 -->
+    <section class="step">
+      <p class="step-num">Steg 2</p>
+      <h2>Inviter Bjørnulf som medlem alle tre steder</h2>
+      <p>Gjør dette <em>før</em> overføringen starter — da unngår vi at han mister tilgang underveis og må vente på nye invitasjoner.</p>
+
+      <h3>GitHub</h3>
+      <ul>
+        <li>Organisasjon → People → Invite member</li>
+        <li>Brukernavn: <code>bjornulfb</code> (eller e-post)</li>
+        <li>Rolle: <strong>Member</strong> (Admin på repo-nivå når repoet er laget — se Steg 3)</li>
+      </ul>
+
+      <h3>Vercel</h3>
+      <ul>
+        <li>Team Settings → Members → Invite</li>
+        <li>E-post: <code>bjornulfb@gmail.com</code></li>
+        <li>Rolle: <strong>Member</strong> (kan deploye og redigere env vars)</li>
+      </ul>
+
+      <h3>Supabase</h3>
+      <ul>
+        <li>Organisasjon Settings → Team → Invite</li>
+        <li>E-post: <code>bjornulfb@gmail.com</code></li>
+        <li>Rolle: <strong>Administrator</strong> eller <strong>Developer</strong> (begge kan kjøre migrasjoner og deploye Edge Functions)</li>
+      </ul>
+
+      <div class="wait">
+        <span class="tag">Krever Bjørnulf</span>
+        <p>Send Bjørnulf en e-post når invitasjonene er sendt. <strong>Han må akseptere alle tre invitasjonene før dere kan gå videre.</strong> Vent på bekreftelse fra ham.</p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 3 -->
+    <section class="step">
+      <p class="step-num">Steg 3</p>
+      <h2>Git-overføring</h2>
+      <p>Kodebasen ligger i dag bare lokalt hos Bjørnulf — det er rundt 80 commits med full historikk. Først må vi få den opp på Areopagos sin GitHub-organisasjon.</p>
+
+      <h3>Det dere gjør</h3>
+      <ol>
+        <li>Lag et nytt, privat repo i organisasjonen — navn <code>tidebonn</code></li>
+        <li>Ikke initialiser med README / .gitignore / lisens (skal være helt tomt)</li>
+        <li>Etter at repoet er laget: gi Bjørnulf <strong>Admin</strong>-rolle på repoet
+          <ul>
+            <li>Repo Settings → Collaborators and teams → Add → <code>bjornulfb</code> → Admin</li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="wait">
+        <span class="tag">Krever Bjørnulf</span>
+        <p>Si fra at repoet er klart og navnet på det. <strong>Han pusher all kode og historikk til repoet, og melder tilbake når det er gjort.</strong></p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 4 -->
+    <section class="step">
+      <p class="step-num">Steg 4</p>
+      <h2>Overfør Supabase-prosjektet</h2>
+      <p>Selve Supabase-prosjektet (databasen, Edge Functions, secrets, RLS-policiene) flyttes fra Bjørnulfs organisasjon til Areopagos sin.</p>
+
+      <div class="wait">
+        <span class="tag">Krever Bjørnulf</span>
+        <p>Bjørnulf initierer overføringen fra sitt dashbord. Han melder tilbake når den er sendt — da får dere en e-post for å bekrefte overtakelsen.</p>
+      </div>
+
+      <h3>Når dere har fått e-posten</h3>
+      <ol>
+        <li>Trykk «Accept» i e-posten eller logg inn i Supabase-dashbordet</li>
+        <li>Velg deres organisasjon som destinasjon</li>
+        <li>Bekreft overføringen</li>
+      </ol>
+
+      <h3>Verifiser etter overføringen</h3>
+      <ul>
+        <li><strong>Edge Functions</strong>: gå til Project → Edge Functions. Tre funksjoner skal ligge der: <code>set-password</code>, <code>get-geolocation</code>, <code>manage-user</code></li>
+        <li><strong>Secrets</strong>: under Edge Functions → Secrets skal <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code> være satt automatisk</li>
+        <li><strong>RLS-policies</strong>: Database → Policies — skal ha ca. 16 policies på public-tabellene</li>
+      </ul>
+
+      <h3>Promoter eier-brukere</h3>
+      <p>Når dere som skal være eiere har logget inn på <code>tidebonn.vercel.app</code> minst én gang (slik at deres bruker-profil er opprettet), kjør denne SQL-en i Supabase SQL Editor — én linje per eier:</p>
+      <pre><code>update public.profiles set role = 'owner' where email = 'din@areopagos.no';</code></pre>
+      <p>Bjørnulf er allerede satt som eier og vil dukke opp i Brukere-fanen i admin-panelet.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 5 -->
+    <section class="step">
+      <p class="step-num">Steg 5</p>
+      <h2>Overfør Vercel-prosjektet</h2>
+      <p>Vercel hoster selve nettsiden (<code>tidebonn.vercel.app</code>). Overføringen flytter prosjektet med all deploy-historikk.</p>
+
+      <div class="wait">
+        <span class="tag">Krever Bjørnulf</span>
+        <p>Bjørnulf initierer overføring fra sitt Vercel-dashbord. Han melder tilbake når den er sendt.</p>
+      </div>
+
+      <h3>Når dere har fått overføringsforespørselen</h3>
+      <ol>
+        <li>Aksepter i Vercel-dashbordet</li>
+        <li>Når prosjektet er flyttet: gå til <strong>Project Settings → Git</strong> og koble til det nye GitHub-repoet (Steg 3) — Vercel vil deploye automatisk på hver push til <code>main</code></li>
+        <li>Gå til <strong>Settings → Environment Variables</strong> og verifiser at <code>VITE_SUPABASE_URL</code> og <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> er satt (Production scope)</li>
+      </ol>
+
+      <div class="note">
+        <strong>Hvis env vars mangler:</strong> Bjørnulf har dem i sin lokale <code>.env.local</code>-fil og kan dele dem trygt. <code>VITE_SUPABASE_URL</code> er prosjektets URL fra Supabase, og <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> er den offentlige API-nøkkelen (sb_publishable_…) — denne er ufarlig å eksponere i nettleseren.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 6 -->
+    <section class="step">
+      <p class="step-num">Steg 6</p>
+      <h2>Sluttverifisering</h2>
+      <p>Når alt er overført, gjør en rask sjekk at appen fungerer like bra som før.</p>
+      <ul>
+        <li>Åpne <a href="https://tidebonn.vercel.app" target="_blank" rel="noopener">tidebonn.vercel.app</a> i en privat fane</li>
+        <li>Logg inn (passord eller magic-link)</li>
+        <li>Verifiser: Bønner-siden viser uker/dager/bønner</li>
+        <li>Verifiser: Admin-panelet er tilgjengelig hvis dere er promotert til <code>owner</code></li>
+        <li>Verifiser: Brukere-fanen viser alle brukere</li>
+        <li>Be en bønn ferdig — sjekk at <strong>Statistikk</strong> i admin øker (geo-data dukker opp etter et minutt)</li>
+      </ul>
+
+      <div class="wait">
+        <span class="tag">Krever Bjørnulf</span>
+        <p>Si fra hvis noe ikke fungerer som forventet. Bjørnulf kan tråle gjennom Supabase-loggene og Vercel-deploy-loggene for å feilsøke.</p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Steg 7 -->
+    <section class="step">
+      <p class="step-num">Valgfritt — Steg 7</p>
+      <h2>Eget domene</h2>
+      <p>Hvis dere vil at appen skal ligge på f.eks. <code>tidebønn.no</code> eller <code>tidebonn.areopagos.no</code> i stedet for <code>.vercel.app</code>:</p>
+      <ol>
+        <li>Kjøp domenet hos f.eks. <a href="https://domeneshop.no" target="_blank" rel="noopener">domeneshop.no</a> (eies av Areopagos)</li>
+        <li>I Vercel: Project Settings → Domains → Add → skriv inn domenet</li>
+        <li>Vercel viser DNS-instruksjoner (typisk en <code>CNAME</code>- eller <code>A</code>-record). Legg disse inn hos domeneleverandøren</li>
+        <li>SSL-sertifikat settes opp automatisk innen noen minutter</li>
+      </ol>
+      <p>Bjørnulf kan hjelpe med DNS-oppsettet hvis det trengs.</p>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Etter overføring -->
+    <section class="step">
+      <p class="step-num">Etter overføring</p>
+      <h2>Hva som endrer seg — og ikke</h2>
+
+      <h3>Endrer seg</h3>
+      <ul>
+        <li>Fakturering går fra Bjørnulf til Areopagos (kun aktuelt om dere senere oppgraderer til Pro-tier)</li>
+        <li>«Eier»-handlinger som å slette prosjekter eller endre billing krever Areopagos-konto</li>
+        <li>Domeneeierskap (om dere kjøper eget domene)</li>
+      </ul>
+
+      <h3>Er det samme</h3>
+      <ul>
+        <li>Bjørnulf utvikler videre med Admin- eller Developer-rolle på alle tre plattformer</li>
+        <li>Alle Edge Functions, RLS-policies, og data ligger urørt</li>
+        <li>In-app eier-rolle (Brukere-fanen) er en database-rad — endres ikke ved plattformoverføring</li>
+      </ul>
+    </section>
+
+    <footer>
+      Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; Areopagos / Løys
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+    { "source": "/overforing", "destination": "/overforing.html" },
+    { "source": "/((?!assets/|overforing\\.html).*)", "destination": "/index.html" }
   ]
 }
