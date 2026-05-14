@@ -175,3 +175,139 @@
   font-style: italic;
   color: rgba(102, 102, 102, 0.85);
 }
+
+/* ───────────────────────────────────────────────────────────
+   Innholdssider (om-tidebonn, om-appen) og TipTap-editoren
+   Begge bruker .content-body / .prose-editor for samme stil.
+   ─────────────────────────────────────────────────────────── */
+.content-body, .prose-editor {
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 300;
+  line-height: 1.85;
+  color: #2C2C2A;
+}
+.dark .content-body, .dark .prose-editor {
+  color: #E8E0D8;
+}
+.content-body h1, .prose-editor h1 {
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 300;
+  font-size: 1.75rem;
+  margin: 2.5rem 0 1.25rem;
+  color: #2C2C2A;
+}
+.content-body h2, .prose-editor h2 {
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 300;
+  font-size: 1.5rem;
+  margin: 2.5rem 0 1rem;
+  color: #2C2C2A;
+}
+.content-body h3, .prose-editor h3 {
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.15rem;
+  margin: 1.75rem 0 0.75rem;
+  color: #2C2C2A;
+}
+.content-body h4, .prose-editor h4 {
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 500;
+  font-size: 1rem;
+  margin: 1.5rem 0 0.5rem;
+  color: #2C2C2A;
+}
+.dark .content-body h1, .dark .content-body h2, .dark .content-body h3, .dark .content-body h4,
+.dark .prose-editor h1, .dark .prose-editor h2, .dark .prose-editor h3, .dark .prose-editor h4 {
+  color: #F4F0E9;
+}
+.content-body p, .prose-editor p {
+  margin: 0 0 1rem;
+}
+.content-body strong, .prose-editor strong {
+  font-weight: 600;
+  color: #2C2C2A;
+}
+.dark .content-body strong, .dark .prose-editor strong {
+  color: #F4F0E9;
+}
+.content-body em, .prose-editor em { font-style: italic; }
+.content-body u, .prose-editor u { text-decoration: underline; }
+.content-body a, .prose-editor a {
+  color: #4A6B65;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.content-body a:hover, .prose-editor a:hover { color: #3a5550; }
+.dark .content-body a, .dark .prose-editor a { color: #BD7B59; }
+.content-body ul, .prose-editor ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0 0 1rem;
+}
+.content-body ol, .prose-editor ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0 0 1rem;
+}
+.content-body li, .prose-editor li {
+  margin-bottom: 0.35rem;
+  line-height: 1.8;
+}
+.content-body blockquote, .prose-editor blockquote {
+  border-left: 3px solid #4A6B65;
+  padding: 0.25rem 1.25rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #4A4A4A;
+}
+.dark .content-body blockquote, .dark .prose-editor blockquote {
+  color: #D8D0C8;
+}
+.content-body img, .prose-editor img {
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+  display: block;
+}
+.content-body hr, .prose-editor hr {
+  border: none;
+  border-top: 0.5px solid #DECCB4;
+  margin: 2rem 0;
+}
+
+/* YouTube-iframe (både TipTap-bygde og fra eksisterende HTML) */
+.content-body iframe, .prose-editor iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+  margin: 1.75rem 0;
+  display: block;
+}
+.content-body div[data-youtube-video], .prose-editor div[data-youtube-video] {
+  margin: 1.75rem 0;
+}
+.content-body div[data-youtube-video] iframe, .prose-editor div[data-youtube-video] iframe {
+  margin: 0;
+}
+
+/* Editor-spesifikt: liten ramme + padding rundt selve redigeringsfeltet */
+.prose-editor {
+  border: 1px solid #DECCB4;
+  background: #FAF8F3;
+  padding: 1.25rem 1.5rem;
+  min-height: 400px;
+}
+.dark .prose-editor {
+  border-color: rgba(244, 240, 233, 0.1);
+  background: #1A1917;
+}
+.prose-editor:focus { outline: none; }
+.prose-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #B6B9B3;
+  pointer-events: none;
+  height: 0;
+}

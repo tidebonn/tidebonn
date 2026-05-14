@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import db from '@/api/client';
 import { motion } from 'framer-motion';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
+import ContentRenderer from '@/components/ContentRenderer';
 
 // Felles innholdsside (Om tidebønn, Om appen): henter rad fra
 // content_pages via slug og rendrer med MarkdownRenderer.
@@ -62,7 +62,7 @@ export default function MarkdownPage({ slug, fallbackTitle }) {
           </p>
         ) : (
           <div className="mb-12">
-            <MarkdownRenderer content={page.content} />
+            <ContentRenderer content={page.content} />
           </div>
         )}
       </motion.div>
