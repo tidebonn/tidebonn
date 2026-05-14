@@ -60,8 +60,8 @@ export default function Layout({ children }) {
   const navItems = [
   { name: 'Bønner', page: 'Prayers', icon: BookOpen },
   { name: 'Om tidebønn', page: 'AboutPrayer', icon: Info },
-  { name: 'Oppsett', page: 'Settings', icon: Settings },
-  { name: 'Om appen', page: 'About', icon: Heart }];
+  { name: 'Om appen', page: 'About', icon: Heart },
+  { name: 'Oppsett', page: 'Settings', icon: Settings }];
 
   const adminItems = [
   { name: 'Admin', page: 'Admin', icon: Users }];
