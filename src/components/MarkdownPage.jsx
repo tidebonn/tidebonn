@@ -47,8 +47,14 @@ export default function MarkdownPage({ slug, fallbackTitle }) {
         </h1>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A6B65]"></div>
+          <div className="space-y-4">
+            <div className="h-4 w-full bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-4 w-11/12 bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-4 w-10/12 bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-4 w-full bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-6 w-1/2 bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse mt-8" />
+            <div className="h-4 w-full bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-4 w-10/12 bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
           </div>
         ) : !page?.content ? (
           <p className="text-[#B6B9B3] italic" style={{ fontFamily: "'Spectral', Georgia, serif" }}>
