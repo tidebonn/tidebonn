@@ -227,7 +227,7 @@ export default function Home() {
                   }}
                   className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
                     (userProgress?.show_group_markers ?? false)
-                      ? 'bg-[#6B9EA0]/10 text-[#6B9EA0] hover:bg-[#6B9EA0]/20'
+                      ? 'bg-[#6B9EA0]/10 text-[#6B9EA0] hover:bg-[#6B9EA0]/20 dark:bg-[#BD7B59]/15 dark:text-[#BD7B59] dark:hover:bg-[#BD7B59]/25'
                       : 'hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#9A9A9A]'
                   }`}
                   title={(userProgress?.show_group_markers ?? false) ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}

@@ -106,7 +106,7 @@ export default function SeriesStartDatePicker({ value, startDay, onChange }) {
                   disabled={!allowed}
                   className={`
                     h-9 w-9 mx-auto rounded-full text-sm transition-colors flex items-center justify-center
-                    ${selected ? 'bg-[#6B9EA0] text-white font-semibold' : ''}
+                    ${selected ? 'bg-[#6B9EA0] dark:bg-[#BD7B59] text-white font-semibold' : ''}
                     ${allowed && !selected ? 'hover:bg-[#E8F4F4] text-[#1A1A1A] dark:text-white font-medium cursor-pointer' : ''}
                     ${!allowed ? 'text-[#C8C0B8] dark:text-gray-600 cursor-not-allowed' : ''}
                   `}

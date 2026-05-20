@@ -271,7 +271,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             onClick={() => setPeriod(opt.id)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               period === opt.id
-                ? 'bg-[#4A6B65] text-[#F4F0E9]'
+                ? 'bg-[#4A6B65] dark:bg-[#BD7B59] text-[#F4F0E9]'
                 : 'bg-[#E8E3DC] dark:bg-[#2A2A2A] text-[#4A4A4A] dark:text-gray-300 hover:bg-[#DDD8D0]'
             }`}
           >

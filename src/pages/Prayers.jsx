@@ -55,6 +55,12 @@ export default function Prayers() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [completedPrayers, setCompletedPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Gruppemarkører-toggle: lagres til UserProgress når innlogget, ellers
+  // til localStorage så uinnloggede også kan styre visningen.
+  const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
+  });
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -104,6 +110,9 @@ export default function Prayers() {
           let progress = progressList[0];
           setUserProgress(progress);
           if (progress.current_series_id) chosenSeriesId = progress.current_series_id;
+          if (typeof progress.show_group_markers === 'boolean') {
+            setShowGroupMarkers(progress.show_group_markers);
+          }
         }
         const logs = await db.entities.PrayerLog.filter({ user_id: currentUser.id, completed: true });
         setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
@@ -295,7 +304,7 @@ export default function Prayers() {
         time_of_day: selectedPrayer.time_of_day,
         duration_minutes: duration,
         completed: true,
-        used_group_markers: !!(userProgress?.show_group_markers),
+        used_group_markers: !!showGroupMarkers,
         location_country: geoData?.country ?? null,
         location_country_code: geoData?.country_code ?? null,
         location_city: geoData?.city ?? null,
@@ -574,18 +583,22 @@ export default function Prayers() {
               </DialogTitle>
               <button
                 onClick={async () => {
-                  const newVal = !(userProgress?.show_group_markers ?? false);
+                  const newVal = !showGroupMarkers;
+                  setShowGroupMarkers(newVal);
+                  if (typeof window !== 'undefined') {
+                    window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
+                  }
                   if (userProgress) {
                     await db.entities.UserProgress.update(userProgress.id, { show_group_markers: newVal });
                     setUserProgress(prev => ({ ...prev, show_group_markers: newVal }));
                   }
                 }}
                 className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
-                  (userProgress?.show_group_markers ?? false)
-                    ? 'bg-[#4A6B65]/10 text-[#4A6B65] hover:bg-[#4A6B65]/20'
+                  showGroupMarkers
+                    ? 'bg-[#4A6B65]/10 text-[#4A6B65] hover:bg-[#4A6B65]/20 dark:bg-[#BD7B59]/15 dark:text-[#BD7B59] dark:hover:bg-[#BD7B59]/25'
                     : 'hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3]'
                 }`}
-                title={(userProgress?.show_group_markers ?? false) ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
+                title={showGroupMarkers ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
               >
                 I/II
               </button>
@@ -604,7 +617,7 @@ export default function Prayers() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
-              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
+              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} />
             )}
           </div>
         </DialogContent>

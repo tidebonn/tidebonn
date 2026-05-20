@@ -210,7 +210,7 @@ export default function Settings() {
         </h2>
         <Button
           onClick={() => setLoginOpen(true)}
-          className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
         >
           Logg inn
         </Button>
@@ -337,7 +337,7 @@ export default function Settings() {
                 <Button
                   type="submit"
                   disabled={savingPassword || !newPassword || !confirmPassword}
-                  className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                 >
                   {savingPassword ? 'Lagrer …' : 'Lagre passord'}
                 </Button>

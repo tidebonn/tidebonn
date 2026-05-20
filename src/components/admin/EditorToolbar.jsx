@@ -47,7 +47,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
         <button
           type="button"
           onClick={onTogglePreview}
-          className={`h-7 flex items-center gap-1 px-2 rounded border text-xs transition-colors ml-1 ${showPreview ? 'border-[#6B9EA0] bg-[#6B9EA0]/10 text-[#4D8082]' : 'border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] text-[#6A6A6A]'}`}
+          className={`h-7 flex items-center gap-1 px-2 rounded border text-xs transition-colors ml-1 ${showPreview ? 'border-[#6B9EA0] bg-[#6B9EA0]/10 text-[#4D8082] dark:border-[#BD7B59] dark:bg-[#BD7B59]/10 dark:text-[#BD7B59]' : 'border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] text-[#6A6A6A]'}`}
           title={showPreview ? 'Tilbake til editor' : 'Vis forhåndsvisning'}
         >
           {showPreview ? <PenLine className="w-3.5 h-3.5" /> : <Search className="w-3.5 h-3.5" />}
@@ -91,7 +91,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
             <button
               type="button"
               onClick={onSave}
-              className="h-7 flex items-center gap-1 px-2 rounded border border-[#6B9EA0] bg-[#6B9EA0] hover:bg-[#4D8082] text-white text-xs transition-colors"
+              className="h-7 flex items-center gap-1 px-2 rounded border border-[#6B9EA0] bg-[#6B9EA0] hover:bg-[#4D8082] dark:bg-[#BD7B59] dark:border-[#BD7B59] dark:hover:bg-[#A56347] text-white text-xs transition-colors"
               title="Lagre og avslutt"
             >
               <Save className="w-3.5 h-3.5" />
