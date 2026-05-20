@@ -5,6 +5,10 @@
 # Vercel
 .vercel
 
+# Lokal dev-config og engangsskripter
+.claude/
+scripts/fix-owner.mjs
+
 # Logs
 logs
 *.log
