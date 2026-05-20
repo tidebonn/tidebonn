@@ -170,7 +170,7 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           margin: 0;
           color: inherit;
         }
-        
+
         .prayer-rich-text div[style*="margin-left"] {
           line-height: 1.8;
           margin-bottom: 0.5rem;
@@ -246,12 +246,37 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           justify-content: space-between;
           align-items: baseline;
         }
+
+        /* Mobil: mindre skrift og smalere markør-kolonne for å unngå
+           overdrevne linjeskift. Plassert sist så den overstyrer
+           base-reglene over. */
+        @media (max-width: 640px) {
+          .prayer-rich-text p {
+            font-size: 0.95em;
+            line-height: 1.55;
+          }
+          .prayer-rich-text .linje {
+            grid-template-columns: 1.6rem 1fr auto;
+            column-gap: 0.15rem;
+          }
+          .prayer-rich-text .markør {
+            padding-top: 0.15rem;
+          }
+          .prayer-rich-text .veksellesning-gruppe {
+            text-indent: ${showGroupMarkers ? '0rem' : '-1.6rem'};
+          }
+          .prayer-rich-text .henvisning {
+            font-size: 0.78rem;
+          }
+        }
       `}</style>
 
       {prayer.free_text_content && (
-        <div 
+        <div
           className="prayer-rich-text prose prose-lg dark:prose-invert max-w-none text-[#1A1A1A] dark:text-gray-100"
-          dangerouslySetInnerHTML={{ __html: prayer.free_text_content }}
+          dangerouslySetInnerHTML={{ __html: prayer.free_text_content
+            .replace(/ \*/g, ' *')
+            .replace(/ †/g, ' †') }}
         />
       )}
     </div>

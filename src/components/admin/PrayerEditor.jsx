@@ -374,7 +374,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
             <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-7 gap-1 text-xs text-[#C8602A] border-[#E8E0D8]">
               Avbryt
             </Button>
-            <Button type="button" size="sm" onClick={onSave} className="h-7 gap-1 text-xs bg-[#6B9EA0] hover:bg-[#4D8082] text-white border-0">
+            <Button type="button" size="sm" onClick={onSave} className="h-7 gap-1 text-xs bg-[#6B9EA0] hover:bg-[#4D8082] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-white border-0">
               Lagre og avslutt
             </Button>
           </div>

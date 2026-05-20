@@ -38,16 +38,18 @@ export function htmlToBlocks(html) {
     // <header class="header-henvisning"> — canonical heading format
     if (tag === 'header') {
       const headingEl = el.querySelector('h1,h2,h3,h4');
+      const level = headingEl?.tagName?.toLowerCase() || 'h2';
+      // h1 er bønnens tittel — den ligger i eget tekstfelt (prayer.title)
+      // og skal ikke vises i editoren. Hopp over.
+      if (level === 'h1') return;
       const refEl = el.querySelector('.henvisning');
-      // <br> i h1 (f.eks. "Tirsdagens morgenbønn<br>Laudes") konverteres
-      // til mellomrom så tittelen blir lesbar i editoren.
       const text = headingEl
         ? headingEl.innerHTML.replace(/<br\s*\/?>/gi, ' – ').replace(/<[^>]+>/g, '').trim()
         : '';
       blocks.push({
         id: nextId(),
         type: 'heading',
-        level: headingEl?.tagName?.toLowerCase() || 'h2',
+        level,
         text,
         reference: refEl?.textContent?.trim() || '',
       });
@@ -70,6 +72,8 @@ export function htmlToBlocks(html) {
 
     // Bare heading tags
     if (['h1', 'h2', 'h3', 'h4'].includes(tag)) {
+      // h1 = tittel, hopp over (se kommentar over)
+      if (tag === 'h1') return;
       blocks.push({
         id: nextId(),
         type: 'heading',
@@ -167,6 +171,24 @@ export function blocksToHtml(blocks) {
   // blokkene er tomme returner vi tom streng for å unngå en tom artikkel.
   if (!inner.trim()) return '';
   return `<article class="bønn">\n${inner}\n</article>`;
+}
+
+/**
+ * Inject the prayer title as an <h1> header at the start of the article.
+ * Tittel lagres i eget felt (prayer.title), men kanonisk HTML-form i basen
+ * har <h1> som første element. Brukes ved lagring av bønn.
+ */
+export function injectTitleH1(html, title) {
+  if (!title) return html || '';
+  const titleHtml = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const headerHtml = `<header class="header-henvisning"><h1>${titleHtml}</h1><h3 class="henvisning"></h3></header>`;
+  if (!html || !html.trim()) {
+    return `<article class="bønn">\n${headerHtml}\n</article>`;
+  }
+  if (html.includes('<article class="bønn">')) {
+    return html.replace(/<article class="bønn">\n?/, `<article class="bønn">\n${headerHtml}\n`);
+  }
+  return `<article class="bønn">\n${headerHtml}\n${html}\n</article>`;
 }
 
 /**

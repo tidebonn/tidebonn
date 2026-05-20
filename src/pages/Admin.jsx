@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PrayerEditor from '../components/admin/PrayerEditor';
+import { injectTitleH1 } from '../components/admin/prayerBlockUtils';
 import ContentPageEditor from '../components/admin/ContentPageEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -223,7 +224,11 @@ export default function Admin() {
     const target = prayerData || editingPrayer;
     if (!target?.id) return; // Only silent-save existing prayers
     try {
-      await db.entities.Prayer.update(target.id, target);
+      const composed = {
+        ...target,
+        free_text_content: injectTitleH1(target.free_text_content, target.title),
+      };
+      await db.entities.Prayer.update(target.id, composed);
       sonnerToast.success('Bønn lagret');
       loadData();
     } catch (error) {
@@ -253,10 +258,14 @@ export default function Admin() {
         }
       }
 
+      const composed = {
+        ...editingPrayer,
+        free_text_content: injectTitleH1(editingPrayer.free_text_content, editingPrayer.title),
+      };
       if (editingPrayer.id) {
-        await db.entities.Prayer.update(editingPrayer.id, editingPrayer);
+        await db.entities.Prayer.update(editingPrayer.id, composed);
       } else {
-        await db.entities.Prayer.create(editingPrayer);
+        await db.entities.Prayer.create(composed);
       }
       sonnerToast.success('Bønn lagret');
       setEditingPrayer(null);
@@ -484,7 +493,7 @@ export default function Admin() {
                     start_time: 'laudes',
                     is_active: true
                   })}
-                  className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Ny serie
@@ -677,7 +686,7 @@ export default function Admin() {
                           <Button 
                             onClick={handleSaveSeries}
                             disabled={saving}
-                            className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                           >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             Lagre
@@ -826,7 +835,7 @@ export default function Admin() {
                       content_type: 'freetext',
                       free_text_content: ''
                     })}
-                    className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                    className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                     >
                     <Plus className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Ny bønn</span>
@@ -944,7 +953,7 @@ export default function Admin() {
                           <Button 
                             onClick={handleSavePrayer}
                             disabled={saving}
-                            className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                           >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                             Lagre
@@ -1433,7 +1442,7 @@ export default function Admin() {
                 <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Innholdssider</CardTitle>
                 <Button 
                   onClick={() => setEditingPage({ slug: '', title: '', content: '' })}
-                   className="bg-[#4A6B65] hover:bg-[#3a5550] text-[#F4F0E9]"
+                   className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Ny side
@@ -1517,7 +1526,7 @@ export default function Admin() {
                             <TableCell className="text-sm text-[#6A6A6A]">{u.email}</TableCell>
                             <TableCell>
                               {isOwner ? (
-                                <Badge className="border-0" style={{backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Eier</Badge>
+                                <Badge className="border-0 dark:!bg-[#BD7B59]" style={{backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Eier</Badge>
                               ) : isSelf ? (
                                 <Badge className="border-0" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>{u.role === 'admin' ? 'Admin' : 'Bruker'}</Badge>
                               ) : (

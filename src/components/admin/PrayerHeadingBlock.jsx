@@ -14,7 +14,7 @@ export default function PrayerHeadingBlock({ block, onChange, onDelete, onAddLin
 
         {/* Heading level selector - same width as marker select */}
         <div className="flex-shrink-0 w-20 flex items-center gap-0.5">
-          {['h2', 'h3', 'h4'].map((level) => (
+          {['h2', 'h3'].map((level) => (
             <button
               key={level}
               type="button"
