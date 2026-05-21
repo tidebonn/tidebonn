@@ -355,12 +355,12 @@ export default function Admin() {
       if (editingPage.id) {
         await db.entities.ContentPage.update(editingPage.id, {
           ...editingPage,
-          last_edited_by: user.email
+          last_edited_by: user.id
         });
       } else {
         await db.entities.ContentPage.create({
           ...editingPage,
-          last_edited_by: user.email
+          last_edited_by: user.id
         });
       }
       sonnerToast.success('Side lagret');
