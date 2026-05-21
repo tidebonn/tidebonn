@@ -1438,15 +1438,8 @@ export default function Admin() {
           {/* Content Tab */}
           <TabsContent value="content">
             <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader>
                 <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Innholdssider</CardTitle>
-                <Button 
-                  onClick={() => setEditingPage({ slug: '', title: '', content: '' })}
-                   className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ny side
-                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
