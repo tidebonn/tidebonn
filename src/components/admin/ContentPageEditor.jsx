@@ -108,8 +108,8 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
   };
 
   return (
-    <div className="space-y-4 py-4">
-      <div className="grid grid-cols-1 sm:grid-cols-[120px,1fr] gap-3 sm:gap-4">
+    <div className="flex flex-col flex-1 min-h-0 py-4 gap-4">
+      <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-[120px,1fr] gap-3 sm:gap-4">
         <div>
           <Label>Slug</Label>
           <Input
@@ -131,7 +131,7 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 pb-2 border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+      <div className="flex-shrink-0 flex flex-wrap items-center gap-1 pb-2 border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
         <TBtn title="Fet (Cmd+B)" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
           <Bold className="w-3.5 h-3.5" />
         </TBtn>
@@ -181,9 +181,11 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
         </TBtn>
       </div>
 
-      <EditorContent editor={editor} />
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <EditorContent editor={editor} />
+      </div>
 
-      <div className="flex justify-end gap-2 pt-3 border-t border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+      <div className="flex-shrink-0 flex justify-end gap-2 pt-3 border-t border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
         <Button variant="outline" onClick={onCancel}>Avbryt</Button>
         <Button
           onClick={onSave}
