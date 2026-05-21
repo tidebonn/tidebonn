@@ -1469,8 +1469,8 @@ export default function Admin() {
 
             {/* Edit Page Dialog */}
             <Dialog open={!!editingPage} onOpenChange={(open) => !open && setEditingPage(null)}>
-              <DialogContent className="max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="max-w-5xl w-[95vw] max-h-[92vh] flex flex-col overflow-hidden">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
                     {editingPage?.id ? 'Rediger side' : 'Ny side'}
                   </DialogTitle>
