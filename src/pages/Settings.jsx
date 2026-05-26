@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import LoginDialog from '@/components/LoginDialog';
+import InstallAppSection from '@/components/InstallAppSection';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -201,19 +202,22 @@ export default function Settings() {
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2
-          style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '1.75rem', marginBottom: '1.5rem'}}
-          className="text-[#2C2C2A] dark:text-[#F4F0E9]"
-        >
-          Logg inn for å se innstillinger
-        </h2>
-        <Button
-          onClick={() => setLoginOpen(true)}
-          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
-        >
-          Logg inn
-        </Button>
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <div className="text-center mb-10">
+          <h2
+            style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '1.75rem', marginBottom: '1.5rem'}}
+            className="text-[#2C2C2A] dark:text-[#F4F0E9]"
+          >
+            Logg inn for å se innstillinger
+          </h2>
+          <Button
+            onClick={() => setLoginOpen(true)}
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+          >
+            Logg inn
+          </Button>
+        </div>
+        <InstallAppSection />
         <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
       </div>
     );
@@ -226,6 +230,8 @@ export default function Settings() {
         <p style={{color: '#B6B9B3', fontFamily: "'Spectral', Georgia, serif", fontWeight: 300}} className="mb-8">Tilpass din bønneopplevelse</p>
 
         <div className="space-y-6">
+          <InstallAppSection />
+
           {/* Personal Info */}
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
