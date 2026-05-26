@@ -205,6 +205,17 @@
       background: #DECCB4;
       margin: 3rem 0;
     }
+
+    /* Aksjonsboks for handling-kreves */
+    .action-box {
+      background: #FAF5EB;
+      border: 0.5px solid #BD7B59;
+      border-left: 4px solid #BD7B59;
+      padding: 1.75rem 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .action-box .step-num { color: #BD7B59; }
+    .action-box h2 { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -218,11 +229,43 @@
         <circle cx="30" cy="22" r="2" fill="none" stroke="currentColor" stroke-width="0.6"/>
         <line x1="16" y1="1" x2="16" y2="72" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
       </svg>
-      <p class="label">Til Areopagos</p>
+      <p class="label">Til Stian / Areopagos</p>
       <h1>Overføringen er fullført</h1>
-      <p>Tidebønn lever nå fullt og helt på Areopagos sine egne kontoer. Siste praktiske steg er domene-oppsett — alt annet er på plass.</p>
-      <div class="status-badge">Status: Fullført 19. mai 2026</div>
+      <p>Tidebønn lever nå fullt og helt på Areopagos sine egne kontoer. Domenet <code>tidebonn.no</code> er kjøpt — siste steg er å peke det mot Vercel. Det gjør du selv via Domeneshop på et par minutter.</p>
+      <div class="status-badge">Status: Klar — venter på DNS</div>
     </header>
+
+    <!-- Action: DNS-oppsett tidebonn.no -->
+    <section class="step action-box">
+      <p class="step-num">Handling kreves — DNS hos Domeneshop</p>
+      <h2>Sett opp tidebonn.no</h2>
+      <p>Domenet er allerede lagt til i Vercel fra min side. For at <code>tidebonn.no</code> faktisk skal peke på appen, må DNS-en endres hos Domeneshop. Logg inn på <a href="https://domene.shop/auth" target="_blank" rel="noopener">domene.shop</a> og finn tidebonn.no.</p>
+
+      <h3>1. Slå av «WWW-videresending»</h3>
+      <p>Under «Aktive tjenester» — slå av <code>WWW-videresending</code>. Vercel håndterer videresending fra www → tidebonn.no automatisk.</p>
+
+      <h3>2. Endre DNS-records</h3>
+      <p>Klikk <strong>«Endre DNS»</strong>. Slett den eksisterende A-recorden som peker til <code>185.134.245.113</code> (Domeneshops parkering), og legg inn disse i stedet:</p>
+
+      <table class="dns">
+        <thead><tr><th>Type</th><th>Navn / Subdomene</th><th>Verdi / Peker til</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>@ (eller blank)</td><td>216.198.79.1</td></tr>
+          <tr><td>A</td><td>@ (eller blank)</td><td>64.29.17.1</td></tr>
+          <tr><td>CNAME</td><td>www</td><td>cname.vercel-dns.com.</td></tr>
+        </tbody>
+      </table>
+
+      <p>La navnetjenerne (<code>ns1.hyp.net</code>, <code>ns2.hyp.net</code>, <code>ns3.hyp.net</code>) stå som de er — vi trenger ikke endre dem.</p>
+
+      <h3>3. Vent på propagering</h3>
+      <p>DNS oppdaterer seg vanligvis innen 5-60 minutter. Vercel oppdager automatisk når records er på plass, og utsteder gratis SSL-sertifikat fra Let's Encrypt (~1 min). Etter det er <a href="https://tidebonn.no" target="_blank" rel="noopener">tidebonn.no</a> live.</p>
+
+      <div class="wait">
+        <span class="tag">Trenger du hjelp?</span>
+        <p>Send meg en melding når du har lagt inn records (eller skjermbilde av DNS-siden før du lagrer), så bekrefter jeg på Vercel-siden at alt ser riktig ut.</p>
+      </div>
+    </section>
 
     <!-- Status -->
     <section class="step">
@@ -259,54 +302,6 @@
       <div class="note">
         <strong>Eier vs admin:</strong> Owner-rollen kan kun settes via Supabase SQL Editor — ikke fra appen. Det er for å verne om eier-rollen mot utilsiktet endring. Admins gis via Admin → Brukere.
       </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <!-- Domene -->
-    <section class="step">
-      <p class="step-num">Valgfritt — siste steg</p>
-      <h2>Eget domene</h2>
-      <p>Appen kjører i dag på <code>tidebonn-five.vercel.app</code>. Om dere vil ha et eget domene (f.eks. <code>tidebonn.no</code>, <code>tidebønn.no</code>, eller <code>tidebonn.areopagos.no</code>), her er prosessen.</p>
-
-      <h3>1. Kjøp eller velg domenet</h3>
-      <p>Hvis Areopagos allerede eier domenet (f.eks. <code>areopagos.no</code> og dere vil bruke subdomenet <code>tidebonn.areopagos.no</code>): hopp til punkt 2.</p>
-      <p>Hvis dere skal kjøpe nytt: anbefalte norske registrarer er <a href="https://domeneshop.no" target="_blank" rel="noopener">domeneshop.no</a> eller <a href="https://norid.no" target="_blank" rel="noopener">norid.no</a>. Kostnad: ~150–200 kr/år.</p>
-
-      <h3>2. Legg domenet inn i Vercel</h3>
-      <ol>
-        <li>Logg inn på Vercel som Areopagos</li>
-        <li>Åpne prosjektet <code>tidebonn</code></li>
-        <li>Gå til <strong>Settings → Domains</strong></li>
-        <li>Klikk <strong>Add Domain</strong>, skriv inn ønsket domene (f.eks. <code>tidebonn.no</code>)</li>
-        <li>Vercel viser hvilke DNS-records dere må legge inn hos domeneleverandøren</li>
-      </ol>
-
-      <h3>3. Legg inn DNS-records hos domeneleverandøren</h3>
-      <p>Vercel viser eksakt hva som trengs, men typisk:</p>
-
-      <p><strong>For apex-domene</strong> (uten "www" — f.eks. <code>tidebonn.no</code>):</p>
-      <table class="dns">
-        <thead><tr><th>Type</th><th>Navn</th><th>Verdi</th></tr></thead>
-        <tbody>
-          <tr><td>A</td><td>@</td><td>76.76.21.21</td></tr>
-        </tbody>
-      </table>
-
-      <p><strong>For subdomene</strong> (f.eks. <code>tidebonn.areopagos.no</code> eller <code>www.tidebonn.no</code>):</p>
-      <table class="dns">
-        <thead><tr><th>Type</th><th>Navn</th><th>Verdi</th></tr></thead>
-        <tbody>
-          <tr><td>CNAME</td><td>tidebonn (eller www)</td><td>cname.vercel-dns.com</td></tr>
-        </tbody>
-      </table>
-
-      <div class="note">
-        <strong>Tips:</strong> Hvis dere vil at både <code>tidebonn.no</code> og <code>www.tidebonn.no</code> skal virke, legg til begge i Vercel (steg 2) og sett opp begge DNS-records. Vercel håndterer redirect mellom dem automatisk.
-      </div>
-
-      <h3>4. Vent på propagering + SSL</h3>
-      <p>DNS-endringer tar typisk 5 minutter til 24 timer (oftest under 1 time). Vercel oppdager automatisk når DNS er klart og utsteder gratis SSL-sertifikat fra Let's Encrypt — typisk innen 1–2 minutter etter at DNS er på plass.</p>
     </section>
 
     <div class="divider"></div>
