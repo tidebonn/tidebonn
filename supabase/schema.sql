@@ -100,7 +100,9 @@ create index if not exists user_progress_current_series_id_idx
 -- =============================================================
 create table if not exists prayer_logs (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  -- user_id er nullable: anonyme/uinnloggede lesninger registreres med
+  -- user_id=null og telles som "Ukjent" i statistikken.
+  user_id uuid references auth.users(id) on delete cascade,
   prayer_id uuid references prayers(id) on delete set null,
   series_id uuid references prayer_series(id) on delete set null,
   day int,
@@ -320,7 +322,12 @@ drop policy if exists prayer_logs_delete on prayer_logs;
 create policy prayer_logs_select on prayer_logs
   for select using ((select auth.uid()) = user_id or (select public.is_admin()));
 create policy prayer_logs_insert on prayer_logs
-  for insert with check ((select auth.uid()) = user_id);
+  for insert with check (
+    -- Anonyme: må logge med user_id=null (matcher auth.uid()=null).
+    -- Innloggede: må logge med eget user_id.
+    (user_id is null and (select auth.uid()) is null)
+    or (select auth.uid()) = user_id
+  );
 create policy prayer_logs_update on prayer_logs
   for update using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 create policy prayer_logs_delete on prayer_logs

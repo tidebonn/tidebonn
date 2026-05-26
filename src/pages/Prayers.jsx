@@ -1,7 +1,6 @@
 import db from '@/api/client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
 
 import { ChevronLeft, ChevronRight, BookOpen, Calendar, CalendarDays, Maximize2, Minimize2 } from 'lucide-react';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
@@ -16,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion, AnimatePresence } from 'framer-motion';
 import PrayerCard from '@/components/prayer/PrayerCard';
 import PrayerContent from '@/components/prayer/PrayerContent';
+import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import {
   TIME_ORDER,
   START_DAY_MAP,
@@ -73,13 +73,11 @@ export default function Prayers() {
 
   // Prayer dialog
   const [selectedPrayer, setSelectedPrayer] = useState(null);
-  const [prayerStartTime, setPrayerStartTime] = useState(null);
   const [prayerFullscreen, setPrayerFullscreen] = useState(false);
   // Callback-ref via useState: Radix Dialog mounter innholdet asynkront
   // (animasjon / portal), så vanlig useRef er null på effect-tid. State
   // trigger effecten på nytt når DOM-en finnes.
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
-  const completionTriggeredRef = useRef(false);
   // Husk om initial load hadde URL-params, så vi ikke overskriver
   // dem når selectedSeries blir satt i useEffect [selectedSeries].
   const initialUrlParamsRef = useRef(false);
@@ -252,87 +250,33 @@ export default function Prayers() {
 
   const openPrayer = (prayer) => {
     setSelectedPrayer(prayer);
-    setPrayerStartTime(Date.now());
-    completionTriggeredRef.current = false;
   };
 
   const closePrayer = () => {
     setSelectedPrayer(null);
-    setPrayerStartTime(null);
   };
 
-  // Scroll-deteksjon på dialog-wrapperen: når brukeren har scrollet
-  // gjennom hele bønnen (innenfor 40px fra bunn), marker som fullført
-  // automatisk. completionTriggeredRef hindrer dobbeltkjøring.
-  useEffect(() => {
-    if (!selectedPrayer || !prayerScrollEl) return;
-    const el = prayerScrollEl;
-
-    const handleScroll = () => {
-      if (completionTriggeredRef.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      if (scrollTop + clientHeight >= scrollHeight - 40) {
-        completionTriggeredRef.current = true;
-        handlePrayerComplete();
-      }
-    };
-
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
-  }, [selectedPrayer, prayerScrollEl]);
-
-  const handlePrayerComplete = async () => {
-    if (!user || !selectedPrayer) return;
-    // OBS: Vi sjekker IKKE lenger isPrayerCompleted — vi vil at
-    // statistikken (inkludert geo) skal telle hver lesning, ikke
-    // kun førstegangslesning. UI viser fortsatt grønn hake på
-    // bønner som finnes i completedPrayers-settet.
-    // Minst 1 minutt per fullført bønn (en rask scroll skal også
-    // gi et lite avtrykk i totalen)
-    const duration = Math.max(1, Math.round((Date.now() - prayerStartTime) / 60000));
-
-    try {
-      // Geolokasjon-lookup parallelt med (eller før) loggen.
-      // Stille feil — vi vil aldri at geo skal hindre fullføringen.
-      const geoData = await db.geo.lookup().catch(() => ({}));
-
-      await db.entities.PrayerLog.create({
-        user_id: user.id,
-        prayer_id: selectedPrayer.id,
-        series_id: selectedPrayer.series_id,
-        day: selectedPrayer.day,
-        time_of_day: selectedPrayer.time_of_day,
-        duration_minutes: duration,
-        completed: true,
-        used_group_markers: !!showGroupMarkers,
-        location_country: geoData?.country ?? null,
-        location_country_code: geoData?.country_code ?? null,
-        location_city: geoData?.city ?? null,
-      });
-
-      setCompletedPrayers(prev => [...prev, `${selectedPrayer.series_id}-${selectedPrayer.day}-${selectedPrayer.time_of_day}`]);
-
+  // Automatisk bønne-fullføring når brukeren har scrollet til bunn
+  // (innenfor 40px). Logger til PrayerLog uansett innlogging, og
+  // oppdaterer UserProgress for innloggede. Anonyme logges med
+  // user_id=null og telles som "Ukjent" i statistikken.
+  usePrayerCompleteLogger({
+    scrollEl: prayerScrollEl,
+    prayer: selectedPrayer,
+    user,
+    userProgress,
+    showGroupMarkers,
+    onCompleted: (key, duration) => {
+      setCompletedPrayers(prev => [...prev, key]);
       if (userProgress) {
-        await db.entities.UserProgress.update(userProgress.id, {
-          total_prayers_completed: (userProgress.total_prayers_completed || 0) + 1,
-          total_minutes: (userProgress.total_minutes || 0) + duration
-        });
         setUserProgress(prev => ({
           ...prev,
           total_prayers_completed: (prev.total_prayers_completed || 0) + 1,
-          total_minutes: (prev.total_minutes || 0) + duration
+          total_minutes: (prev.total_minutes || 0) + duration,
         }));
       }
-
-      // Ingen toast — fullføring er stille, brukeren ser hake-ikonet
-      // andre steder hvis ønskelig. Tellingen skjer i bakgrunnen.
-      // Lukker IKKE dialogen automatisk — brukeren kan lese videre
-      // eller eksplisitt lukke (krysset, klikk utenfor, Esc).
-    } catch (error) {
-      console.error('handlePrayerComplete feilet:', error);
-      toast.error('Kunne ikke registrere bønnen');
-    }
-  };
+    },
+  });
 
   const isPrayerCompleted = (prayer) => {
     return completedPrayers.includes(`${prayer.series_id}-${prayer.day}-${prayer.time_of_day}`);
