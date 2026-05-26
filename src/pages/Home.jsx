@@ -12,6 +12,9 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import PrayerContent from '@/components/prayer/PrayerContent';
+import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
+
+const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
 const timeLabels = {
   laudes: 'Laudes',
@@ -40,6 +43,27 @@ export default function Home() {
   const [showPrayerDialog, setShowPrayerDialog] = useState(false);
   const [prayerFullscreen, setPrayerFullscreen] = useState(false);
   const [nextSeriesTitle, setNextSeriesTitle] = useState('');
+  const [prayerScrollEl, setPrayerScrollEl] = useState(null);
+
+  // Logg bønne-fullføring (også for uinnloggede — registreres med
+  // user_id=null og telles som "Ukjent" i statistikken).
+  usePrayerCompleteLogger({
+    scrollEl: showPrayerDialog ? prayerScrollEl : null,
+    prayer: showPrayerDialog ? nextPrayer : null,
+    user,
+    userProgress,
+    showGroupMarkers: userProgress?.show_group_markers ?? false,
+    onCompleted: (_key, duration) => {
+      if (userProgress) {
+        setUserProgress(prev => ({
+          ...prev,
+          total_prayers_completed: (prev.total_prayers_completed || 0) + 1,
+          total_minutes: (prev.total_minutes || 0) + duration,
+        }));
+      }
+    },
+  });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -211,7 +235,7 @@ export default function Home() {
           <DialogHeader className="border-b border-[#E8E0D8] dark:border-gray-800 pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
-                Dag {nextPrayer?.day} • {timeLabels[nextPrayer?.time_of_day]}
+                {nextPrayer ? `Uke ${Math.ceil(nextPrayer.day / 7)} · ${WEEKDAY_NAMES[(nextPrayer.day - 1) % 7]} · ${timeLabels[nextPrayer.time_of_day] || nextPrayer.time_of_day}` : ''}
               </Badge>
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white">
@@ -247,7 +271,7 @@ export default function Home() {
               Tekst og veiledning for bønnen. Bla nedover for å lese hele.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto py-4">
+          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {nextPrayer && (
               <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
             )}

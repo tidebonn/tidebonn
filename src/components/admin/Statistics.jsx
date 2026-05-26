@@ -94,7 +94,11 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     const totalPrayers = filtered.length;
     const completed = filtered.filter((l) => l.completed).length;
     const totalMinutes = filtered.reduce((s, l) => s + (l.duration_minutes || 0), 0);
-    const uniqueUsers = new Set(filtered.map((l) => l.user_id)).size;
+    // Skill innloggede fra anonyme: user_id=null = "Ukjent" (anonyme
+    // lesninger). Tell anonyme som én aggregert "bruker" i unike-tallet.
+    const innloggedeIds = filtered.filter((l) => l.user_id).map((l) => l.user_id);
+    const anonymousReads = filtered.filter((l) => !l.user_id).length;
+    const uniqueUsers = new Set(innloggedeIds).size + (anonymousReads > 0 ? 1 : 0);
     const avgMinutesPerPrayer = totalPrayers > 0 ? totalMinutes / totalPrayers : 0;
 
     // Active users (alle logs, ikke periodefiltrert)
@@ -103,9 +107,14 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       const d = new Date(l.created_at).getTime();
       return !isNaN(d) && d >= now - ms;
     });
-    const active24h = new Set(within(86400000).map((l) => l.user_id)).size;
-    const active7d = new Set(within(7 * 86400000).map((l) => l.user_id)).size;
-    const active30d = new Set(within(30 * 86400000).map((l) => l.user_id)).size;
+    const countActive = (logs) => {
+      const ids = new Set(logs.filter((l) => l.user_id).map((l) => l.user_id));
+      const hasAnon = logs.some((l) => !l.user_id);
+      return ids.size + (hasAnon ? 1 : 0);
+    };
+    const active24h = countActive(within(86400000));
+    const active7d = countActive(within(7 * 86400000));
+    const active30d = countActive(within(30 * 86400000));
 
     // By time of day (laudes/sekst/vesper etc)
     const timeMap = {};
@@ -248,6 +257,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     return {
       totalPrayers, completed, totalMinutes, uniqueUsers, avgMinutesPerPrayer,
+      anonymousReads,
       active24h, active7d, active30d,
       byTime, bySeries, dailyActivity, byHour, byWeekday, byGroupMarkers,
       topPrayer,
@@ -285,7 +295,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
         <StatCard icon={BookOpen} label="Bønner bedt" value={stats.totalPrayers} sub={`${stats.completed} fullført`} />
         <StatCard icon={Clock} label="Tid i bønn" value={timeStr} sub={`${stats.totalMinutes} minutter`} color="#7A9690" />
         <StatCard icon={Hourglass} label="Snitt per bønn" value={avgStr} color="#BD7B59" />
-        <StatCard icon={Users} label="Unike brukere" value={stats.uniqueUsers} sub={totalUsers > 0 ? `${totalUsers} brukere totalt` : undefined} />
+        <StatCard icon={Users} label="Unike brukere" value={stats.uniqueUsers} sub={stats.anonymousReads > 0 ? `inkl. Ukjent (${stats.anonymousReads} anonyme)` : (totalUsers > 0 ? `${totalUsers} brukere totalt` : undefined)} />
       </div>
 
       {/* Active users */}
