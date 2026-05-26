@@ -22,16 +22,13 @@ export default function Layout({ children }) {
   }, []);
 
   useEffect(() => {
+    // Standardvisning: light. Dark krever eksplisitt valg via
+    // UserProgress.theme='dark'. Uinnloggede/nye brukere får alltid
+    // light, uavhengig av OS-preferanse.
     if (userProgress?.theme === 'dark') {
       document.documentElement.classList.add('dark');
-    } else if (userProgress?.theme === 'light') {
-      document.documentElement.classList.remove('dark');
     } else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      document.documentElement.classList.remove('dark');
     }
   }, [userProgress?.theme]);
 
