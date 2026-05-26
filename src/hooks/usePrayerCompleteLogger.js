@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import db from '@/api/client';
 
+// Antall ms før en åpen bønn telles som "påbegynt" (completed=false).
+// Filtrerer bort kjappe avbrutte åpninger.
+const START_THRESHOLD_MS = 5000;
+
 /**
- * Logger en bønne-fullføring til PrayerLog når brukeren scroller helt
- * ned (innenfor 40px fra bunn) av et scroll-element.
+ * Logger to typer hendelser til prayer_logs:
+ *   - "påbegynt": completed=false, logges 5 sek etter at bønnen åpnes
+ *   - "fullført": completed=true, logges når brukeren scroller til bunn
+ *
+ * Begge er separate INSERT-rader. Anonyme brukere (uten innlogging)
+ * logges med user_id=null og telles som "Ukjent" i statistikken.
  *
  * Brukes både fra /Prayers og / (Home) for å sikre lik atferd.
- *
- * Uinnloggede brukere logges med user_id=null (telles som "Ukjent" i
- * statistikken). Geolokasjon hentes uansett.
  *
  * @param {Object} opts
  * @param {Element|null} opts.scrollEl - scroll-container å lytte på
@@ -17,7 +22,7 @@ import db from '@/api/client';
  * @param {Object|null} opts.userProgress - UserProgress-rad (kun innlogget)
  * @param {Boolean} opts.showGroupMarkers - I/II-toggle på/av
  * @param {Function} opts.onCompleted - callback(prayerKey, durationMin)
- *   etter vellykket logg
+ *   etter vellykket fullføringslogg
  */
 export function usePrayerCompleteLogger({
   scrollEl,
@@ -29,14 +34,46 @@ export function usePrayerCompleteLogger({
 }) {
   const [startTime, setStartTime] = useState(null);
   const triggeredRef = useRef(false);
+  const startLoggedRef = useRef(false);
 
   // Reset på ny bønne
   useEffect(() => {
     if (prayer) {
       setStartTime(Date.now());
       triggeredRef.current = false;
+      startLoggedRef.current = false;
     }
   }, [prayer?.id]);
+
+  // Logg "påbegynt" etter 5 sek (filtrerer bort kjappe lukkinger)
+  useEffect(() => {
+    if (!prayer) return;
+    const prayerId = prayer.id;
+    const timer = setTimeout(async () => {
+      if (startLoggedRef.current || triggeredRef.current) return;
+      startLoggedRef.current = true;
+      try {
+        const geoData = await db.geo.lookup().catch(() => ({}));
+        await db.entities.PrayerLog.create({
+          user_id: user?.id ?? null,
+          prayer_id: prayerId,
+          series_id: prayer.series_id,
+          day: prayer.day,
+          time_of_day: prayer.time_of_day,
+          duration_minutes: 0,
+          completed: false,
+          used_group_markers: !!showGroupMarkers,
+          location_country: geoData?.country ?? null,
+          location_country_code: geoData?.country_code ?? null,
+          location_city: geoData?.city ?? null,
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('PrayerLog (start) feilet:', error);
+      }
+    }, START_THRESHOLD_MS);
+    return () => clearTimeout(timer);
+  }, [prayer?.id, user?.id, showGroupMarkers]);
 
   useEffect(() => {
     if (!prayer || !scrollEl) return;
