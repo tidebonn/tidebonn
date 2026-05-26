@@ -91,15 +91,23 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
   const filtered = useMemo(() => filterByPeriod(prayerLogs, period), [prayerLogs, period]);
 
   const stats = useMemo(() => {
-    const totalPrayers = filtered.length;
-    const completed = filtered.filter((l) => l.completed).length;
-    const totalMinutes = filtered.reduce((s, l) => s + (l.duration_minutes || 0), 0);
+    // prayer_logs har to typer rader: "påbegynt" (completed=false,
+    // logget etter 5s) og "fullført" (completed=true, scrollet til
+    // bunn). Hver lesning kan generere én av hver.
+    const startedRows = filtered.filter((l) => l.completed === false);
+    const completedRows = filtered.filter((l) => l.completed === true);
+    const started = startedRows.length;
+    const completed = completedRows.length;
+    const totalPrayers = started + completed;
+    const completionRate = started > 0 ? completed / started : null;
+    // Tid i bønn summerer kun fullførte (påbegynte har duration=0)
+    const totalMinutes = completedRows.reduce((s, l) => s + (l.duration_minutes || 0), 0);
     // Skill innloggede fra anonyme: user_id=null = "Ukjent" (anonyme
     // lesninger). Tell anonyme som én aggregert "bruker" i unike-tallet.
     const innloggedeIds = filtered.filter((l) => l.user_id).map((l) => l.user_id);
     const anonymousReads = filtered.filter((l) => !l.user_id).length;
     const uniqueUsers = new Set(innloggedeIds).size + (anonymousReads > 0 ? 1 : 0);
-    const avgMinutesPerPrayer = totalPrayers > 0 ? totalMinutes / totalPrayers : 0;
+    const avgMinutesPerPrayer = completed > 0 ? totalMinutes / completed : 0;
 
     // Active users (alle logs, ikke periodefiltrert)
     const now = Date.now();
@@ -118,7 +126,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // By time of day (laudes/sekst/vesper etc)
     const timeMap = {};
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const t = l.time_of_day || 'ukjent';
       timeMap[t] = (timeMap[t] || 0) + 1;
     });
@@ -128,7 +136,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // By series
     const seriesMap = {};
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const s = prayerSeries.find((s) => s.id === l.series_id);
       const name = s?.title || 'Ukjent';
       seriesMap[name] = (seriesMap[name] || 0) + 1;
@@ -140,7 +148,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // Daily activity — bruk ekte dato-objekter for sortering
     const dayMap = new Map();
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const d = new Date(l.created_at);
       if (isNaN(d)) return;
       // Normaliser til midnatt lokal tid
@@ -156,7 +164,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // Hour of day (når på dagen ber folk)
     const hourMap = Array(24).fill(0);
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const d = new Date(l.created_at);
       if (!isNaN(d)) hourMap[d.getHours()]++;
     });
@@ -167,7 +175,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // Weekday (mandag-start)
     const weekdayCounts = Array(7).fill(0);
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const d = new Date(l.created_at);
       if (!isNaN(d)) weekdayCounts[d.getDay()]++;
     });
@@ -181,7 +189,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     // (null = gammel logg uten data → ekskluderes fra %).
     let usedMarkers = 0;
     let withoutMarkers = 0;
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       if (l.used_group_markers === true) usedMarkers++;
       else if (l.used_group_markers === false) withoutMarkers++;
     });
@@ -193,7 +201,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
     // Geo-fordeling (fra Edge Function geo-lookup ved fullføring)
     const countryMap = {};
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       if (l.location_country) countryMap[l.location_country] = (countryMap[l.location_country] || 0) + 1;
     });
     const byCountry = Object.entries(countryMap)
@@ -202,7 +210,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       .slice(0, 8);
 
     const cityMap = {};
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       if (l.location_city) cityMap[l.location_city] = (cityMap[l.location_city] || 0) + 1;
     });
     const byCity = Object.entries(cityMap)
@@ -213,7 +221,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     // Mest populær bønn (kun navn på serien er kjent her, vi har ikke
     // hentet prayers her — viser kun serie/dag/tid-kombinasjon).
     const prayerCombo = {};
-    filtered.forEach((l) => {
+    completedRows.forEach((l) => {
       const key = `${l.series_id}|${l.day}|${l.time_of_day}`;
       prayerCombo[key] = (prayerCombo[key] || 0) + 1;
     });
@@ -256,7 +264,8 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       .filter((d) => d.count > 0);
 
     return {
-      totalPrayers, completed, totalMinutes, uniqueUsers, avgMinutesPerPrayer,
+      totalPrayers, started, completed, completionRate,
+      totalMinutes, uniqueUsers, avgMinutesPerPrayer,
       anonymousReads,
       active24h, active7d, active30d,
       byTime, bySeries, dailyActivity, byHour, byWeekday, byGroupMarkers,
@@ -292,9 +301,14 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
 
       {/* Key metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={BookOpen} label="Bønner bedt" value={stats.totalPrayers} sub={`${stats.completed} fullført`} />
-        <StatCard icon={Clock} label="Tid i bønn" value={timeStr} sub={`${stats.totalMinutes} minutter`} color="#7A9690" />
-        <StatCard icon={Hourglass} label="Snitt per bønn" value={avgStr} color="#BD7B59" />
+        <StatCard
+          icon={BookOpen}
+          label="Påbegynt"
+          value={stats.started}
+          sub={stats.completionRate !== null ? `${Math.round(stats.completionRate * 100)}% fullført` : 'Ingen fullført ennå'}
+        />
+        <StatCard icon={BookOpen} label="Fullført" value={stats.completed} sub={`Snitt ${avgStr} per bønn`} color="#7A9690" />
+        <StatCard icon={Clock} label="Tid i bønn" value={timeStr} sub={`${stats.totalMinutes} minutter`} color="#BD7B59" />
         <StatCard icon={Users} label="Unike brukere" value={stats.uniqueUsers} sub={stats.anonymousReads > 0 ? `inkl. Ukjent (${stats.anonymousReads} anonyme)` : (totalUsers > 0 ? `${totalUsers} brukere totalt` : undefined)} />
       </div>
 
