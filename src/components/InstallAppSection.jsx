@@ -14,7 +14,9 @@ export default function InstallAppSection() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const [isMacSafari, setIsMacSafari] = useState(false);
   const [showIosHelp, setShowIosHelp] = useState(false);
+  const [showMacHelp, setShowMacHelp] = useState(false);
 
   useEffect(() => {
     // Sjekk om allerede installert som PWA (standalone-modus)
@@ -27,6 +29,13 @@ export default function InstallAppSection() {
     const ua = window.navigator.userAgent || '';
     const ios = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
     setIsIos(ios);
+
+    // Detekter macOS Safari (støtter "Legg til i Dock" fra Sonoma /
+    // Safari 17, sept 2023). Sjekker både Macintosh i UA og at det
+    // IKKE er Chrome/Chromium/Edge/Firefox/Opera.
+    const isMac = /Macintosh/.test(ua);
+    const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg\/|OPR\/|Firefox/.test(ua);
+    setIsMacSafari(isMac && isSafari && !ios);
 
     // Fang opp install-prompt fra Chrome/Edge/Android
     const handler = (e) => {
@@ -100,8 +109,32 @@ export default function InstallAppSection() {
           </>
         )}
 
-        {/* Hverken Android-prompt eller iOS — generell hjelp */}
-        {!deferredPrompt && !isIos && (
+        {/* macOS Safari (Sonoma+): vis Dock-instruks */}
+        {isMacSafari && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setShowMacHelp((v) => !v)}
+              className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.2)]"
+            >
+              <Share className="w-4 h-4 mr-2" />
+              Slik installerer du på Mac (Safari)
+            </Button>
+            {showMacHelp && (
+              <ol className="list-decimal list-outside pl-5 space-y-1 text-sm text-[#4A4A4A] dark:text-gray-300 mt-2">
+                <li>Velg <strong>Arkiv</strong>-menyen øverst (eller File på engelsk).</li>
+                <li>Klikk <strong>«Legg til i Dock…»</strong> (Add to Dock).</li>
+                <li>Bekreft navnet og trykk <strong>Legg til</strong>. Tidebønn vises nå i Dock-en og kan startes som egen app.</li>
+              </ol>
+            )}
+            <p className="text-xs text-[#9A9A9A] dark:text-gray-500">
+              Krever macOS Sonoma (14) eller nyere.
+            </p>
+          </>
+        )}
+
+        {/* Hverken Android-prompt, iOS eller Mac Safari — generell hjelp */}
+        {!deferredPrompt && !isIos && !isMacSafari && (
           <p className="text-sm text-[#6A6A6A] dark:text-gray-400">
             Bruker du Chrome eller Edge, finner du <em>«Installer
             Tidebønn»</em> i nettleserens meny (tre prikker øverst til
