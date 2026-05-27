@@ -44,6 +44,12 @@ export default function Home() {
   const [prayerFullscreen, setPrayerFullscreen] = useState(false);
   const [nextSeriesTitle, setNextSeriesTitle] = useState('');
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
+  // I/II-toggle: samme localStorage-fallback som /Bønner, så uinnloggede
+  // også kan styre visningen.
+  const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
+  });
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -52,7 +58,7 @@ export default function Home() {
     prayer: showPrayerDialog ? nextPrayer : null,
     user,
     userProgress,
-    showGroupMarkers: userProgress?.show_group_markers ?? false,
+    showGroupMarkers,
     onCompleted: (_key, duration) => {
       if (userProgress) {
         setUserProgress(prev => ({
@@ -84,6 +90,9 @@ export default function Home() {
         if (progressList.length > 0) {
           loadedProgress = progressList[0];
           setUserProgress(loadedProgress);
+          if (typeof loadedProgress.show_group_markers === 'boolean') {
+            setShowGroupMarkers(loadedProgress.show_group_markers);
+          }
         }
       }
 
@@ -243,18 +252,22 @@ export default function Home() {
                 </DialogTitle>
                 <button
                   onClick={async () => {
-                    const newVal = !(userProgress?.show_group_markers ?? false);
+                    const newVal = !showGroupMarkers;
+                    setShowGroupMarkers(newVal);
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
+                    }
                     if (userProgress) {
                       await db.entities.UserProgress.update(userProgress.id, { show_group_markers: newVal });
                       setUserProgress(prev => ({ ...prev, show_group_markers: newVal }));
                     }
                   }}
                   className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
-                    (userProgress?.show_group_markers ?? false)
+                    showGroupMarkers
                       ? 'bg-[#6B9EA0]/10 text-[#6B9EA0] hover:bg-[#6B9EA0]/20 dark:bg-[#BD7B59]/15 dark:text-[#BD7B59] dark:hover:bg-[#BD7B59]/25'
                       : 'hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#9A9A9A]'
                   }`}
-                  title={(userProgress?.show_group_markers ?? false) ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
+                  title={showGroupMarkers ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
                 >
                   I/II
                 </button>
@@ -273,7 +286,7 @@ export default function Home() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {nextPrayer && (
-              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={userProgress?.show_group_markers ?? false} />
+              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} />
             )}
           </div>
         </DialogContent>
