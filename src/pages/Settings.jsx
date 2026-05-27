@@ -16,6 +16,7 @@ import { createPageUrl } from '@/utils';
 import { Link } from 'react-router-dom';
 import LoginDialog from '@/components/LoginDialog';
 import InstallAppSection from '@/components/InstallAppSection';
+import PushSettingsSection from '@/components/PushSettingsSection';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -231,6 +232,10 @@ export default function Settings() {
 
         <div className="space-y-6">
           <InstallAppSection />
+          <PushSettingsSection
+            user={user}
+            series={prayerSeries.find((s) => s.id === selectedSeries)}
+          />
 
           {/* Personal Info */}
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
