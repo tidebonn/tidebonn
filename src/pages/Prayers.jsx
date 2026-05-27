@@ -82,13 +82,19 @@ export default function Prayers() {
   // dem når selectedSeries blir satt i useEffect [selectedSeries].
   const initialUrlParamsRef = useRef(false);
 
+  // Når push-varselet åpner appen med ?time=X&open=1, husk at vi
+  // skal auto-åpne bønnen så snart bønne-listen er lastet.
+  const autoOpenTimeRef = useRef(null);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const dayParam = urlParams.get('day');
     const timeParam = urlParams.get('time');
+    const openParam = urlParams.get('open');
     if (dayParam || timeParam) initialUrlParamsRef.current = true;
     if (dayParam) setSelectedDay(parseInt(dayParam));
     if (timeParam) setSelectedTime(timeParam);
+    if (openParam === '1' && timeParam) autoOpenTimeRef.current = timeParam;
     loadData(dayParam ? parseInt(dayParam) : null, timeParam);
   }, []);
 
@@ -192,6 +198,14 @@ export default function Prayers() {
 
   const filteredPrayers = seriesPrayers.filter(p => p.day === effectiveDay);
   const currentPrayer = filteredPrayers.find(p => p.time_of_day === selectedTime);
+
+  // Auto-åpne bønnen når kommer fra push-varsel (?time=X&open=1)
+  useEffect(() => {
+    if (autoOpenTimeRef.current && currentPrayer && currentPrayer.time_of_day === autoOpenTimeRef.current) {
+      setSelectedPrayer(currentPrayer);
+      autoOpenTimeRef.current = null;
+    }
+  }, [currentPrayer]);
 
   // Reset selectors when series changes (manuelt valg i dropdown).
   // Skipper første gang hvis URL hadde day/time-params — da skal

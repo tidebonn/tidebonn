@@ -59,6 +59,8 @@ const TABLES = {
   PrayerLog: 'prayer_logs',
   ContentPage: 'content_pages',
   User: 'profiles',
+  PushSubscription: 'push_subscriptions',
+  PushPreference: 'push_preferences',
 };
 
 // Tabeller som har deleted_at og som vi automatisk filtrerer bort
