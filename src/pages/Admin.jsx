@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PrayerEditor from '../components/admin/PrayerEditor';
+import ClientErrorsCard from '../components/admin/ClientErrorsCard';
 import { injectTitleH1 } from '../components/admin/prayerBlockUtils';
 import ContentPageEditor from '../components/admin/ContentPageEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -466,13 +467,14 @@ export default function Admin() {
           </TabsList>
 
           {/* Statistics Tab */}
-          <TabsContent value="statistics">
+          <TabsContent value="statistics" className="space-y-6">
             <Statistics
               prayerLogs={prayerLogs}
               prayerSeries={prayerSeries}
               userProgressList={allUserProgress}
               totalUsers={allUsers.length}
             />
+            <ClientErrorsCard />
           </TabsContent>
 
           {/* Prayer Series Tab */}

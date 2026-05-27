@@ -451,11 +451,40 @@ async function callManageUser(body) {
   }
 }
 
+// Logger en klient-side feil til client_errors-tabellen. Brukes til å
+// fange opp stille feil (RLS-avvisning, nett-timeout, etc) som
+// ellers bare ville endt i console.error. Aldri throw — selv om
+// loggingen feiler, må appen fortsette.
+async function logError(context, error, extra = null) {
+  try {
+    const msg =
+      error?.message || (typeof error === 'string' ? error : JSON.stringify(error)) || '';
+    let user_id = null;
+    try {
+      const { data } = await sb.auth.getSession();
+      user_id = data?.session?.user?.id ?? null;
+    } catch {
+      /* ignorer */
+    }
+    await sb.from('client_errors').insert({
+      user_id,
+      context,
+      message: String(msg).slice(0, 1000),
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
+      url: typeof window !== 'undefined' ? window.location.href.slice(0, 500) : null,
+      extra: extra || null,
+    });
+  } catch {
+    /* svelg — feil-logger skal aldri krasje appen */
+  }
+}
+
 export const db = {
   entities,
   auth,
   geo,
   users,
+  logError,
   // Tomme stubs for kall som ble fjernet i Fase A (PDF).
   // Kaster slik at evt. gjenværende referanser blir synlige i runtime.
   integrations: {

@@ -120,6 +120,7 @@ export default function PushSettingsSection({ user, series }) {
       toast.success('Varsler aktivert på denne enheten');
     } catch (e) {
       console.error('Subscribe feilet:', e);
+      db.logError('push_subscribe', e, { user_id: user?.id });
       toast.error('Kunne ikke aktivere varsler');
     } finally {
       setSubscribing(false);
@@ -170,6 +171,7 @@ export default function PushSettingsSection({ user, series }) {
       }
     } catch (e) {
       console.error('Oppdater pref feilet:', e);
+      db.logError('push_pref_update', e, { user_id: user?.id, time_of_day });
       toast.error('Kunne ikke lagre');
     }
   };
