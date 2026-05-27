@@ -30,7 +30,7 @@ const timeOptions = [
   { id: 'laudes', name: 'Laudes', short: 'L' },
   { id: 'prim', name: 'Prim', short: 'P' },
   { id: 'ters', name: 'Ters', short: 'T' },
-  { id: 'sekst', name: 'Sekst', short: 'S' },
+  { id: 'sekst', name: 'Middagsbønn', short: 'S' },
   { id: 'non', name: 'Non', short: 'N' },
   { id: 'vesper', name: 'Vesper', short: 'V' },
   { id: 'kompletorium', name: 'Kompletorium', short: 'K' },

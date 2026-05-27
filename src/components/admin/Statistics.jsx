@@ -124,14 +124,16 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
     const active7d = countActive(within(7 * 86400000));
     const active30d = countActive(within(30 * 86400000));
 
-    // By time of day (laudes/sekst/vesper etc)
+    // By time of day (laudes/sekst/vesper etc). 'sekst' vises som
+    // 'Middagsbønn' (norsk navn), resten kapitaliseres.
     const timeMap = {};
     completedRows.forEach((l) => {
       const t = l.time_of_day || 'ukjent';
       timeMap[t] = (timeMap[t] || 0) + 1;
     });
+    const TIME_DISPLAY = { sekst: 'Middagsbønn' };
     const byTime = Object.entries(timeMap)
-      .map(([name, count]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), count }))
+      .map(([name, count]) => ({ name: TIME_DISPLAY[name] || (name.charAt(0).toUpperCase() + name.slice(1)), count }))
       .sort((a, b) => b.count - a.count);
 
     // By series

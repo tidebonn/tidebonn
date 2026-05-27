@@ -24,7 +24,7 @@ const TIME_LABELS = {
   laudes: 'Laudes',
   prim: 'Prim',
   ters: 'Ters',
-  sekst: 'Sekst',
+  sekst: 'Middagsbønn',
   non: 'Non',
   vesper: 'Vesper',
   kompletorium: 'Kompletorium',

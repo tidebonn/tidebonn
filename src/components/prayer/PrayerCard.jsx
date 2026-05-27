@@ -7,7 +7,7 @@ const timeLabels = {
   laudes: { name: 'Laudes', desc: 'Morgenbønn' },
   prim: { name: 'Prim', desc: 'Første time' },
   ters: { name: 'Ters', desc: 'Tredje time' },
-  sekst: { name: 'Sekst', desc: 'Middagsbønn' },
+  sekst: { name: 'Middagsbønn', desc: 'Sjette time' },
   non: { name: 'Non', desc: 'Niende time' },
   vesper: { name: 'Vesper', desc: 'Aftensang' },
   kompletorium: { name: 'Kompletorium', desc: 'Nattbønn' },

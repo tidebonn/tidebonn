@@ -612,7 +612,7 @@ export default function Admin() {
                               { value: 'laudes', label: 'Laudes (Morgenbønn)' },
                               { value: 'prim', label: 'Prim (Første time)' },
                               { value: 'ters', label: 'Ters (Tredje time)' },
-                              { value: 'sekst', label: 'Sekst (Middagsbønn)' },
+                              { value: 'sekst', label: 'Middagsbønn' },
                               { value: 'non', label: 'Non (Niende time)' },
                               { value: 'vesper', label: 'Vesper (Aftensang)' },
                               { value: 'kompletorium', label: 'Kompletorium (Nattbønn)' }
@@ -671,7 +671,7 @@ export default function Admin() {
                                 <SelectItem value="laudes">Laudes</SelectItem>
                                 <SelectItem value="prim">Prim</SelectItem>
                                 <SelectItem value="ters">Ters</SelectItem>
-                                <SelectItem value="sekst">Sekst</SelectItem>
+                                <SelectItem value="sekst">Middagsbønn</SelectItem>
                                 <SelectItem value="non">Non</SelectItem>
                                 <SelectItem value="vesper">Vesper</SelectItem>
                                 <SelectItem value="kompletorium">Kompletorium</SelectItem>
@@ -913,7 +913,7 @@ export default function Admin() {
                                 <SelectItem value="laudes">Laudes</SelectItem>
                                 <SelectItem value="prim">Prim</SelectItem>
                                 <SelectItem value="ters">Ters</SelectItem>
-                                <SelectItem value="sekst">Sekst</SelectItem>
+                                <SelectItem value="sekst">Middagsbønn</SelectItem>
                                 <SelectItem value="non">Non</SelectItem>
                                 <SelectItem value="vesper">Vesper</SelectItem>
                                 <SelectItem value="kompletorium">Kompletorium</SelectItem>
@@ -1100,7 +1100,7 @@ export default function Admin() {
                                                       <div className="flex-1">
                                                         <div className="flex items-center gap-2">
                                                           <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
-                                                            <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Sek','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
+                                                            <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Mid','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                             <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
                                                           </span>
                                                           <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
@@ -1265,7 +1265,7 @@ export default function Admin() {
                                                               className="w-4 h-4 rounded border-gray-300"
                                                             />
                                                             <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
-                                                              <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Sek','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
+                                                              <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Mid','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                               <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
                                                             </span>
                                                             <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
