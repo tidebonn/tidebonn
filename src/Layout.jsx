@@ -226,14 +226,14 @@ export default function Layout({ children }) {
                   Navigasjonsmeny med lenker til sidene i appen.
                 </SheetDescription>
                 <div className="flex flex-col h-full pt-8">
-                  <nav className="flex flex-col">
+                  <nav className="flex-1 min-h-0 overflow-y-auto flex flex-col">
                     {navItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
                     {isAdmin && <>
                       <div className="h-px my-3 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                       {adminItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
                     </>}
                   </nav>
-                  <div className="mt-auto pb-8">
+                  <div className="flex-shrink-0" style={{paddingBottom: 'max(2rem, env(safe-area-inset-bottom))'}}>
                     <div className="h-px mb-4 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                     {user ?
                       <div>
