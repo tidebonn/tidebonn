@@ -1,4 +1,4 @@
-import db from '@/api/client';
+import db, { sb } from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -19,6 +19,19 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     loadUser();
+
+    // Lytt på auth-endringer så header (Logg inn/Logg ut + meny)
+    // oppdateres umiddelbart etter passord-/magic-link-innlogging,
+    // uten at brukeren må refreshe.
+    const { data } = sb.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        loadUser();
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserProgress(null);
+      }
+    });
+    return () => data?.subscription?.unsubscribe?.();
   }, []);
 
   useEffect(() => {

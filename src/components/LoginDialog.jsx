@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import db from '@/api/client';
 import {
   Dialog,
@@ -32,6 +32,13 @@ export default function LoginDialog({ open, onOpenChange }) {
     setStatus('idle');
     setErrorMsg('');
   };
+
+  // Reset state hver gang dialogen lukkes (uansett hvem som lukker
+  // den — parent eller Radix). Hindrer at en stuck 'sending-pw'-state
+  // henger igjen til neste åpning.
+  useEffect(() => {
+    if (!open) reset();
+  }, [open]);
 
   const handlePasswordLogin = async (e) => {
     e?.preventDefault?.();
