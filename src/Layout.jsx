@@ -229,20 +229,20 @@ export default function Layout({ children }) {
                   <nav className="flex flex-col">
                     {navItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
                     {isAdmin && <>
-                      <div style={{height: '0.5px', backgroundColor: 'rgba(244,240,233,0.2)', margin: '0.75rem 0'}} />
+                      <div className="h-px my-3 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                       {adminItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
                     </>}
                   </nav>
                   <div className="mt-auto pb-8">
-                    <div style={{height: '0.5px', backgroundColor: 'rgba(244,240,233,0.2)', marginBottom: '1rem'}} />
+                    <div className="h-px mb-4 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                     {user ?
                       <div>
-                        <p style={{padding: '0 1rem 0.5rem', fontSize: '0.7rem', color: 'rgba(244,240,233,0.4)', fontFamily: "'Montserrat', sans-serif"}}>{user.display_name || user.full_name || user.email}</p>
-                        <button onClick={handleLogout} style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(244,240,233,0.55)', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                        <p className="text-[#6A6A6A] dark:text-[rgba(244,240,233,0.4)]" style={{padding: '0 1rem 0.5rem', fontSize: '0.7rem', fontFamily: "'Montserrat', sans-serif"}}>{user.display_name || user.full_name || user.email}</p>
+                        <button onClick={handleLogout} className="text-[#4A4A4A] dark:text-[rgba(244,240,233,0.55)]" style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
                           <LogOut className="w-4 h-4" /> Logg ut
                         </button>
                       </div> :
-                      <button onClick={() => setLoginOpen(true)} style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(244,240,233,0.55)', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                      <button onClick={() => { setLoginOpen(true); setIsOpen(false); }} className="text-[#4A4A4A] dark:text-[rgba(244,240,233,0.55)]" style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
                         <User className="w-4 h-4" /> Logg inn
                       </button>
                     }
