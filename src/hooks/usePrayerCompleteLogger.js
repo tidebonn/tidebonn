@@ -70,6 +70,7 @@ export function usePrayerCompleteLogger({
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('PrayerLog (start) feilet:', error);
+        db.logError('prayer_log_insert_start', error, { prayer_id: prayerId, user_id: user?.id ?? null });
       }
     }, START_THRESHOLD_MS);
     return () => clearTimeout(timer);
@@ -110,6 +111,7 @@ export function usePrayerCompleteLogger({
           } catch (e) {
             // eslint-disable-next-line no-console
             console.error('PrayerLog (start, rask) feilet:', e);
+            db.logError('prayer_log_insert_fast_start', e, { prayer_id: prayer.id, user_id: user?.id ?? null });
           }
         }
 
@@ -130,6 +132,7 @@ export function usePrayerCompleteLogger({
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('PrayerLog feilet:', error);
+        db.logError('prayer_log_insert_complete', error, { prayer_id: prayer.id, user_id: user?.id ?? null });
       }
     };
 
