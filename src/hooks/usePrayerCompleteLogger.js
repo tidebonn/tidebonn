@@ -89,19 +89,31 @@ export function usePrayerCompleteLogger({
       try {
         const geoData = await db.geo.lookup().catch(() => ({}));
 
-        await db.entities.PrayerLog.create({
+        const baseRow = {
           user_id: user?.id ?? null,
           prayer_id: prayer.id,
           series_id: prayer.series_id,
           day: prayer.day,
           time_of_day: prayer.time_of_day,
-          duration_minutes: duration,
-          completed: true,
           used_group_markers: !!showGroupMarkers,
           location_country: geoData?.country ?? null,
           location_country_code: geoData?.country_code ?? null,
           location_city: geoData?.city ?? null,
-        });
+        };
+
+        // Hvis 5-sek-timeren ikke rakk å fyre (rask fullføring), logg
+        // "påbegynt" først så hver fullført har en matchende start.
+        if (!startLoggedRef.current) {
+          startLoggedRef.current = true;
+          try {
+            await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: 0, completed: false });
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error('PrayerLog (start, rask) feilet:', e);
+          }
+        }
+
+        await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: duration, completed: true });
 
         // Oppdater UserProgress kun for innloggede
         if (userProgress) {
