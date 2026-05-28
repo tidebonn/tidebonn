@@ -77,6 +77,25 @@
   }
 }
 
+/* ───────────────────────────────────────────────────────────
+   Liggende lesemodus (stor tekst på telefon)
+   Roterer hele bønnedialogen 90° så stor tekst får skjermens
+   lengste side som bredde. Brukeren snur telefonen for å lese.
+   Radix DialogContent har fixed + left/top:50%, så vi beholder
+   sentreringen (translate -50%,-50%) og legger på rotasjonen.
+   Kun på små skjermer — store skjermer får bare større tekst.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .landscape-reading {
+    width: 100vh !important;
+    height: 100vw !important;
+    max-width: 100vh !important;
+    max-height: 100vw !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+  }
+}
+
 /* Bønne-rendring (article.bønn fra ekstrakterte HTML-filer).
  * Tittel-headeren (h1 + tom h3) skjules her: appen viser sin egen
  * tittel via UI-en, så å gjenta den ovenfor bønneteksten gir bare

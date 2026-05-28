@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { motion, AnimatePresence } from 'framer-motion';
 import PrayerCard from '@/components/prayer/PrayerCard';
 import PrayerContent from '@/components/prayer/PrayerContent';
+import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import {
   TIME_ORDER,
@@ -61,6 +62,24 @@ export default function Prayers() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
   });
+  // Større tekst (to nivåer: normal/større). Persisteres lokalt.
+  const [largeText, setLargeText] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('tidebonn.largeText') === 'true';
+  });
+  // Telefon-deteksjon (< 768px) — bestemmer om Større skal rotere til
+  // liggende eller bare forstørre teksten.
+  const [isPhone, setIsPhone] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e) => setIsPhone(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  const rotateForLargeText = largeText && isPhone;
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -523,10 +542,11 @@ export default function Prayers() {
 
       {/* Prayer Dialog */}
       <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); setPrayerFullscreen(false); } }}>
-        <DialogContent className={prayerFullscreen
-          ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
-          : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
-        }>
+        <DialogContent className={`${
+          (prayerFullscreen || rotateForLargeText)
+            ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
+            : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
+        } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
           <DialogHeader className="border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
@@ -560,6 +580,17 @@ export default function Prayers() {
               >
                 I/II
               </button>
+              <TextSizeButton
+                active={largeText}
+                showRotateHint={isPhone}
+                onToggle={() => {
+                  const newVal = !largeText;
+                  setLargeText(newVal);
+                  if (typeof window !== 'undefined') {
+                    window.localStorage.setItem('tidebonn.largeText', String(newVal));
+                  }
+                }}
+              />
               <button
                 onClick={() => setPrayerFullscreen(f => !f)}
                 className="p-1.5 rounded hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3] transition-colors flex-shrink-0"
@@ -575,7 +606,7 @@ export default function Prayers() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
-              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} />
+              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={largeText} />
             )}
           </div>
         </DialogContent>
