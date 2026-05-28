@@ -98,7 +98,7 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
   };
 
   return (
-    <div className="group rounded-lg border border-[#E8E0D8] bg-white hover:border-[#6B9EA0]/40 transition-colors">
+    <div className="group rounded-lg border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#222] hover:border-[#6B9EA0]/40 transition-colors">
       {/* Main row: drag | marker-select | divider | text | divider | reference | delete */}
       <div className="flex items-end gap-2 p-2">
         {/* Drag handle */}
@@ -112,7 +112,7 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
             value={block.marker === '' || !block.marker ? MARKER_NONE : block.marker}
             onValueChange={(v) => onChange({ ...block, marker: v === MARKER_NONE ? '' : v })}
           >
-            <SelectTrigger className="h-7 text-xs border-[#E8E0D8]">
+            <SelectTrigger className="h-7 text-xs border-[#E8E0D8] dark:border-gray-700">
               <SelectValue placeholder="–" />
             </SelectTrigger>
             <SelectContent>
@@ -136,7 +136,7 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
               onChange({ ...block, paragraphClass: resolved });
             }}
           >
-            <SelectTrigger className="h-7 text-xs border-[#E8E0D8]">
+            <SelectTrigger className="h-7 text-xs border-[#E8E0D8] dark:border-gray-700">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,7 +149,7 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
           </Select>
         </div>
 
-        <div className="w-px bg-[#E8E0D8] self-stretch flex-shrink-0" />
+        <div className="w-px bg-[#E8E0D8] dark:bg-gray-700 self-stretch flex-shrink-0" />
 
         {/* Text editor - grows */}
         <div className="flex-1 min-w-0">
@@ -163,12 +163,12 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             data-placeholder="Tekstinnhold..."
-            className="min-h-[2rem] text-sm p-1 rounded border border-[#E8E0D8] focus:border-[#6B9EA0]/40 focus:outline-none leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+            className="min-h-[2rem] text-sm p-1 rounded border border-[#E8E0D8] dark:border-gray-700 text-[#2C2C2A] dark:text-gray-100 focus:border-[#6B9EA0]/40 focus:outline-none leading-relaxed empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
             style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: '1rem' }}
           />
         </div>
 
-        <div className="w-px bg-[#E8E0D8] self-stretch flex-shrink-0" />
+        <div className="w-px bg-[#E8E0D8] dark:bg-gray-700 self-stretch flex-shrink-0" />
 
         {/* Reference - fixed width */}
         <div className="flex-shrink-0 w-36">
@@ -176,7 +176,7 @@ export default function PrayerLineBlock({ block, onChange, onDelete, onAddLine, 
             value={block.reference || ''}
             onChange={(e) => onChange({ ...block, reference: e.target.value })}
             placeholder="f.eks. Sal 23,1"
-            className="text-xs h-7 border-[#E8E0D8] text-[#6A6A6A]"
+            className="text-xs h-7 border-[#E8E0D8] dark:border-gray-700 text-[#6A6A6A] dark:text-gray-300"
           />
         </div>
 
