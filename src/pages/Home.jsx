@@ -182,9 +182,11 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="min-h-full flex flex-col">
       {/* Hero Section — flex-1 fyller tilgjengelig høyde (viewport minus
-          header og footer) så footeren synes uten scroll. */}
+          header og footer) så footeren synes uten scroll. min-h-full på
+          rota gir definert høyde å vokse i (main er flex-1 i flex-col-
+          rota). */}
       <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A] flex-1" style={{display: 'flex', alignItems: 'center'}}>
         <div style={{maxWidth: '860px', margin: '0 auto', padding: '6vh 1rem 3vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <motion.div
