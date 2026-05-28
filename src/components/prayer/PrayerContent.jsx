@@ -270,10 +270,8 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           }
         }
 
-        /* Større tekst (Større-valget). På store skjermer betyr dette
-           bare faktisk større skrift. På telefon roteres hele dialogen
-           til liggende (se .landscape-reading i index.css), og da blir
-           skjermens lengste side bredden — så teksten får god plass. */
+        /* Større tekst på STORE skjermer (Større-valget, .prayer-large
+           settes kun der). */
         .prayer-large p {
           font-size: 1.45em;
           line-height: 1.7;
@@ -281,13 +279,22 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
         .prayer-large .henvisning {
           font-size: 1.05rem;
         }
-        @media (max-width: 640px) {
-          .prayer-large p {
-            font-size: 1.35em;
-            line-height: 1.6;
+
+        /* TELEFON: størrelsen styres av skjermretningen, ikke et valg.
+           Liggende (snudd) → større tekst, da skjermens lengste side er
+           bredden og teksten får god plass. Stående → normal (regelen
+           lenger opp). Terskel max-height:600px treffer telefoner i
+           liggende, men ikke iPad/desktop. */
+        @media (orientation: landscape) and (max-height: 600px) {
+          .prayer-rich-text p {
+            font-size: 1.3em;
+            line-height: 1.55;
           }
-          .prayer-large .henvisning {
-            font-size: 0.95rem;
+          .prayer-rich-text .henvisning {
+            font-size: 0.92rem;
+          }
+          .prayer-rich-text .linje {
+            grid-template-columns: 2rem 1fr auto;
           }
         }
       `}</style>

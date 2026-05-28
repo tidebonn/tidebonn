@@ -55,14 +55,13 @@ export default function Home() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
   });
-  // Større tekst (samme nøkkel som /Bønner).
+  // Større tekst — kun store skjermer (toggle). På telefon styres
+  // størrelsen av skjermretningen via CSS.
   const [largeText, setLargeText] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  const { isPhone, isPortrait } = usePhoneViewport();
-  const fullscreenForLarge = largeText && isPhone;
-  const rotateForLargeText = largeText && isPhone && isPortrait;
+  const { isPhone } = usePhoneViewport();
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -250,11 +249,7 @@ export default function Home() {
       </section>
 
       <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); }}>
-        <DialogContent className={`${
-          fullscreenForLarge
-            ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
-            : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
-        } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
           <DialogHeader className="border-b border-[#E8E0D8] dark:border-gray-800 pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
@@ -286,8 +281,8 @@ export default function Home() {
                   I/II
                 </button>
                 <TextSizeButton
+                  isPhone={isPhone}
                   active={largeText}
-                  showRotateHint={isPhone}
                   onToggle={() => {
                     const newVal = !largeText;
                     setLargeText(newVal);
@@ -304,7 +299,7 @@ export default function Home() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {nextPrayer && (
-              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={largeText} />
+              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
             )}
           </div>
         </DialogContent>
