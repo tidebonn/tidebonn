@@ -6,7 +6,7 @@ const SPECIAL_CHARS = ['«', '»', '*', '†', '✢', '+', 'á', 'é', 'í', 'ó
 
 export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockCount, onFormat, onInsertChar, fullscreen, onToggleFullscreen, onSave, onCancel, showPreview, onTogglePreview }) {
   return (
-    <div className="bg-[#F5F0EB] border-b border-[#E8E0D8]">
+    <div className="bg-[#F5F0EB] dark:bg-[#161513] border-b border-[#E8E0D8] dark:border-gray-800">
       {/* Row 1: Formatting + block actions */}
       <div className="flex gap-1 p-2 flex-wrap items-center">
         <button
