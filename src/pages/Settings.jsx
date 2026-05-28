@@ -2,7 +2,8 @@ import db, { sb } from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 
-import { User, Moon, Sun, Monitor, BookOpen, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { User, Moon, Sun, Monitor, BookOpen, ChevronDown, ChevronUp, Lock, Mail } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ export default function Settings() {
   const [birthDate, setBirthDate] = useState('');
   const [theme, setTheme] = useState('system');
   const [selectedSeries, setSelectedSeries] = useState('');
+  const [wantsNewsletter, setWantsNewsletter] = useState(false);
 
   // For incomplete prayers section
   const [seriesPrayers, setSeriesPrayers] = useState([]);
@@ -97,6 +99,7 @@ export default function Settings() {
       const currentUser = await db.auth.me();
       setUser(currentUser);
       setDisplayName(currentUser.display_name || currentUser.full_name || '');
+      setWantsNewsletter(!!currentUser.wants_newsletter);
 
       const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
       if (progressList.length > 0) {
@@ -288,6 +291,32 @@ export default function Settings() {
                    className="mt-1 border-[#E8E0D8] dark:border-gray-700"
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Nyhetsbrev */}
+          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+                <Mail className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                Nyhetsbrev
+              </CardTitle>
+              <CardDescription>Hold deg oppdatert fra Areopagos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="newsletter-toggle" className="font-normal text-[#4A4A4A] dark:text-gray-300 cursor-pointer">
+                  Motta nyhetsbrev fra Areopagos
+                </Label>
+                <Switch
+                  id="newsletter-toggle"
+                  checked={wantsNewsletter}
+                  onCheckedChange={(val) => {
+                    setWantsNewsletter(val);
+                    saveSettings({ user: { wants_newsletter: val } });
+                  }}
+                />
               </div>
             </CardContent>
           </Card>

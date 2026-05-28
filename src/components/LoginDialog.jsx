@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Innlogging: passord (rask, autofylles av Keychain/Android) ELLER
 // magic-link (klikk-i-mail, ingen passord å huske). To likeverdige
@@ -23,14 +24,28 @@ import { Label } from '@/components/ui/label';
 export default function LoginDialog({ open, onOpenChange }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [wantsNewsletter, setWantsNewsletter] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | sending-pw | sending-link | sent | error
   const [errorMsg, setErrorMsg] = useState('');
 
   const reset = () => {
     setEmail('');
     setPassword('');
+    setWantsNewsletter(false);
     setStatus('idle');
     setErrorMsg('');
+  };
+
+  // Lagre nyhetsbrev-valget i localStorage så det kan anvendes på
+  // profilen når innloggingen fullføres (også etter magic-link-
+  // redirect). AuthContext plukker opp flagget ved SIGNED_IN.
+  const rememberNewsletterChoice = () => {
+    if (typeof window === 'undefined') return;
+    if (wantsNewsletter) {
+      window.localStorage.setItem('tidebonn.pendingNewsletter', 'true');
+    } else {
+      window.localStorage.removeItem('tidebonn.pendingNewsletter');
+    }
   };
 
   // Reset state hver gang dialogen lukkes (uansett hvem som lukker
@@ -45,6 +60,7 @@ export default function LoginDialog({ open, onOpenChange }) {
     if (!email.trim() || !password) return;
     setStatus('sending-pw');
     setErrorMsg('');
+    rememberNewsletterChoice();
     try {
       const { error } = await db.auth.loginWithPassword(email.trim(), password);
       if (error) {
@@ -69,6 +85,7 @@ export default function LoginDialog({ open, onOpenChange }) {
     if (!email.trim()) return;
     setStatus('sending-link');
     setErrorMsg('');
+    rememberNewsletterChoice();
     try {
       const { error } = await db.auth.login(email.trim());
       if (error) {
@@ -140,6 +157,22 @@ export default function LoginDialog({ open, onOpenChange }) {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={status === 'sending-pw' || status === 'sending-link'}
               />
+            </div>
+
+            <div className="flex items-start gap-2 pt-1">
+              <Checkbox
+                id="login-newsletter"
+                checked={wantsNewsletter}
+                onCheckedChange={(v) => setWantsNewsletter(!!v)}
+                disabled={status === 'sending-pw' || status === 'sending-link'}
+                className="mt-0.5"
+              />
+              <Label
+                htmlFor="login-newsletter"
+                className="text-sm font-normal leading-snug text-[#4A4A4A] dark:text-gray-300 cursor-pointer"
+              >
+                Jeg vil motta nyhetsbrev fra Areopagos
+              </Label>
             </div>
 
             {status === 'error' && (

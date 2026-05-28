@@ -44,6 +44,25 @@ export const AuthProvider = ({ children }) => {
       async (_event, session) => {
         if (!mounted) return;
         if (session) {
+          // Anvend evt. nyhetsbrev-samtykke valgt i LoginDialog (også
+          // etter magic-link-redirect). Kjøres én gang, så fjernes.
+          try {
+            if (
+              typeof window !== 'undefined' &&
+              window.localStorage.getItem('tidebonn.pendingNewsletter') === 'true' &&
+              session.user?.id
+            ) {
+              await sb
+                .from('profiles')
+                .update({ wants_newsletter: true })
+                .eq('id', session.user.id);
+              window.localStorage.removeItem('tidebonn.pendingNewsletter');
+            }
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.warn('Nyhetsbrev-flagg feilet:', e);
+          }
+
           try {
             const me = await db.auth.me();
             if (!mounted) return;

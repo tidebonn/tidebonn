@@ -339,7 +339,7 @@ const auth = {
     const user = session?.user;
     if (!user) throw new Error('Ikke innlogget');
 
-    const profileFields = ['display_name', 'full_name'];
+    const profileFields = ['display_name', 'full_name', 'wants_newsletter'];
     const profilePatch = {};
     for (const [key, value] of Object.entries(patch ?? {})) {
       if (profileFields.includes(key)) profilePatch[key] = value;
