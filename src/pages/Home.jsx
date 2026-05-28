@@ -182,10 +182,11 @@ export default function Home() {
   };
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{minHeight: 'calc(100vh - 3.25rem)', display: 'flex', alignItems: 'center'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '8vh 1rem 4rem', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+    <div className="flex-1 flex flex-col">
+      {/* Hero Section — flex-1 fyller tilgjengelig høyde (viewport minus
+          header og footer) så footeren synes uten scroll. */}
+      <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A] flex-1" style={{display: 'flex', alignItems: 'center'}}>
+        <div style={{maxWidth: '860px', margin: '0 auto', padding: '6vh 1rem 3vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
