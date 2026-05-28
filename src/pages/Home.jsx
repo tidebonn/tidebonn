@@ -12,15 +12,20 @@ import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import PrayerContent from '@/components/prayer/PrayerContent';
+import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 
 const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
 const timeLabels = {
+  matutin: 'Matutin',
   laudes: 'Laudes',
-  dagbonn: 'Dagbønn',
+  prim: 'Prim',
+  ters: 'Ters',
+  sekst: 'Middagsbønn',
+  non: 'Non',
   vesper: 'Vesper',
-  kompletorium: 'Kompletorium'
+  kompletorium: 'Kompletorium',
 };
 
 const getCurrentTimeOfDay = () => {
@@ -50,6 +55,22 @@ export default function Home() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
   });
+  // Større tekst (samme nøkkel som /Bønner).
+  const [largeText, setLargeText] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('tidebonn.largeText') === 'true';
+  });
+  const [isPhone, setIsPhone] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e) => setIsPhone(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  const rotateForLargeText = largeText && isPhone;
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -237,10 +258,11 @@ export default function Home() {
       </section>
 
       <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); if (!open) setPrayerFullscreen(false); }}>
-        <DialogContent className={prayerFullscreen
-          ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
-          : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
-        }>
+        <DialogContent className={`${
+          (prayerFullscreen || rotateForLargeText)
+            ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
+            : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
+        } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
           <DialogHeader className="border-b border-[#E8E0D8] dark:border-gray-800 pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
@@ -271,6 +293,17 @@ export default function Home() {
                 >
                   I/II
                 </button>
+                <TextSizeButton
+                  active={largeText}
+                  showRotateHint={isPhone}
+                  onToggle={() => {
+                    const newVal = !largeText;
+                    setLargeText(newVal);
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem('tidebonn.largeText', String(newVal));
+                    }
+                  }}
+                />
                 <button
                   onClick={() => setPrayerFullscreen(f => !f)}
                   className="p-1.5 rounded hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#6A6A6A] transition-colors flex-shrink-0"
@@ -286,7 +319,7 @@ export default function Home() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {nextPrayer && (
-              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} />
+              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={largeText} />
             )}
           </div>
         </DialogContent>

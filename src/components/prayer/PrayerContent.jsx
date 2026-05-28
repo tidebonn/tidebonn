@@ -28,7 +28,7 @@ const formatPrayerText = (text) => {
   });
 };
 
-export default function PrayerContent({ prayer, onScrollComplete, noInternalScroll, showGroupMarkers = false }) {
+export default function PrayerContent({ prayer, onScrollComplete, noInternalScroll, showGroupMarkers = false, largeText = false }) {
   const contentRef = useRef(null);
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
 
@@ -269,11 +269,32 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
             font-size: 0.78rem;
           }
         }
+
+        /* Større tekst (Større-valget). På store skjermer betyr dette
+           bare faktisk større skrift. På telefon roteres hele dialogen
+           til liggende (se .landscape-reading i index.css), og da blir
+           skjermens lengste side bredden — så teksten får god plass. */
+        .prayer-large p {
+          font-size: 1.45em;
+          line-height: 1.7;
+        }
+        .prayer-large .henvisning {
+          font-size: 1.05rem;
+        }
+        @media (max-width: 640px) {
+          .prayer-large p {
+            font-size: 1.35em;
+            line-height: 1.6;
+          }
+          .prayer-large .henvisning {
+            font-size: 0.95rem;
+          }
+        }
       `}</style>
 
       {prayer.free_text_content && (
         <div
-          className="prayer-rich-text prose prose-lg dark:prose-invert max-w-none text-[#1A1A1A] dark:text-gray-100"
+          className={`prayer-rich-text prose prose-lg dark:prose-invert max-w-none text-[#1A1A1A] dark:text-gray-100${largeText ? ' prayer-large' : ''}`}
           dangerouslySetInnerHTML={{ __html: prayer.free_text_content
             .replace(/ \*/g, ' *')
             .replace(/ †/g, ' †') }}
