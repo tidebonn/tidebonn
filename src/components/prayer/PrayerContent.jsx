@@ -284,8 +284,10 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
            Liggende (snudd) → større tekst, da skjermens lengste side er
            bredden og teksten får god plass. Stående → normal (regelen
            lenger opp). Terskel max-height:600px treffer telefoner i
-           liggende, men ikke iPad/desktop. */
-        @media (orientation: landscape) and (max-height: 600px) {
+           liggende, men ikke iPad/desktop. pointer:coarse sikrer at det
+           kun gjelder berøringsskjermer (ikke lave desktop-vinduer).
+           MÅ samsvare med PHONE_MAX_MIN_DIM i usePhoneViewport.js. */
+        @media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
           .prayer-rich-text p {
             font-size: 1.3em;
             line-height: 1.55;
