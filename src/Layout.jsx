@@ -264,7 +264,10 @@ export default function Layout({ children }) {
       <footer className="bg-[#F4F0E9] dark:bg-[#2C2C2A] py-6" style={{borderTop: '0.5px solid #DECCB4'}}>
         <div className="max-w-4xl mx-auto px-4" style={{textAlign: 'center'}}>
           <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B6B9B3'}}>
-            Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; Areopagos / Løys
+            Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp;{' '}
+            <a href="https://areopagos.no" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#8a8d87] dark:hover:text-[#d8d4cc] transition-colors">Areopagos</a>
+            {' / '}
+            <a href="https://løys.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#8a8d87] dark:hover:text-[#d8d4cc] transition-colors">Løys</a>
           </p>
         </div>
       </footer>
