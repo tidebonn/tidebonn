@@ -392,8 +392,14 @@ export default function Admin() {
         .map(map)
         .sort((a, b) => new Date(a.optedOut || 0) - new Date(b.optedOut || 0));
 
-      if (addList.length === 0 && removeList.length === 0) {
-        sonnerToast.info('Ingen endringer siden forrige nedlasting');
+      // Allerede i maillista (informativt — ingen handling nødvendig)
+      const alreadyList = allUsers
+        .filter((u) => u.wants_newsletter && u.newsletter_in_mailing_list)
+        .map(map)
+        .sort((a, b) => new Date(a.optedIn || 0) - new Date(b.optedIn || 0));
+
+      if (addList.length === 0 && removeList.length === 0 && alreadyList.length === 0) {
+        sonnerToast.info('Ingen påmeldte ennå');
         return;
       }
 
@@ -410,6 +416,12 @@ export default function Admin() {
       lines.push('E-post,Navn,Meldt av');
       if (removeList.length === 0) lines.push('"(ingen)",,');
       for (const s of removeList) lines.push([esc(s.email), esc(s.name), esc(fmtDate(s.optedOut))].join(','));
+
+      lines.push(',,');
+      lines.push(`"═════ TIDLIGERE LAGT TIL — allerede i maillista (${alreadyList.length}) ═════",,`);
+      lines.push('E-post,Navn,Påmeldt');
+      if (alreadyList.length === 0) lines.push('"(ingen)",,');
+      for (const s of alreadyList) lines.push([esc(s.email), esc(s.name), esc(fmtDate(s.optedIn))].join(','));
 
       // BOM så Excel leser æøå riktig
       const csv = '﻿' + lines.join('\r\n');
