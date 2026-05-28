@@ -1,18 +1,29 @@
 import { useEffect, useState } from 'react';
 
-// Telefon = minste skjermdimensjon < 768px. Dette er STABILT på tvers
-// av rotasjon (en telefon er en telefon enten den holdes stående eller
-// liggende), i motsetning til en ren max-width-sjekk som flipper når
-// brukeren snur enheten.
+// Telefon = liten berøringsskjerm. To kriterier som MÅ stemme overens
+// med CSS-terskelen i PrayerContent (orientation: landscape) and
+// (max-height: 600px):
 //
-// Returnerer { isPhone, isPortrait } og oppdaterer ved resize og
-// orientationchange.
+//   1) minste skjermdimensjon < 600px  — stabilt på tvers av rotasjon
+//      (en telefon er en telefon enten den holdes stående eller
+//      liggende). 600 skiller rent: største telefoner har minste
+//      side ~450px, minste nettbrett (iPad mini) ~744px.
+//   2) pointer: coarse — berøringsskjerm. Hindrer at et lite
+//      desktop-vindu (med fin-peker/mus) feilaktig regnes som telefon.
+//
+// Vi bruker IKKE user-agent-sniffing (skjørt og lett å ta feil).
+const PHONE_MAX_MIN_DIM = 600;
+
 function read() {
   if (typeof window === 'undefined') return { isPhone: false, isPortrait: true };
   const w = window.innerWidth;
   const h = window.innerHeight;
+  const coarse =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(pointer: coarse)').matches
+      : false;
   return {
-    isPhone: Math.min(w, h) < 768,
+    isPhone: Math.min(w, h) < PHONE_MAX_MIN_DIM && coarse,
     isPortrait: h >= w,
   };
 }
