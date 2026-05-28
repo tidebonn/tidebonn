@@ -77,10 +77,19 @@
     /* Crisp tekst på macOS/Safari. Uten dette rendrer Safari Spectral
        Light (300) med subpiksel-AA som blir tykk/grøtete; grayscale-AA
        gir tynnere, renere bokstaver. Påvirker ikke mobil (allerede
-       grayscale der). */
+       grayscale der). optimizeLegibility er bevisst UTELATT — den
+       tvinger kerning/ligaturer som gjør sperret versal-tekst grøtete. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+  }
+
+  /* Sikre at smoothing gjelder ALLE elementer (noen UI-komponenter
+     kan ellers arve subpiksel-AA i Safari). */
+  *,
+  *::before,
+  *::after {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

@@ -12,23 +12,23 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
         <button
           type="button"
           onMouseDown={(e) => { e.preventDefault(); onFormat('bold'); }}
-          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] font-bold text-sm"
+          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#E8E0D8] dark:hover:bg-[#3a3836] dark:text-gray-200 font-bold text-sm"
           title="Fet"
         >B</button>
         <button
           type="button"
           onMouseDown={(e) => { e.preventDefault(); onFormat('italic'); }}
-          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] italic text-sm"
+          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#E8E0D8] dark:hover:bg-[#3a3836] dark:text-gray-200 italic text-sm"
           title="Kursiv"
         >I</button>
         <button
           type="button"
           onMouseDown={(e) => { e.preventDefault(); onFormat('underline'); }}
-          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] underline text-sm"
+          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#E8E0D8] dark:hover:bg-[#3a3836] dark:text-gray-200 underline text-sm"
           title="Understreket"
         >U</button>
 
-        <div className="w-px bg-[#E8E0D8] h-5 mx-1" />
+        <div className="w-px bg-[#E8E0D8] dark:bg-gray-700 h-5 mx-1" />
 
         <Button type="button" variant="ghost" size="sm" onClick={onAddHeading} className="h-7 gap-1 text-xs">
           <Heading2 className="w-3.5 h-3.5" />
@@ -47,7 +47,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
         <button
           type="button"
           onClick={onTogglePreview}
-          className={`h-7 flex items-center gap-1 px-2 rounded border text-xs transition-colors ml-1 ${showPreview ? 'border-[#6B9EA0] bg-[#6B9EA0]/10 text-[#4D8082] dark:border-[#BD7B59] dark:bg-[#BD7B59]/10 dark:text-[#BD7B59]' : 'border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] text-[#6A6A6A]'}`}
+          className={`h-7 flex items-center gap-1 px-2 rounded border text-xs transition-colors ml-1 ${showPreview ? 'border-[#6B9EA0] bg-[#6B9EA0]/10 text-[#4D8082] dark:border-[#BD7B59] dark:bg-[#BD7B59]/10 dark:text-[#BD7B59]' : 'border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#E8E0D8] dark:hover:bg-[#3a3836] text-[#6A6A6A] dark:text-gray-300'}`}
           title={showPreview ? 'Tilbake til editor' : 'Vis forhåndsvisning'}
         >
           {showPreview ? <PenLine className="w-3.5 h-3.5" /> : <Search className="w-3.5 h-3.5" />}
@@ -56,7 +56,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
         <button
           type="button"
           onClick={onToggleFullscreen}
-          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] bg-white hover:bg-[#E8E0D8] ml-1"
+          className="h-7 w-7 flex items-center justify-center rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#E8E0D8] dark:hover:bg-[#3a3836] dark:text-gray-200 ml-1"
           title={fullscreen ? 'Avslutt fullskjerm' : 'Fullskjerm'}
         >
           {fullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -71,7 +71,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
             key={char}
             type="button"
             onMouseDown={(e) => { e.preventDefault(); onInsertChar(char); }}
-            className="w-7 h-7 flex items-center justify-center rounded border border-[#E8E0D8] bg-white hover:bg-[#F5F0EB] hover:border-[#6B9EA0] text-sm transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#F5F0EB] dark:hover:bg-[#3a3836] hover:border-[#6B9EA0] text-sm transition-colors"
             title={char}
           >
             {char}
@@ -82,7 +82,7 @@ export default function EditorToolbar({ onAddLine, onAddHeading, onPaste, blockC
             <button
               type="button"
               onClick={onCancel}
-              className="h-7 flex items-center gap-1 px-2 rounded border border-[#E8E0D8] bg-white hover:bg-[#F5F0EB] text-[#C8602A] text-xs transition-colors"
+              className="h-7 flex items-center gap-1 px-2 rounded border border-[#E8E0D8] dark:border-gray-700 bg-white dark:bg-[#2a2826] hover:bg-[#F5F0EB] dark:hover:bg-[#3a3836] text-[#C8602A] text-xs transition-colors"
               title="Avbryt"
             >
               <X className="w-3.5 h-3.5" />
