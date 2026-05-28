@@ -63,19 +63,14 @@ export default function Prayers() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
   });
-  // Større tekst (to nivåer: normal/større). Persisteres lokalt.
+  // Større tekst — kun for store skjermer (toggle, persisteres lokalt).
+  // På telefon styres størrelsen av skjermretningen via CSS
+  // (stående = normal, liggende = stor), så largeText brukes ikke der.
   const [largeText, setLargeText] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  // Telefon = minste skjermdimensjon < 768px (stabilt på tvers av
-  // rotasjon). isPortrait sier om enheten holdes stående nå.
-  const { isPhone, isPortrait } = usePhoneViewport();
-  // Større på telefon → fullskjerm uansett orientering. Roter innholdet
-  // 90° KUN når enheten holdes stående (da snur brukeren telefonen for
-  // å lese); i liggende er den allerede landskap, så da bare stor tekst.
-  const fullscreenForLarge = largeText && isPhone;
-  const rotateForLargeText = largeText && isPhone && isPortrait;
+  const { isPhone } = usePhoneViewport();
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -537,11 +532,7 @@ export default function Prayers() {
 
       {/* Prayer Dialog */}
       <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); } }}>
-        <DialogContent className={`${
-          fullscreenForLarge
-            ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
-            : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
-        } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
           <DialogHeader className="border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4 flex-shrink-0 text-left">
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
@@ -576,8 +567,8 @@ export default function Prayers() {
                 I/II
               </button>
               <TextSizeButton
+                isPhone={isPhone}
                 active={largeText}
-                showRotateHint={isPhone}
                 onToggle={() => {
                   const newVal = !largeText;
                   setLargeText(newVal);
@@ -594,7 +585,7 @@ export default function Prayers() {
           </DialogHeader>
           <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
             {selectedPrayer && (
-              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={largeText} />
+              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
             )}
           </div>
         </DialogContent>
