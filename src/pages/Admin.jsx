@@ -1,11 +1,11 @@
-import db from '@/api/client';
+import db, { sb } from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 
 import {
   BarChart3, Users, BookOpen, FileEdit, Plus, Trash2, Save,
   Loader2, ChevronDown, ChevronRight, Shield, UserCog,
-  Eye, EyeOff, RotateCcw, Search, CalendarDays, Clock
+  Eye, EyeOff, RotateCcw, Search, CalendarDays, Clock, Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -360,6 +360,82 @@ export default function Admin() {
       sonnerToast.error('Kunne ikke lagre serie');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Last ned nyhetsbrev-lista som CSV. Sortert på påmeldingsdato, med
+  // en skille-linje som markerer hvor forrige nedlasting sluttet — slik
+  // at man kun legger NYE adresser til mailsendingene neste gang.
+  const handleExportNewsletter = async () => {
+    try {
+      const subscribers = allUsers
+        .filter((u) => u.wants_newsletter)
+        .map((u) => ({
+          email: u.email || '',
+          name: u.display_name || u.full_name || '',
+          optedIn: u.newsletter_opted_in_at || u.created_at || null,
+        }))
+        .sort((a, b) => new Date(a.optedIn || 0) - new Date(b.optedIn || 0));
+
+      if (subscribers.length === 0) {
+        sonnerToast.info('Ingen påmeldte til nyhetsbrev ennå');
+        return;
+      }
+
+      // Hent forrige eksport-tidspunkt
+      const { data: setting } = await sb
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'newsletter_last_export')
+        .maybeSingle();
+      const lastExport = setting?.value ? new Date(setting.value) : null;
+
+      const csvEscape = (s) => `"${String(s).replace(/"/g, '""')}"`;
+      const fmtDate = (d) => (d ? new Date(d).toLocaleString('nb-NO') : '');
+      const lines = ['E-post,Navn,Påmeldt'];
+
+      let dividerInserted = false;
+      const nowStr = new Date().toLocaleString('nb-NO');
+      for (const s of subscribers) {
+        const isNew = lastExport ? new Date(s.optedIn || 0) > lastExport : true;
+        if (isNew && !dividerInserted) {
+          // Alt over denne linja er eksportert før; alt under er nytt.
+          if (lastExport) {
+            lines.push(`"───── NYE siden forrige nedlasting (${fmtDate(lastExport)}) — legg til disse ─────",,`);
+          } else {
+            lines.push('"───── Alle påmeldte (første nedlasting) ─────",,');
+          }
+          dividerInserted = true;
+        }
+        lines.push([csvEscape(s.email), csvEscape(s.name), csvEscape(fmtDate(s.optedIn))].join(','));
+      }
+      // Hvis ingen nye (alle allerede eksportert), gjør det tydelig
+      if (!dividerInserted) {
+        lines.push(`"───── Ingen nye siden forrige nedlasting (${fmtDate(lastExport)}) ─────",,`);
+      }
+
+      // BOM så Excel leser æøå riktig
+      const csv = '﻿' + lines.join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nyhetsbrev-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Oppdater eksport-tidspunkt så neste nedlasting markerer nytt skille
+      await sb
+        .from('app_settings')
+        .upsert({ key: 'newsletter_last_export', value: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+      sonnerToast.success(`Lastet ned ${subscribers.length} påmeldte`);
+    } catch (error) {
+      console.error('Nyhetsbrev-eksport feilet:', error);
+      db.logError('newsletter_export', error);
+      sonnerToast.error('Kunne ikke laste ned lista');
     }
   };
 
@@ -1501,14 +1577,26 @@ export default function Admin() {
           {user.role === 'owner' && (
             <TabsContent value="users">
               <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-                <CardHeader>
-                  <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
-                    <UserCog className="w-5 h-5 text-[#4A6B65]" />
-                    Brukerstyring
-                  </CardTitle>
-                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 pt-1">
-                    Eiere kan gi admin-tilgang til andre brukere. Eier-rollen kan kun settes direkte i Supabase.
-                  </p>
+                <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
+                      <UserCog className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                      Brukerstyring
+                    </CardTitle>
+                    <p className="text-xs text-[#6A6A6A] dark:text-gray-400 pt-1">
+                      Eiere kan gi admin-tilgang til andre brukere. Eier-rollen kan kun settes direkte i Supabase.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportNewsletter}
+                    className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.2)] gap-2"
+                    title="Last ned nyhetsbrev-liste (CSV)"
+                  >
+                    <Download className="w-4 h-4" />
+                    Nyhetsbrev-liste ({allUsers.filter(u => u.wants_newsletter).length})
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -1517,6 +1605,7 @@ export default function Admin() {
                         <TableHead>Navn</TableHead>
                         <TableHead>E-post</TableHead>
                         <TableHead>Rolle</TableHead>
+                        <TableHead>Nyhetsbrev</TableHead>
                         <TableHead>Registrert</TableHead>
                         <TableHead className="text-right">Handlinger</TableHead>
                       </TableRow>
@@ -1551,6 +1640,13 @@ export default function Admin() {
                                     <SelectItem value="admin">Administrator</SelectItem>
                                   </SelectContent>
                                 </Select>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {u.wants_newsletter ? (
+                                <span className="text-xs font-medium uppercase tracking-wide text-[#4A6B65] dark:text-[#BD7B59]">Ja</span>
+                              ) : (
+                                <span className="text-xs text-[#B6B9B3]">–</span>
                               )}
                             </TableCell>
                             <TableCell className="text-xs text-[#6A6A6A]">{created}</TableCell>
