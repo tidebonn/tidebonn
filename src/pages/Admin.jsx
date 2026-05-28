@@ -70,6 +70,8 @@ export default function Admin() {
   const [selectedDeletedPrayers, setSelectedDeletedPrayers] = useState([]);
   const [selectedActivePrayers, setSelectedActivePrayers] = useState([]);
   const [editorFullscreen, setEditorFullscreen] = useState(false);
+  // Ventende nyhetsbrev-eksport som må bekreftes som «behandlet»
+  const [pendingNewsletterExport, setPendingNewsletterExport] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -421,21 +423,44 @@ export default function Admin() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Oppdater inferrert maillist-status: lagt til → i lista,
-      // meldt av → ute av lista. Så de ikke dukker opp igjen.
-      if (addList.length > 0) {
-        await sb.from('profiles').update({ newsletter_in_mailing_list: true }).in('id', addList.map((s) => s.id));
-      }
-      if (removeList.length > 0) {
-        await sb.from('profiles').update({ newsletter_in_mailing_list: false }).in('id', removeList.map((s) => s.id));
-      }
-      loadData();
-
-      sonnerToast.success(`${addList.length} å legge til, ${removeList.length} å melde av`);
+      // VIKTIG: vi oppdaterer IKKE status her. Hvis fila lastes ned men
+      // adressene aldri legges inn i mailsystemet, ville de ellers blitt
+      // markert som «i lista» og forsvunnet fra senere eksporter. I
+      // stedet ber vi om eksplisitt bekreftelse (se dialog) — først da
+      // markeres de som behandlet.
+      setPendingNewsletterExport({
+        addIds: addList.map((s) => s.id),
+        removeIds: removeList.map((s) => s.id),
+        addCount: addList.length,
+        removeCount: removeList.length,
+      });
     } catch (error) {
       console.error('Nyhetsbrev-eksport feilet:', error);
       db.logError('newsletter_export', error);
       sonnerToast.error('Kunne ikke laste ned lista');
+    }
+  };
+
+  // Bekreft at adressene faktisk er behandlet i mailsystemet — først da
+  // oppdaterer vi «i maillista»-status så de ikke dukker opp igjen.
+  const confirmNewsletterProcessed = async () => {
+    const p = pendingNewsletterExport;
+    if (!p) return;
+    try {
+      if (p.addIds.length > 0) {
+        await sb.from('profiles').update({ newsletter_in_mailing_list: true }).in('id', p.addIds);
+      }
+      if (p.removeIds.length > 0) {
+        await sb.from('profiles').update({ newsletter_in_mailing_list: false }).in('id', p.removeIds);
+      }
+      loadData();
+      sonnerToast.success('Markert som behandlet');
+    } catch (error) {
+      console.error('Bekreft nyhetsbrev feilet:', error);
+      db.logError('newsletter_confirm', error);
+      sonnerToast.error('Kunne ikke oppdatere status');
+    } finally {
+      setPendingNewsletterExport(null);
     }
   };
 
@@ -1674,6 +1699,43 @@ export default function Admin() {
           )}
         </Tabs>
       </motion.div>
+
+      {/* Bekreftelse etter nyhetsbrev-nedlasting — hindrer at adresser
+          markeres som behandlet hvis de aldri faktisk legges inn. */}
+      <Dialog open={!!pendingNewsletterExport} onOpenChange={(open) => { if (!open) setPendingNewsletterExport(null); }}>
+        <DialogContent className="max-w-md bg-white dark:bg-[#1A1917]">
+          <DialogHeader>
+            <DialogTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Bekreft behandling</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm text-[#4A4A4A] dark:text-gray-300">
+            <p>Fila er lastet ned med:</p>
+            <ul className="list-disc list-outside pl-5 space-y-1">
+              <li><strong>{pendingNewsletterExport?.addCount ?? 0}</strong> å legge til i maillista</li>
+              <li><strong>{pendingNewsletterExport?.removeCount ?? 0}</strong> å melde av</li>
+            </ul>
+            <p>
+              Når du har lagt adressene inn (og fjernet de avmeldte) i mailsystemet,
+              trykk <strong>Marker som behandlet</strong>. Da dukker de ikke opp igjen
+              neste gang.
+            </p>
+            <p className="text-[#6A6A6A] dark:text-gray-400">
+              Trykk <strong>Ikke ennå</strong> hvis du ikke rakk det — da beholdes de
+              som ventende og kommer med i neste nedlasting.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setPendingNewsletterExport(null)}>
+              Ikke ennå
+            </Button>
+            <Button
+              onClick={confirmNewsletterProcessed}
+              className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            >
+              Marker som behandlet
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
