@@ -278,8 +278,8 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
 
   return (
     <div className={fullscreen
-      ? 'fixed inset-0 z-50 flex flex-col bg-white border-0'
-      : 'border border-[#E8E0D8] rounded-lg overflow-hidden'
+      ? 'fixed inset-0 z-50 flex flex-col bg-white dark:bg-[#1A1917] border-0'
+      : 'border border-[#E8E0D8] dark:border-gray-800 rounded-lg overflow-hidden'
     }>
       <EditorToolbar
         onAddLine={addLineBlock}
@@ -297,7 +297,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
       />
 
       {/* Main area: editor OR full-width preview */}
-      <div className={`flex overflow-hidden bg-[#FAFAF8] ${fullscreen ? 'flex-1' : 'min-h-[300px] max-h-[600px]'}`}>
+      <div className={`flex overflow-hidden bg-[#FAFAF8] dark:bg-[#161513] ${fullscreen ? 'flex-1' : 'min-h-[300px] max-h-[600px]'}`}>
 
         {/* Block list — hidden when preview is active */}
         {!showPreview && (
@@ -353,7 +353,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
           <div
             ref={previewRef}
             onScroll={handlePreviewScroll}
-            className="w-full overflow-y-auto p-4 bg-[#F5F0EB]"
+            className="w-full overflow-y-auto p-4 bg-[#F5F0EB] dark:bg-[#1A1917]"
           >
             <p className="text-xs text-[#9A9A9A] mb-3 font-medium uppercase tracking-wider">Forhåndsvisning</p>
             <PrayerContent
@@ -368,7 +368,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
       </div>
 
       {/* Footer */}
-      <div className="flex gap-2 p-2 bg-[#F5F0EB] border-t border-[#E8E0D8]">
+      <div className="flex gap-2 p-2 bg-[#F5F0EB] dark:bg-[#161513] border-t border-[#E8E0D8] dark:border-gray-800">
         {fullscreen ? (
           <div className="ml-auto flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-7 gap-1 text-xs text-[#C8602A] border-[#E8E0D8]">

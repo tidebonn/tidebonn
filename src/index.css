@@ -74,6 +74,13 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Crisp tekst på macOS/Safari. Uten dette rendrer Safari Spectral
+       Light (300) med subpiksel-AA som blir tykk/grøtete; grayscale-AA
+       gir tynnere, renere bokstaver. Påvirker ikke mobil (allerede
+       grayscale der). */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 

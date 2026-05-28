@@ -36,7 +36,21 @@ export default function Admin() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('statistics');
-  
+  // Dark-mode for inline-styled aksent (tab-underline). Holdes synket
+  // med .dark-klassen på <html>.
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  );
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const obs = new MutationObserver(() =>
+      setIsDark(document.documentElement.classList.contains('dark')),
+    );
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  const tabAccent = isDark ? '#BD7B59' : '#4A6B65';
+
   // Data states
   const [prayerLogs, setPrayerLogs] = useState([]);
   const [prayers, setPrayers] = useState([]);
@@ -442,24 +456,24 @@ export default function Admin() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-8 bg-transparent p-0 h-auto" style={{borderBottom: '1px solid #DECCB4'}}>
-            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <BarChart3 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Statistikk</span>
             </TabsTrigger>
-            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <BookOpen className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønneserier</span>
             </TabsTrigger>
-            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønner</span>
             </TabsTrigger>
-            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Innhold</span>
             </TabsTrigger>
             {user.role === 'owner' && (
-              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? '2px solid #4A6B65' : '2px solid transparent', marginBottom: '-1px'}}>
+              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
                 <Users className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Brukere</span>
               </TabsTrigger>
@@ -1101,9 +1115,9 @@ export default function Admin() {
                                                       />
                                                       <div className="flex-1">
                                                         <div className="flex items-center gap-2">
-                                                          <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
+                                                          <span className="text-xs font-medium uppercase text-[#4A6B65] dark:text-[#BD7B59] shrink-0">
                                                             <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Mid','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
-                                                            <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
+                                                            <span className="hidden sm:inline capitalize">{({sekst:'Middagsbønn'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                           </span>
                                                           <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
                                                           {prayer.is_active === false && (
@@ -1266,9 +1280,9 @@ export default function Admin() {
                                                               }}
                                                               className="w-4 h-4 rounded border-gray-300"
                                                             />
-                                                            <span className="text-xs font-medium uppercase text-[#4A6B65] shrink-0">
+                                                            <span className="text-xs font-medium uppercase text-[#4A6B65] dark:text-[#BD7B59] shrink-0">
                                                               <span className="sm:hidden">{({'matutin':'Mat','laudes':'Lau','prim':'Pri','ters':'Ter','sekst':'Mid','non':'Non','vesper':'Ves','kompletorium':'Kpl'})[prayer.time_of_day] || prayer.time_of_day}</span>
-                                                              <span className="hidden sm:inline capitalize">{prayer.time_of_day}</span>
+                                                              <span className="hidden sm:inline capitalize">{({sekst:'Middagsbønn'})[prayer.time_of_day] || prayer.time_of_day}</span>
                                                             </span>
                                                             <span className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">{prayer.title}</span>
                                                           </div>
