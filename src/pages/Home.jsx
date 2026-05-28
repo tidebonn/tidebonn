@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-import { ArrowRight, BookOpen, Clock, Users, Sparkles, Maximize2, Minimize2 } from 'lucide-react';
+import { ArrowRight, BookOpen, Clock, Users, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import PrayerContent from '@/components/prayer/PrayerContent';
 import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
+import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 
 const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
@@ -46,7 +47,6 @@ export default function Home() {
   const [nextPrayerLabel, setNextPrayerLabel] = useState('');
   const [loading, setLoading] = useState(true);
   const [showPrayerDialog, setShowPrayerDialog] = useState(false);
-  const [prayerFullscreen, setPrayerFullscreen] = useState(false);
   const [nextSeriesTitle, setNextSeriesTitle] = useState('');
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
   // I/II-toggle: samme localStorage-fallback som /Bønner, så uinnloggede
@@ -60,17 +60,9 @@ export default function Home() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  const [isPhone, setIsPhone] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
-  );
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e) => setIsPhone(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  const rotateForLargeText = largeText && isPhone;
+  const { isPhone, isPortrait } = usePhoneViewport();
+  const fullscreenForLarge = largeText && isPhone;
+  const rotateForLargeText = largeText && isPhone && isPortrait;
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -257,9 +249,9 @@ export default function Home() {
         </div>
       </section>
 
-      <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); if (!open) setPrayerFullscreen(false); }}>
+      <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); }}>
         <DialogContent className={`${
-          (prayerFullscreen || rotateForLargeText)
+          fullscreenForLarge
             ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
             : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
         } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
@@ -304,13 +296,6 @@ export default function Home() {
                     }
                   }}
                 />
-                <button
-                  onClick={() => setPrayerFullscreen(f => !f)}
-                  className="p-1.5 rounded hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#6A6A6A] transition-colors flex-shrink-0"
-                  title={prayerFullscreen ? 'Avslutt fullskjerm' : 'Fullskjerm'}
-                >
-                  {prayerFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
               </div>
             </div>
             <DialogDescription className="sr-only">

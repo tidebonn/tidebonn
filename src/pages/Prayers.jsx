@@ -2,7 +2,7 @@ import db from '@/api/client';
 
 import React, { useState, useEffect, useRef } from 'react';
 
-import { ChevronLeft, ChevronRight, BookOpen, Calendar, CalendarDays, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Calendar, CalendarDays } from 'lucide-react';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import PrayerCard from '@/components/prayer/PrayerCard';
 import PrayerContent from '@/components/prayer/PrayerContent';
 import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
+import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 import {
   TIME_ORDER,
   START_DAY_MAP,
@@ -67,19 +68,14 @@ export default function Prayers() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  // Telefon-deteksjon (< 768px) — bestemmer om Større skal rotere til
-  // liggende eller bare forstørre teksten.
-  const [isPhone, setIsPhone] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
-  );
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(max-width: 767px)');
-    const handler = (e) => setIsPhone(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  const rotateForLargeText = largeText && isPhone;
+  // Telefon = minste skjermdimensjon < 768px (stabilt på tvers av
+  // rotasjon). isPortrait sier om enheten holdes stående nå.
+  const { isPhone, isPortrait } = usePhoneViewport();
+  // Større på telefon → fullskjerm uansett orientering. Roter innholdet
+  // 90° KUN når enheten holdes stående (da snur brukeren telefonen for
+  // å lese); i liggende er den allerede landskap, så da bare stor tekst.
+  const fullscreenForLarge = largeText && isPhone;
+  const rotateForLargeText = largeText && isPhone && isPortrait;
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -92,7 +88,6 @@ export default function Prayers() {
 
   // Prayer dialog
   const [selectedPrayer, setSelectedPrayer] = useState(null);
-  const [prayerFullscreen, setPrayerFullscreen] = useState(false);
   // Callback-ref via useState: Radix Dialog mounter innholdet asynkront
   // (animasjon / portal), så vanlig useRef er null på effect-tid. State
   // trigger effecten på nytt når DOM-en finnes.
@@ -541,9 +536,9 @@ export default function Prayers() {
       )}
 
       {/* Prayer Dialog */}
-      <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); setPrayerFullscreen(false); } }}>
+      <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); } }}>
         <DialogContent className={`${
-          (prayerFullscreen || rotateForLargeText)
+          fullscreenForLarge
             ? "max-w-none w-screen h-screen m-0 rounded-none flex flex-col overflow-hidden bg-white dark:bg-[#1A1917]"
             : "max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800"
         } ${rotateForLargeText ? 'landscape-reading' : ''}`}>
@@ -591,13 +586,6 @@ export default function Prayers() {
                   }
                 }}
               />
-              <button
-                onClick={() => setPrayerFullscreen(f => !f)}
-                className="p-1.5 rounded hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3] transition-colors flex-shrink-0"
-                title={prayerFullscreen ? 'Avslutt fullskjerm' : 'Fullskjerm'}
-              >
-                {prayerFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </button>
               </div>
             </div>
             <DialogDescription className="sr-only">
