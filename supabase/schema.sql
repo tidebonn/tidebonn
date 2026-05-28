@@ -30,8 +30,36 @@ create table if not exists profiles (
   -- Samtykke til nyhetsbrev fra Areopagos. Areopagos eksporterer
   -- e-postlista der dette er true.
   wants_newsletter boolean not null default false,
+  -- Når brukeren meldte seg på (settes av trigger). Brukes til
+  -- sortering og skille-linje ved CSV-eksport.
+  newsletter_opted_in_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- Sett opt-in-tidspunkt automatisk når wants_newsletter flippes til true
+create or replace function public.touch_newsletter_optin()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if new.wants_newsletter = true and (old.wants_newsletter is distinct from true) then
+    new.newsletter_opted_in_at := now();
+  end if;
+  return new;
+end$$;
+drop trigger if exists profiles_newsletter_optin on profiles;
+create trigger profiles_newsletter_optin before update on profiles
+  for each row execute function public.touch_newsletter_optin();
+
+-- App-innstillinger (key/value), bl.a. sist nyhetsbrev-eksport
+create table if not exists app_settings (
+  key text primary key,
+  value text,
+  updated_at timestamptz not null default now()
+);
+alter table app_settings enable row level security;
+drop policy if exists app_settings_admin_read on app_settings;
+create policy app_settings_admin_read on app_settings for select using ((select public.is_admin()));
+drop policy if exists app_settings_admin_write on app_settings;
+create policy app_settings_admin_write on app_settings for all using ((select public.is_admin())) with check ((select public.is_admin()));
 
 -- =============================================================
 -- prayer_series
