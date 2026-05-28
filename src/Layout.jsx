@@ -103,7 +103,7 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F0E9] dark:bg-[#2C2C2A] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-[#F4F0E9] dark:bg-[#2C2C2A] transition-colors duration-300">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap');
         body {
@@ -254,8 +254,9 @@ export default function Layout({ children }) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="min-h-[calc(100vh-4rem)]">
+      {/* Main Content — flex-1 så footer alltid sitter nederst i
+          viewporten (ingen scroll når innholdet får plass). */}
+      <main className="flex-1 flex flex-col">
         {children}
       </main>
 
