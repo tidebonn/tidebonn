@@ -27,6 +27,9 @@ create table if not exists profiles (
   email text,
   display_name text,
   role app_role not null default 'user',
+  -- Samtykke til nyhetsbrev fra Areopagos. Areopagos eksporterer
+  -- e-postlista der dette er true.
+  wants_newsletter boolean not null default false,
   created_at timestamptz not null default now()
 );
 
