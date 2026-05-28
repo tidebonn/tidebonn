@@ -255,8 +255,10 @@ export default function Layout({ children }) {
       </header>
 
       {/* Main Content — flex-1 så footer alltid sitter nederst i
-          viewporten (ingen scroll når innholdet får plass). */}
-      <main className="flex-1 flex flex-col">
+          viewporten. IKKE flex-container selv: da ville sider med
+          max-w + mx-auto krympe til innholdsbredde (auto-margin på
+          tvers-aksen) i stedet for å strekke til max-bredden. */}
+      <main className="flex-1">
         {children}
       </main>
 
