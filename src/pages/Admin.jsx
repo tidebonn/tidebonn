@@ -363,56 +363,51 @@ export default function Admin() {
     }
   };
 
-  // Last ned nyhetsbrev-lista som CSV. Sortert på påmeldingsdato, med
-  // en skille-linje som markerer hvor forrige nedlasting sluttet — slik
-  // at man kun legger NYE adresser til mailsendingene neste gang.
+  // Last ned nyhetsbrev-lista som CSV med to seksjoner:
+  //   LEGG TIL  — påmeldte som ennå ikke er i maillista
+  //   MELD AV   — som har meldt seg av, men fortsatt står i maillista
+  // Etter nedlasting oppdateres «i maillista»-status, så samme person
+  // ikke dukker opp igjen neste gang. Eksterne avmeldinger (via lenke i
+  // mailene) håndteres av mailsystemet selv; app-avmeldinger fanges her.
   const handleExportNewsletter = async () => {
     try {
-      const subscribers = allUsers
-        .filter((u) => u.wants_newsletter)
-        .map((u) => ({
-          email: u.email || '',
-          name: u.display_name || u.full_name || '',
-          optedIn: u.newsletter_opted_in_at || u.created_at || null,
-        }))
+      const fmtDate = (d) => (d ? new Date(d).toLocaleString('nb-NO') : '');
+      const map = (u) => ({
+        id: u.id,
+        email: u.email || '',
+        name: u.display_name || u.full_name || '',
+        optedIn: u.newsletter_opted_in_at || u.created_at || null,
+        optedOut: u.newsletter_opted_out_at || null,
+      });
+
+      const addList = allUsers
+        .filter((u) => u.wants_newsletter && !u.newsletter_in_mailing_list)
+        .map(map)
         .sort((a, b) => new Date(a.optedIn || 0) - new Date(b.optedIn || 0));
 
-      if (subscribers.length === 0) {
-        sonnerToast.info('Ingen påmeldte til nyhetsbrev ennå');
+      const removeList = allUsers
+        .filter((u) => !u.wants_newsletter && u.newsletter_in_mailing_list)
+        .map(map)
+        .sort((a, b) => new Date(a.optedOut || 0) - new Date(b.optedOut || 0));
+
+      if (addList.length === 0 && removeList.length === 0) {
+        sonnerToast.info('Ingen endringer siden forrige nedlasting');
         return;
       }
 
-      // Hent forrige eksport-tidspunkt
-      const { data: setting } = await sb
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'newsletter_last_export')
-        .maybeSingle();
-      const lastExport = setting?.value ? new Date(setting.value) : null;
+      const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+      const lines = [];
 
-      const csvEscape = (s) => `"${String(s).replace(/"/g, '""')}"`;
-      const fmtDate = (d) => (d ? new Date(d).toLocaleString('nb-NO') : '');
-      const lines = ['E-post,Navn,Påmeldt'];
+      lines.push(`"═════ LEGG TIL i maillista (${addList.length}) ═════",,`);
+      lines.push('E-post,Navn,Påmeldt');
+      if (addList.length === 0) lines.push('"(ingen nye)",,');
+      for (const s of addList) lines.push([esc(s.email), esc(s.name), esc(fmtDate(s.optedIn))].join(','));
 
-      let dividerInserted = false;
-      const nowStr = new Date().toLocaleString('nb-NO');
-      for (const s of subscribers) {
-        const isNew = lastExport ? new Date(s.optedIn || 0) > lastExport : true;
-        if (isNew && !dividerInserted) {
-          // Alt over denne linja er eksportert før; alt under er nytt.
-          if (lastExport) {
-            lines.push(`"───── NYE siden forrige nedlasting (${fmtDate(lastExport)}) — legg til disse ─────",,`);
-          } else {
-            lines.push('"───── Alle påmeldte (første nedlasting) ─────",,');
-          }
-          dividerInserted = true;
-        }
-        lines.push([csvEscape(s.email), csvEscape(s.name), csvEscape(fmtDate(s.optedIn))].join(','));
-      }
-      // Hvis ingen nye (alle allerede eksportert), gjør det tydelig
-      if (!dividerInserted) {
-        lines.push(`"───── Ingen nye siden forrige nedlasting (${fmtDate(lastExport)}) ─────",,`);
-      }
+      lines.push(',,');
+      lines.push(`"═════ MELD AV fra maillista (${removeList.length}) ═════",,`);
+      lines.push('E-post,Navn,Meldt av');
+      if (removeList.length === 0) lines.push('"(ingen)",,');
+      for (const s of removeList) lines.push([esc(s.email), esc(s.name), esc(fmtDate(s.optedOut))].join(','));
 
       // BOM så Excel leser æøå riktig
       const csv = '﻿' + lines.join('\r\n');
@@ -426,12 +421,17 @@ export default function Admin() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Oppdater eksport-tidspunkt så neste nedlasting markerer nytt skille
-      await sb
-        .from('app_settings')
-        .upsert({ key: 'newsletter_last_export', value: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      // Oppdater inferrert maillist-status: lagt til → i lista,
+      // meldt av → ute av lista. Så de ikke dukker opp igjen.
+      if (addList.length > 0) {
+        await sb.from('profiles').update({ newsletter_in_mailing_list: true }).in('id', addList.map((s) => s.id));
+      }
+      if (removeList.length > 0) {
+        await sb.from('profiles').update({ newsletter_in_mailing_list: false }).in('id', removeList.map((s) => s.id));
+      }
+      loadData();
 
-      sonnerToast.success(`Lastet ned ${subscribers.length} påmeldte`);
+      sonnerToast.success(`${addList.length} å legge til, ${removeList.length} å melde av`);
     } catch (error) {
       console.error('Nyhetsbrev-eksport feilet:', error);
       db.logError('newsletter_export', error);

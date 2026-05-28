@@ -30,18 +30,24 @@ create table if not exists profiles (
   -- Samtykke til nyhetsbrev fra Areopagos. Areopagos eksporterer
   -- e-postlista der dette er true.
   wants_newsletter boolean not null default false,
-  -- Når brukeren meldte seg på (settes av trigger). Brukes til
-  -- sortering og skille-linje ved CSV-eksport.
+  -- Tidspunkt for på-/avmelding (settes av trigger). Brukes til
+  -- sortering i CSV-eksport.
   newsletter_opted_in_at timestamptz,
+  newsletter_opted_out_at timestamptz,
+  -- Inferrert ekstern status: er brukeren lagt til i maillista? true
+  -- når eksportert som «legg til», false når eksportert som «meld av».
+  newsletter_in_mailing_list boolean not null default false,
   created_at timestamptz not null default now()
 );
 
--- Sett opt-in-tidspunkt automatisk når wants_newsletter flippes til true
+-- Sett på-/avmeldings-tidspunkt automatisk når wants_newsletter endres
 create or replace function public.touch_newsletter_optin()
 returns trigger language plpgsql set search_path = public as $$
 begin
   if new.wants_newsletter = true and (old.wants_newsletter is distinct from true) then
     new.newsletter_opted_in_at := now();
+  elsif new.wants_newsletter = false and old.wants_newsletter = true then
+    new.newsletter_opted_out_at := now();
   end if;
   return new;
 end$$;
