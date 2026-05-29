@@ -101,12 +101,20 @@
    Hele layouten er rem/em-basert, så den skalerer proporsjonalt.
    pointer:coarse + max-height:600px treffer kun telefoner i liggende,
    ikke nettbrett/desktop. */
-/* MIDLERTIDIG TEST: pointer:coarse fjernet så effekten kan ses i et
-   lavt/liggende vindu på Mac (gjør nettleservinduet under ~600px høyt
-   og bredere enn høyt). Settes tilbake til berøring-only etterpå. */
-@media (orientation: landscape) and (max-height: 600px) {
+/* Telefon i liggende → +30% (orientering-styrt, kun berøringsskjerm). */
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
   html {
     font-size: 20.8px; /* 16 → 20.8 = +30% */
+  }
+}
+
+/* «Større tekst»-valget på store skjermer (nettbrett/desktop) → samme
+   +30% app-vidt. Gated til min 600×600 så det IKKE treffer telefon
+   (der styrer skjermretningen størrelsen). Klassen .large-text settes
+   på <html> fra largeText-preferansen (se src/lib/largeText.js). */
+@media (min-width: 600px) and (min-height: 600px) {
+  html.large-text {
+    font-size: 20.8px;
   }
 }
 

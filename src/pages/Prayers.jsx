@@ -18,6 +18,7 @@ import PrayerContent from '@/components/prayer/PrayerContent';
 import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
+import { setLargeTextPref } from '@/lib/largeText';
 import {
   TIME_ORDER,
   START_DAY_MAP,
@@ -131,9 +132,7 @@ export default function Prayers() {
           }
           if (typeof progress.large_text === 'boolean') {
             setLargeText(progress.large_text);
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem('tidebonn.largeText', String(progress.large_text));
-            }
+            setLargeTextPref(progress.large_text);
           }
         }
         const logs = await db.entities.PrayerLog.filter({ user_id: currentUser.id, completed: true });
@@ -582,9 +581,7 @@ export default function Prayers() {
                 onToggle={async () => {
                   const newVal = !largeText;
                   setLargeText(newVal);
-                  if (typeof window !== 'undefined') {
-                    window.localStorage.setItem('tidebonn.largeText', String(newVal));
-                  }
+                  setLargeTextPref(newVal);
                   if (userProgress) {
                     await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
                     setUserProgress(prev => ({ ...prev, large_text: newVal }));
