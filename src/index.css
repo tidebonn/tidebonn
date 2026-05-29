@@ -103,7 +103,7 @@
    ikke nettbrett/desktop. */
 @media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
   html {
-    font-size: 18.4px; /* 16 → 18.4 ≈ +15% */
+    font-size: 20.8px; /* 16 → 20.8 = +30% (midlertidig høy for testing) */
   }
 }
 
