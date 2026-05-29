@@ -15,6 +15,7 @@ import PrayerContent from '@/components/prayer/PrayerContent';
 import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
+import { setLargeTextPref } from '@/lib/largeText';
 
 const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
@@ -108,9 +109,7 @@ export default function Home() {
           }
           if (typeof loadedProgress.large_text === 'boolean') {
             setLargeText(loadedProgress.large_text);
-            if (typeof window !== 'undefined') {
-              window.localStorage.setItem('tidebonn.largeText', String(loadedProgress.large_text));
-            }
+            setLargeTextPref(loadedProgress.large_text);
           }
         }
       }
@@ -297,9 +296,7 @@ export default function Home() {
                   onToggle={async () => {
                     const newVal = !largeText;
                     setLargeText(newVal);
-                    if (typeof window !== 'undefined') {
-                      window.localStorage.setItem('tidebonn.largeText', String(newVal));
-                    }
+                    setLargeTextPref(newVal);
                     if (userProgress) {
                       await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
                       setUserProgress(prev => ({ ...prev, large_text: newVal }));

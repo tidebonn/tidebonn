@@ -19,6 +19,7 @@ import LoginDialog from '@/components/LoginDialog';
 import InstallAppSection from '@/components/InstallAppSection';
 import PushSettingsSection from '@/components/PushSettingsSection';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
+import { setLargeTextPref } from '@/lib/largeText';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -119,9 +120,7 @@ export default function Settings() {
         setBirthDate(progress.birth_date || '');
         if (typeof progress.large_text === 'boolean') {
           setLargeText(progress.large_text);
-          if (typeof window !== 'undefined') {
-            window.localStorage.setItem('tidebonn.largeText', String(progress.large_text));
-          }
+          setLargeTextPref(progress.large_text);
         }
       }
 
@@ -456,7 +455,7 @@ export default function Settings() {
                         key={String(value)}
                         onClick={() => {
                           setLargeText(value);
-                          if (typeof window !== 'undefined') window.localStorage.setItem('tidebonn.largeText', String(value));
+                          setLargeTextPref(value);
                           saveSettings({ progress: { large_text: value } });
                         }}
                         className={largeText === value ? 'dark:!border-[#BD7B59]' : ''}

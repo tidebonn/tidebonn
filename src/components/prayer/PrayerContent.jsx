@@ -270,15 +270,9 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           }
         }
 
-        /* Større tekst på STORE skjermer (Større-valget, .prayer-large
-           settes kun der). */
-        .prayer-large p {
-          font-size: 1.45em;
-          line-height: 1.7;
-        }
-        .prayer-large .henvisning {
-          font-size: 1.05rem;
-        }
+        /* «Større tekst» skalerer nå hele appen via root-font (klassen
+           .large-text på <html>, se index.css) — derfor ingen egen
+           .prayer-large-regel her lenger (ville gitt dobbel-skalering). */
 
         /* Liggende telefon: forstørringen håndteres nå globalt via en
            root-font-size-bump i index.css (hele appen skalerer), så vi
