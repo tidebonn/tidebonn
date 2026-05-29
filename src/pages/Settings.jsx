@@ -117,6 +117,12 @@ export default function Settings() {
         setSelectedSeries(progress.current_series_id || '');
         setGender(progress.gender || '');
         setBirthDate(progress.birth_date || '');
+        if (typeof progress.large_text === 'boolean') {
+          setLargeText(progress.large_text);
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('tidebonn.largeText', String(progress.large_text));
+          }
+        }
       }
 
       const series = await db.entities.PrayerSeries.filter({ is_active: true });
@@ -451,6 +457,7 @@ export default function Settings() {
                         onClick={() => {
                           setLargeText(value);
                           if (typeof window !== 'undefined') window.localStorage.setItem('tidebonn.largeText', String(value));
+                          saveSettings({ progress: { large_text: value } });
                         }}
                         className={largeText === value ? 'dark:!border-[#BD7B59]' : ''}
                         style={{

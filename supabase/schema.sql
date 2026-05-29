@@ -123,6 +123,9 @@ create table if not exists user_progress (
   theme text not null default 'system' check (theme in ('light','dark','system')),
   reading_mode text not null default 'alone' check (reading_mode in ('alone','group1','group2','leader')),
   show_group_markers boolean not null default false,
+  -- Større tekst i bønnevisning (på store skjermer). Synkes på tvers
+  -- av enheter; localStorage brukes som fallback for uinnloggede.
+  large_text boolean not null default false,
   total_prayers_completed int not null default 0,
   total_minutes int not null default 0,
   gender text,
