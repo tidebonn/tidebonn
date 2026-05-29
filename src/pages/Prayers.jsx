@@ -129,6 +129,12 @@ export default function Prayers() {
           if (typeof progress.show_group_markers === 'boolean') {
             setShowGroupMarkers(progress.show_group_markers);
           }
+          if (typeof progress.large_text === 'boolean') {
+            setLargeText(progress.large_text);
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem('tidebonn.largeText', String(progress.large_text));
+            }
+          }
         }
         const logs = await db.entities.PrayerLog.filter({ user_id: currentUser.id, completed: true });
         setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
@@ -573,11 +579,15 @@ export default function Prayers() {
               <TextSizeButton
                 isPhone={isPhone}
                 active={largeText}
-                onToggle={() => {
+                onToggle={async () => {
                   const newVal = !largeText;
                   setLargeText(newVal);
                   if (typeof window !== 'undefined') {
                     window.localStorage.setItem('tidebonn.largeText', String(newVal));
+                  }
+                  if (userProgress) {
+                    await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
+                    setUserProgress(prev => ({ ...prev, large_text: newVal }));
                   }
                 }}
               />

@@ -106,6 +106,12 @@ export default function Home() {
           if (typeof loadedProgress.show_group_markers === 'boolean') {
             setShowGroupMarkers(loadedProgress.show_group_markers);
           }
+          if (typeof loadedProgress.large_text === 'boolean') {
+            setLargeText(loadedProgress.large_text);
+            if (typeof window !== 'undefined') {
+              window.localStorage.setItem('tidebonn.largeText', String(loadedProgress.large_text));
+            }
+          }
         }
       }
 
@@ -288,11 +294,15 @@ export default function Home() {
                 <TextSizeButton
                   isPhone={isPhone}
                   active={largeText}
-                  onToggle={() => {
+                  onToggle={async () => {
                     const newVal = !largeText;
                     setLargeText(newVal);
                     if (typeof window !== 'undefined') {
                       window.localStorage.setItem('tidebonn.largeText', String(newVal));
+                    }
+                    if (userProgress) {
+                      await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
+                      setUserProgress(prev => ({ ...prev, large_text: newVal }));
                     }
                   }}
                 />
