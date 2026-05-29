@@ -280,21 +280,12 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           font-size: 1.05rem;
         }
 
-        /* TELEFON: størrelsen styres av skjermretningen, ikke et valg.
-           Liggende (snudd) → større tekst, da skjermens lengste side er
-           bredden og teksten får god plass. Stående → normal (regelen
-           lenger opp). Terskel max-height:600px treffer telefoner i
-           liggende, men ikke iPad/desktop. pointer:coarse sikrer at det
-           kun gjelder berøringsskjermer (ikke lave desktop-vinduer).
-           MÅ samsvare med PHONE_MAX_MIN_DIM i usePhoneViewport.js. */
+        /* Liggende telefon: forstørringen håndteres nå globalt via en
+           root-font-size-bump i index.css (hele appen skalerer), så vi
+           trenger ikke en egen regel her — det ville gitt dobbel-
+           skalering. Beholder kun en liten justering av markør-kolonnen
+           så lange linjer puster litt mer i liggende. */
         @media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
-          .prayer-rich-text p {
-            font-size: 1.3em;
-            line-height: 1.55;
-          }
-          .prayer-rich-text .henvisning {
-            font-size: 0.92rem;
-          }
           .prayer-rich-text .linje {
             grid-template-columns: 2rem 1fr auto;
           }

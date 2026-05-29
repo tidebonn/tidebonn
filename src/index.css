@@ -96,6 +96,17 @@
   }
 }
 
+/* Liggende telefon → forstørr HELE appen ~15% for bedre lesbarhet
+   (samme prinsipp som bønnevisningen: snu telefonen for større tekst).
+   Hele layouten er rem/em-basert, så den skalerer proporsjonalt.
+   pointer:coarse + max-height:600px treffer kun telefoner i liggende,
+   ikke nettbrett/desktop. */
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
+  html {
+    font-size: 18.4px; /* 16 → 18.4 ≈ +15% */
+  }
+}
+
 
 /* Bønne-rendring (article.bønn fra ekstrakterte HTML-filer).
  * Tittel-headeren (h1 + tom h3) skjules her: appen viser sin egen
