@@ -18,6 +18,7 @@ import { Link } from 'react-router-dom';
 import LoginDialog from '@/components/LoginDialog';
 import InstallAppSection from '@/components/InstallAppSection';
 import PushSettingsSection from '@/components/PushSettingsSection';
+import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -31,6 +32,13 @@ export default function Settings() {
   const [theme, setTheme] = useState('system');
   const [selectedSeries, setSelectedSeries] = useState('');
   const [wantsNewsletter, setWantsNewsletter] = useState(false);
+  // Tekststørrelse i bønnevisning (kun store skjermer — telefon styres
+  // av skjermretning). Samme localStorage-nøkkel som tT-knappen.
+  const { isPhone } = usePhoneViewport();
+  const [largeText, setLargeText] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('tidebonn.largeText') === 'true';
+  });
 
   // For incomplete prayers section
   const [seriesPrayers, setSeriesPrayers] = useState([]);
@@ -295,134 +303,6 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Nyhetsbrev */}
-          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Mail className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
-                Nyhetsbrev
-              </CardTitle>
-              <CardDescription>Hold deg oppdatert fra Areopagos.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between gap-3">
-                <Label htmlFor="newsletter-toggle" className="font-normal text-[#4A4A4A] dark:text-gray-300 cursor-pointer">
-                  Motta nyhetsbrev fra Areopagos
-                </Label>
-                <Switch
-                  id="newsletter-toggle"
-                  checked={wantsNewsletter}
-                  onCheckedChange={(val) => {
-                    setWantsNewsletter(val);
-                    saveSettings({ user: { wants_newsletter: val } });
-                  }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Password */}
-          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Lock className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
-                Passord
-              </CardTitle>
-              <CardDescription>Sett eller endre passord (minst 8 tegn). Du kan også logge inn med magic-link.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSavePassword} method="post" action="#" className="space-y-3">
-                {/* Skjult username-felt så passord-administratorer (macOS
-                    Keychain, Android Autofill, 1Password osv.) knytter
-                    passordet til riktig konto. */}
-                <input
-                  type="text"
-                  name="username"
-                  autoComplete="username"
-                  value={user?.email || ''}
-                  readOnly
-                  tabIndex={-1}
-                  style={{ position: 'absolute', left: '-9999px', height: 0, width: 0, opacity: 0 }}
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="newPassword">Nytt passord</Label>
-                    <Input
-                      id="newPassword"
-                      name="new-password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
-                      disabled={savingPassword}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Bekreft passord</Label>
-                    <Input
-                      id="confirmPassword"
-                      name="confirm-password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
-                      disabled={savingPassword}
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={savingPassword || !newPassword || !confirmPassword}
-                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
-                >
-                  {savingPassword ? 'Lagrer …' : 'Lagre passord'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Theme */}
-          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Sun className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
-                Utseende
-              </CardTitle>
-              <CardDescription>Velg fargetema for appen</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { value: 'light', icon: Sun, label: 'Lys' },
-                  { value: 'dark', icon: Moon, label: 'Mørk' },
-                  { value: 'system', icon: Monitor, label: 'Auto' }
-                ].map(({ value, icon: Icon, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => { setTheme(value); saveSettings({ progress: { theme: value } }); }}
-                    className={theme === value ? 'dark:!border-[#BD7B59]' : ''}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '1rem',
-                      backgroundColor: 'transparent',
-                      border: theme === value ? '1.5px solid #4A6B65' : '0.5px solid #B6B9B3',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Icon className={`w-6 h-6 ${theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}`} />
-                    <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: theme === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Prayer Series */}
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
@@ -513,6 +393,180 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+
+          {/* Theme */}
+          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+                <Sun className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                Utseende
+              </CardTitle>
+              <CardDescription>Fargetema og tekststørrelse</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <Label className="text-xs uppercase tracking-wide text-[#6A6A6A] dark:text-gray-400">Fargetema</Label>
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  {[
+                    { value: 'light', icon: Sun, label: 'Lys' },
+                    { value: 'dark', icon: Moon, label: 'Mørk' },
+                    { value: 'system', icon: Monitor, label: 'Auto' }
+                  ].map(({ value, icon: Icon, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => { setTheme(value); saveSettings({ progress: { theme: value } }); }}
+                      className={theme === value ? 'dark:!border-[#BD7B59]' : ''}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '1rem',
+                        backgroundColor: 'transparent',
+                        border: theme === value ? '1.5px solid #4A6B65' : '0.5px solid #B6B9B3',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Icon className={`w-6 h-6 ${theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}`} />
+                      <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: theme === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs uppercase tracking-wide text-[#6A6A6A] dark:text-gray-400">Tekststørrelse</Label>
+                {isPhone ? (
+                  <p className="mt-2 text-sm text-[#6A6A6A] dark:text-gray-400">
+                    På telefon styres tekststørrelsen av skjermretningen — snu telefonen til liggende for større tekst.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    {[
+                      { value: false, label: 'Normal', big: '1rem' },
+                      { value: true, label: 'Større', big: '1.3rem' },
+                    ].map(({ value, label, big }) => (
+                      <button
+                        key={String(value)}
+                        onClick={() => {
+                          setLargeText(value);
+                          if (typeof window !== 'undefined') window.localStorage.setItem('tidebonn.largeText', String(value));
+                        }}
+                        className={largeText === value ? 'dark:!border-[#BD7B59]' : ''}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          padding: '0.9rem',
+                          backgroundColor: 'transparent',
+                          border: largeText === value ? '1.5px solid #4A6B65' : '0.5px solid #B6B9B3',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span className="font-serif leading-none" style={{ fontSize: '0.75rem' }}>T</span>
+                        <span className="font-serif leading-none" style={{ fontSize: big }}>T</span>
+                        <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: largeText === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={largeText === value ? 'text-[#4A6B65] dark:text-[#BD7B59] ml-1' : 'text-[#B6B9B3] ml-1'}>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+
+          {/* Nyhetsbrev */}
+          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+                <Mail className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                Nyhetsbrev
+              </CardTitle>
+              <CardDescription>Hold deg oppdatert fra Areopagos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="newsletter-toggle" className="font-normal text-[#4A4A4A] dark:text-gray-300 cursor-pointer">
+                  Motta nyhetsbrev fra Areopagos
+                </Label>
+                <Switch
+                  id="newsletter-toggle"
+                  checked={wantsNewsletter}
+                  onCheckedChange={(val) => {
+                    setWantsNewsletter(val);
+                    saveSettings({ user: { wants_newsletter: val } });
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+
+          {/* Password */}
+          <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+                <Lock className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                Passord
+              </CardTitle>
+              <CardDescription>Sett eller endre passord (minst 8 tegn). Du kan også logge inn med magic-link.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSavePassword} method="post" action="#" className="space-y-3">
+                {/* Skjult username-felt så passord-administratorer (macOS
+                    Keychain, Android Autofill, 1Password osv.) knytter
+                    passordet til riktig konto. */}
+                <input
+                  type="text"
+                  name="username"
+                  autoComplete="username"
+                  value={user?.email || ''}
+                  readOnly
+                  tabIndex={-1}
+                  style={{ position: 'absolute', left: '-9999px', height: 0, width: 0, opacity: 0 }}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="newPassword">Nytt passord</Label>
+                    <Input
+                      id="newPassword"
+                      name="new-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
+                      disabled={savingPassword}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Bekreft passord</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="mt-1 border-[#E8E0D8] dark:border-gray-700"
+                      disabled={savingPassword}
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={savingPassword || !newPassword || !confirmPassword}
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+                >
+                  {savingPassword ? 'Lagrer …' : 'Lagre passord'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
         </div>
       </motion.div>
     </div>
