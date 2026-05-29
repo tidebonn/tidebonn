@@ -61,7 +61,8 @@ export default function Home() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  const { isPhone } = usePhoneViewport();
+  const { isPhone, isPortrait } = usePhoneViewport();
+  const landscapePhone = isPhone && !isPortrait;
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -253,7 +254,8 @@ export default function Home() {
 
       <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
-          <DialogHeader className="border-b border-[#E8E0D8] dark:border-gray-800 pb-4 flex-shrink-0 text-left">
+          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto">
+          <DialogHeader className={`text-left bg-white dark:bg-[#1A1917] ${landscapePhone ? 'pb-4' : 'sticky top-0 z-10 border-b border-[#E8E0D8] dark:border-gray-800 pb-4'}`}>
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
                 {nextPrayer ? `Uke ${Math.ceil(nextPrayer.day / 7)} · ${WEEKDAY_NAMES[(nextPrayer.day - 1) % 7]} · ${timeLabels[nextPrayer.time_of_day] || nextPrayer.time_of_day}` : ''}
@@ -300,10 +302,11 @@ export default function Home() {
               Tekst og veiledning for bønnen. Bla nedover for å lese hele.
             </DialogDescription>
           </DialogHeader>
-          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
+          <div className="py-4">
             {nextPrayer && (
               <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
             )}
+          </div>
           </div>
         </DialogContent>
       </Dialog>

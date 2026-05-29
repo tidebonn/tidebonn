@@ -70,7 +70,10 @@ export default function Prayers() {
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem('tidebonn.largeText') === 'true';
   });
-  const { isPhone } = usePhoneViewport();
+  const { isPhone, isPortrait } = usePhoneViewport();
+  // Telefon i liggende = stor tekst-modus. Da lar vi headeren scrolle
+  // bort (ikke sticky) for å gi mer plass til teksten.
+  const landscapePhone = isPhone && !isPortrait;
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -533,7 +536,8 @@ export default function Prayers() {
       {/* Prayer Dialog */}
       <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); } }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
-          <DialogHeader className="border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4 flex-shrink-0 text-left">
+          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto">
+          <DialogHeader className={`text-left bg-white dark:bg-[#1A1917] ${landscapePhone ? 'pb-4' : 'sticky top-0 z-10 border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4'}`}>
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
                 {currentDayLabel} • {timeOptions.find(t => t.id === selectedPrayer?.time_of_day)?.name}
@@ -583,10 +587,11 @@ export default function Prayers() {
               Tekst og veiledning for bønnen. Bla nedover for å lese hele.
             </DialogDescription>
           </DialogHeader>
-          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto py-4">
+          <div className="py-4">
             {selectedPrayer && (
               <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
             )}
+          </div>
           </div>
         </DialogContent>
       </Dialog>
