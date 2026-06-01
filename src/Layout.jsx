@@ -262,8 +262,11 @@ export default function Layout({ children }) {
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#F4F0E9] dark:bg-[#2C2C2A] py-6" style={{borderTop: '0.5px solid #DECCB4'}}>
+      {/* Footer — sticky bottom-0 så den alltid er synlig nederst i
+          viewporten, også når innholdet er høyere enn skjermen.
+          .app-footer-klassen lar oss skjule den i liggende mobil-
+          modus via @media i index.css. */}
+      <footer className="app-footer sticky bottom-0 z-40 bg-[#F4F0E9] dark:bg-[#2C2C2A] py-6" style={{borderTop: '0.5px solid #DECCB4'}}>
         <div className="max-w-4xl mx-auto px-4" style={{textAlign: 'center'}}>
           <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B6B9B3'}}>
             Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp;{' '}

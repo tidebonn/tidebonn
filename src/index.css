@@ -108,7 +108,7 @@
   html {
     font-size: 20.8px; /* 16 → 20.8 = +30% */
   }
-  footer {
+  .app-footer {
     display: none;
   }
 }
