@@ -128,6 +128,14 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             placeholder="Om tidebønn"
           />
         </div>
+        <div className="sm:col-span-2">
+          <Label>Undertittel</Label>
+          <Input
+            value={page.subtitle || ''}
+            onChange={(e) => onChange({ ...page, subtitle: e.target.value })}
+            placeholder="Kort beskrivelse som vises på «Les mer»-landingen"
+          />
+        </div>
       </div>
 
       {/* Toolbar */}
