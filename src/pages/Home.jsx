@@ -189,12 +189,22 @@ export default function Home() {
 
   return (
     <div className="min-h-full flex flex-col">
-      {/* Hero Section — flex-1 fyller tilgjengelig høyde (viewport minus
-          header og footer) så footeren synes uten scroll. min-h-full på
-          rota gir definert høyde å vokse i (main er flex-1 i flex-col-
-          rota). */}
-      <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A] flex-1" style={{display: 'flex', alignItems: 'center'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '8vh 1rem 1vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+      {/* Hero Section — min-height = viewport minus (sticky) header og
+          footer, så section'en eier den ledige plassen. Innholdet
+          sentreres vertikalt og «flyter» derfor i midten uansett
+          skjermhøyde. Vokser naturlig forbi om innholdet er høyere
+          enn tilgjengelig plass (overflødig blir scrollbart). */}
+      <section
+        className="bg-[#F4F0E9] dark:bg-[#2C2C2A]"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          // 3.25rem header + ca. 4rem footer = 7.25rem reserveres
+          minHeight: 'calc(100dvh - 7.25rem)',
+        }}
+      >
+        <div style={{maxWidth: '860px', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
