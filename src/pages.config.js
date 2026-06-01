@@ -51,6 +51,10 @@ import About from './pages/About';
 import AboutPrayer from './pages/AboutPrayer';
 import Admin from './pages/Admin';
 import Home from './pages/Home';
+import HvaErTidebonn from './pages/HvaErTidebonn';
+import HvordanTidebonn from './pages/HvordanTidebonn';
+import LesMer from './pages/LesMer';
+import OmAreopagos from './pages/OmAreopagos';
 import Prayers from './pages/Prayers';
 import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
@@ -60,6 +64,10 @@ export const PAGES = {
     "AboutPrayer": AboutPrayer,
     "Admin": Admin,
     "Home": Home,
+    "HvaErTidebonn": HvaErTidebonn,
+    "HvordanTidebonn": HvordanTidebonn,
+    "LesMer": LesMer,
+    "OmAreopagos": OmAreopagos,
     "Prayers": Prayers,
     "Settings": Settings,
 }
