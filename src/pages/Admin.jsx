@@ -495,7 +495,12 @@ export default function Admin() {
       setEditingPage(null);
       loadData();
     } catch (error) {
-      sonnerToast.error('Kunne ikke lagre side');
+      // Vis faktisk feilmelding fra Supabase så vi kan se hva som
+      // er galt (f.eks. manglende kolonne etter pending migration).
+      const msg = error?.message || error?.error_description || String(error);
+      // eslint-disable-next-line no-console
+      console.error('handleSavePage error:', error);
+      sonnerToast.error(`Kunne ikke lagre side: ${msg}`);
     } finally {
       setSaving(false);
     }
