@@ -67,10 +67,17 @@ export default function Layout({ children }) {
     db.auth.logout();
   };
 
+  // Hovedmeny. «Les mer» har sub-elementer (vises som
+  // innrykkede underpunkter i mobilmenyen, og som ett menypunkt
+  // → /LesMer-landingsside i desktop-headeren).
   const navItems = [
   { name: 'Bønner', page: 'Prayers', icon: BookOpen },
-  { name: 'Om tidebønn', page: 'AboutPrayer', icon: Info },
-  { name: 'Om appen', page: 'About', icon: Heart },
+  { name: 'Les mer', page: 'LesMer', icon: Info, children: [
+    { name: 'Hva er tidebønn', page: 'HvaErTidebonn' },
+    { name: 'Hvordan be tidebønn', page: 'HvordanTidebonn' },
+    { name: 'Om appen', page: 'About' },
+    { name: 'Om Areopagos', page: 'OmAreopagos' },
+  ] },
   { name: 'Oppsett', page: 'Settings', icon: Settings }];
 
   const adminItems = [
@@ -78,7 +85,7 @@ export default function Layout({ children }) {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'owner';
 
-  const NavLink = ({ item, mobile }) => {
+  const NavLink = ({ item, mobile, indent = false }) => {
     const isActive = location.pathname === createPageUrl(item.page);
     return (
       <Link
@@ -88,10 +95,10 @@ export default function Layout({ children }) {
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 500,
-          fontSize: '0.65rem',
+          fontSize: indent ? '0.6rem' : '0.65rem',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          padding: '0.625rem 1rem',
+          padding: indent ? '0.45rem 1rem 0.45rem 2rem' : '0.625rem 1rem',
           textDecoration: 'none',
           display: 'block',
           transition: 'color 0.2s',
@@ -227,7 +234,14 @@ export default function Layout({ children }) {
                 </SheetDescription>
                 <div className="flex flex-col h-full pt-8">
                   <nav className="flex-1 min-h-0 overflow-y-auto flex flex-col">
-                    {navItems.map((item) => <NavLink key={item.page} item={item} mobile />)}
+                    {navItems.map((item) => (
+                      <React.Fragment key={item.page}>
+                        <NavLink item={item} mobile />
+                        {item.children && item.children.map((child) => (
+                          <NavLink key={child.page} item={child} mobile indent />
+                        ))}
+                      </React.Fragment>
+                    ))}
                     {isAdmin && <>
                       <div className="h-px my-3 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                       {adminItems.map((item) => <NavLink key={item.page} item={item} mobile />)}

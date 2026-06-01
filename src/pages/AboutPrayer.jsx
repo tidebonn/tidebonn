@@ -1,7 +1,9 @@
 import MarkdownPage from '@/components/MarkdownPage';
 
-// Hentes fra content_pages via slug = 'om-tidebonn'.
-// Innholdet redigeres av admin under Admin → Innhold.
+// Beholdes for bakoverkompatibilitet (gamle bokmerker /AboutPrayer).
+// Innholdet ligger nå under slug = 'hva-er-tidebonn' (samme rad,
+// renamet i migration 005). Den «nye» ruten er /HvaErTidebonn,
+// nådd via /LesMer-landingssiden.
 export default function AboutPrayer() {
-  return <MarkdownPage slug="om-tidebonn" fallbackTitle="Om tidebønn" />;
+  return <MarkdownPage slug="hva-er-tidebonn" fallbackTitle="Hva er tidebønn" />;
 }
