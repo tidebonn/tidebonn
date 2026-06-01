@@ -170,6 +170,7 @@ create table if not exists content_pages (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
   title text,
+  subtitle text,
   content text,
   last_edited_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()
