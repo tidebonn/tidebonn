@@ -101,10 +101,15 @@
    Hele layouten er rem/em-basert, så den skalerer proporsjonalt.
    pointer:coarse + max-height:600px treffer kun telefoner i liggende,
    ikke nettbrett/desktop. */
-/* Telefon i liggende → +30% (orientering-styrt, kun berøringsskjerm). */
+/* Telefon i liggende → +30% (orientering-styrt, kun berøringsskjerm).
+   Footeren skjules her så bønneteksten får maks plass; i alle andre
+   moduser holdes den synlig av sticky-footer-layouten. */
 @media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
   html {
     font-size: 20.8px; /* 16 → 20.8 = +30% */
+  }
+  footer {
+    display: none;
   }
 }
 
