@@ -194,7 +194,7 @@ export default function Home() {
           rota gir definert høyde å vokse i (main er flex-1 i flex-col-
           rota). */}
       <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A] flex-1" style={{display: 'flex', alignItems: 'center'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '2vh 1rem 1vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <div style={{maxWidth: '860px', margin: '0 auto', padding: '8vh 1rem 1vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
