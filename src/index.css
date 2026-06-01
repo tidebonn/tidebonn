@@ -118,6 +118,15 @@
   }
 }
 
+/* Når «Større tekst» er på OG viewporten er lav, skjules det nederste
+   dekorative korset på forsiden så footeren får plass. */
+html.large-text .home-lower-cross {
+  display: none;
+}
+@media (min-height: 820px) {
+  html.large-text .home-lower-cross { display: block; }
+}
+
 
 /* Bønne-rendring (article.bønn fra ekstrakterte HTML-filer).
  * Tittel-headeren (h1 + tom h3) skjules her: appen viser sin egen

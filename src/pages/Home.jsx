@@ -194,7 +194,7 @@ export default function Home() {
           rota gir definert høyde å vokse i (main er flex-1 i flex-col-
           rota). */}
       <section className="bg-[#F4F0E9] dark:bg-[#2C2C2A] flex-1" style={{display: 'flex', alignItems: 'center'}}>
-        <div style={{maxWidth: '860px', margin: '0 auto', padding: '6vh 1rem 3vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <div style={{maxWidth: '860px', margin: '0 auto', padding: '2vh 1rem 1vh', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -202,7 +202,7 @@ export default function Home() {
             style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '320px'}}
           >
             {/* SVG Cross - upper part */}
-            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '2rem'}}>
+            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '0.75rem'}}>
             <svg width="32" height="72" viewBox="0 0 32 72">
               <circle cx="16" cy="6" r="4" fill="none" stroke="currentColor" strokeWidth="0.7"/>
               <circle cx="16" cy="6" r="1.5" fill="none" stroke="currentColor" strokeWidth="0.5"/>
@@ -247,7 +247,7 @@ export default function Home() {
             </div>
 
             {/* SVG Cross - lower part */}
-            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginTop: '3rem'}}>
+            <div className="home-lower-cross text-[#4A6B65] dark:text-[#BD7B59]" style={{marginTop: '0.75rem'}}>
             <svg width="32" height="56" viewBox="0 0 32 56">
               <line x1="16" y1="0" x2="16" y2="55" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
               <circle cx="16" cy="50" r="4" fill="none" stroke="currentColor" strokeWidth="0.6"/>
