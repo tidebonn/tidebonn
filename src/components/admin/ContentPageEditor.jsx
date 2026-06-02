@@ -7,6 +7,7 @@ import Youtube from '@tiptap/extension-youtube';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Bold, Italic, Underline as UnderlineIcon, Heading2, Heading3,
   List, ListOrdered, Quote, Link as LinkIcon, Image as ImageIcon,
@@ -143,6 +144,31 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             onChange={(e) => onChange({ ...page, menu_label: e.target.value })}
             placeholder="Slik vises siden i menyen (tom = bruk tittel)"
           />
+        </div>
+        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-[1fr,120px] gap-3 sm:gap-4">
+          <div>
+            <Label>Synlighet</Label>
+            <Select
+              value={page.nav_visibility || 'menu'}
+              onValueChange={(v) => onChange({ ...page, nav_visibility: v })}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="menu">I menyen + Info-siden</SelectItem>
+                <SelectItem value="info-only">Kun på Info-siden</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Rekkefølge</Label>
+            <Input
+              type="number"
+              value={page.order_index ?? 100}
+              onChange={(e) => onChange({ ...page, order_index: parseInt(e.target.value, 10) || 0 })}
+              placeholder="100"
+              className="text-sm"
+            />
+          </div>
         </div>
       </div>
 
