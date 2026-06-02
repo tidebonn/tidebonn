@@ -1572,8 +1572,17 @@ export default function Admin() {
           {/* Content Tab */}
           <TabsContent value="content">
             <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
                 <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9]">Innholdssider</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingPage({ slug: '', title: '', subtitle: '', menu_label: '', content: '' })}
+                  className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.2)] gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ny side
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1581,7 +1590,7 @@ export default function Admin() {
                     <Card key={page.id} className="p-4 border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{page.title}</h3>
+                          <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{page.title || <span className="italic text-[#B6B9B3]">(uten tittel)</span>}</h3>
                           <p className="text-sm text-[#6A6A6A] dark:text-gray-400">/{page.slug}</p>
                         </div>
                         <Button variant="ghost" onClick={() => setEditingPage(page)}>
