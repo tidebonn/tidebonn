@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import LoginDialog from '@/components/LoginDialog';
+import { markInstalledIfNeeded } from '@/lib/appInstall';
 
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
@@ -67,6 +68,11 @@ export default function Layout({ children }) {
       if (isAuth) {
         const currentUser = await db.auth.me();
         setUser(currentUser);
+
+        // Hvis appen kjøres i standalone-modus (PWA-installert),
+        // logger vi det på profilen så admin-statistikken vet om
+        // det. No-op om allerede satt eller om vi ikke er i PWA.
+        markInstalledIfNeeded(currentUser.id);
 
         // Load user progress
         const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
