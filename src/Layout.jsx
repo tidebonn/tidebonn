@@ -13,9 +13,25 @@ import LoginDialog from '@/components/LoginDialog';
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [userProgress, setUserProgress] = useState(null);
+  const [contentPages, setContentPages] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const location = useLocation();
+
+  // Hent content_pages én gang så menynavn kan overstyres av admin.
+  // Fall tilbake til hardkodede labels hvis menu_label/title mangler.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const pages = await db.entities.ContentPage.list();
+        if (mounted) setContentPages(pages || []);
+      } catch (e) {
+        // Tom liste er trygt — menyen bruker fallback-labels.
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     loadUser();
@@ -67,16 +83,25 @@ export default function Layout({ children }) {
     db.auth.logout();
   };
 
+  // Helper: hent menyetikett for en slug — menu_label > title >
+  // hardkodet fallback (sistnevnte sikrer at menyen aldri står tom).
+  const pageBySlug = Object.fromEntries(contentPages.map(p => [p.slug, p]));
+  const menuLabel = (slug, fallback) => {
+    const p = pageBySlug[slug];
+    return (p?.menu_label && p.menu_label.trim()) || (p?.title && p.title.trim()) || fallback;
+  };
+
   // Hovedmeny. «Info» har sub-elementer (vises som innrykkede
   // underpunkter i mobilmenyen, og som ett menypunkt → /Info-
-  // landingsside i desktop-headeren).
+  // landingsside i desktop-headeren). Underpunktene henter labels
+  // fra content_pages slik at admin kan endre dem under Innhold.
   const navItems = [
   { name: 'Bønner', page: 'Prayers', icon: BookOpen },
   { name: 'Info', page: 'Info', icon: Info, children: [
-    { name: 'Hva er tidebønn', page: 'HvaErTidebonn' },
-    { name: 'Hvordan be tidebønn', page: 'HvordanTidebonn' },
-    { name: 'Om appen', page: 'About' },
-    { name: 'Om Areopagos', page: 'OmAreopagos' },
+    { name: menuLabel('hva-er-tidebonn',  'Hva er tidebønn'),     page: 'HvaErTidebonn' },
+    { name: menuLabel('hvordan-tidebonn', 'Hvordan be tidebønn'), page: 'HvordanTidebonn' },
+    { name: menuLabel('om-appen',         'Om appen'),            page: 'About' },
+    { name: menuLabel('om-areopagos',     'Om Areopagos'),        page: 'OmAreopagos' },
   ] },
   { name: 'Oppsett', page: 'Settings', icon: Settings }];
 

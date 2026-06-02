@@ -171,6 +171,7 @@ create table if not exists content_pages (
   slug text unique not null,
   title text,
   subtitle text,
+  menu_label text,
   content text,
   last_edited_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()

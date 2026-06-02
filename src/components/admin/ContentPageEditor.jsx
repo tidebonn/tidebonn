@@ -136,6 +136,14 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             placeholder="Kort beskrivelse som vises på «Info»-landingen"
           />
         </div>
+        <div className="sm:col-span-2">
+          <Label>Menynavn</Label>
+          <Input
+            value={page.menu_label || ''}
+            onChange={(e) => onChange({ ...page, menu_label: e.target.value })}
+            placeholder="Slik vises siden i menyen (tom = bruk tittel)"
+          />
+        </div>
       </div>
 
       {/* Toolbar */}
