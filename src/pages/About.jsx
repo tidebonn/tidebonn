@@ -1,7 +1,7 @@
-import MarkdownPage from '@/components/MarkdownPage';
+import { Navigate } from 'react-router-dom';
 
-// Hentes fra content_pages via slug = 'om-appen'.
-// Innholdet redigeres av admin under Admin → Innhold.
+// Beholdes for bakoverkompatibilitet: gamle bokmerker /About
+// omdirigeres til den nye /Side/<slug>-ruten.
 export default function About() {
-  return <MarkdownPage slug="om-appen" fallbackTitle="Om appen" />;
+  return <Navigate to="/Side/om-appen" replace />;
 }

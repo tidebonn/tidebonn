@@ -145,30 +145,21 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             placeholder="Slik vises siden i menyen (tom = bruk tittel)"
           />
         </div>
-        <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-[1fr,120px] gap-3 sm:gap-4">
-          <div>
-            <Label>Synlighet</Label>
-            <Select
-              value={page.nav_visibility || 'menu'}
-              onValueChange={(v) => onChange({ ...page, nav_visibility: v })}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="menu">I menyen + Info-siden</SelectItem>
-                <SelectItem value="info-only">Kun på Info-siden</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Rekkefølge</Label>
-            <Input
-              type="number"
-              value={page.order_index ?? 100}
-              onChange={(e) => onChange({ ...page, order_index: parseInt(e.target.value, 10) || 0 })}
-              placeholder="100"
-              className="text-sm"
-            />
-          </div>
+        <div className="sm:col-span-2">
+          <Label>Synlighet</Label>
+          <Select
+            value={page.nav_visibility || 'menu'}
+            onValueChange={(v) => onChange({ ...page, nav_visibility: v })}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="menu">I menyen + Info-siden</SelectItem>
+              <SelectItem value="info-only">Kun på Info-siden</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">
+            Rekkefølge endres ved å dra rader i listen.
+          </p>
         </div>
       </div>
 

@@ -1,7 +1,6 @@
-import MarkdownPage from '@/components/MarkdownPage';
+import { Navigate } from 'react-router-dom';
 
-// Hentes fra content_pages via slug = 'hvordan-tidebonn'.
-// Innholdet redigeres av admin under Admin → Innhold.
+// Omdirigerer til den generiske /Side/<slug>-ruten.
 export default function HvordanTidebonn() {
-  return <MarkdownPage slug="hvordan-tidebonn" fallbackTitle="Hvordan be tidebønn" />;
+  return <Navigate to="/Side/hvordan-tidebonn" replace />;
 }

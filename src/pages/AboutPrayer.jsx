@@ -1,9 +1,7 @@
-import MarkdownPage from '@/components/MarkdownPage';
+import { Navigate } from 'react-router-dom';
 
-// Beholdes for bakoverkompatibilitet (gamle bokmerker /AboutPrayer).
-// Innholdet ligger nå under slug = 'hva-er-tidebonn' (samme rad,
-// renamet i migration 005). Den «nye» ruten er /HvaErTidebonn,
-// nådd via /Info-landingssiden.
+// Beholdes for bakoverkompatibilitet: gamle bokmerker /AboutPrayer
+// omdirigeres til den nye /Side/<slug>-ruten.
 export default function AboutPrayer() {
-  return <MarkdownPage slug="hva-er-tidebonn" fallbackTitle="Hva er tidebønn" />;
+  return <Navigate to="/Side/hva-er-tidebonn" replace />;
 }
