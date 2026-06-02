@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -12,7 +13,10 @@ import {
   Bold, Italic, Underline as UnderlineIcon, Heading2, Heading3,
   List, ListOrdered, Quote, Link as LinkIcon, Image as ImageIcon,
   Youtube as YoutubeIcon, Loader2, Save, Undo2, Redo2, Eraser,
+  ChevronUp, ChevronDown,
 } from 'lucide-react';
+
+const META_COLLAPSED_KEY = 'tidebonn.contentEditor.metaCollapsed';
 
 // Helper: hent video-ID fra URL eller bruk direkte hvis 11-tegns ID
 function extractYouTubeId(input) {
@@ -44,6 +48,20 @@ function TBtn({ active, onClick, title, disabled, children }) {
 }
 
 export default function ContentPageEditor({ page, onChange, onSave, onCancel, saving }) {
+  // Skjul/vis de fire metadata-radene over editoren. Lagres i
+  // localStorage så valget huskes på tvers av økter.
+  const [metaCollapsed, setMetaCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(META_COLLAPSED_KEY) === 'true';
+  });
+  const toggleMeta = () => {
+    setMetaCollapsed(prev => {
+      const next = !prev;
+      try { window.localStorage.setItem(META_COLLAPSED_KEY, String(next)); } catch {}
+      return next;
+    });
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -110,7 +128,7 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
 
   return (
     <div className="flex flex-col flex-1 min-h-0 py-4 gap-4">
-      <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-[120px,1fr] gap-3 sm:gap-4">
+      <div className={`flex-shrink-0 grid grid-cols-1 sm:grid-cols-[120px,1fr] gap-3 sm:gap-4 ${metaCollapsed ? 'hidden' : ''}`}>
         <div>
           <Label>Slug</Label>
           <Input
@@ -206,6 +224,13 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
           <Eraser className="w-3.5 h-3.5" />
         </TBtn>
         <div className="flex-1" />
+        <TBtn
+          title={metaCollapsed ? 'Vis metadata-felter' : 'Skjul metadata-felter'}
+          onClick={toggleMeta}
+        >
+          {metaCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+        </TBtn>
+        <div className="w-px h-6 bg-[#DECCB4] mx-1" />
         <TBtn title="Angre (Cmd+Z)" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
           <Undo2 className="w-3.5 h-3.5" />
         </TBtn>
