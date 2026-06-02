@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import db from '@/api/client';
 
-// Landingsside for «Les mer»-seksjonen. Lenker videre til de fire
+// Landingsside for «Info»-seksjonen. Lenker videre til de fire
 // innholdssidene som hver hentes fra content_pages (redigeres i Admin).
 // Titler og undertitler hentes fra content_pages — fallback-tekstene
 // brukes kun hvis radene mangler / sluggen ikke finnes.
@@ -16,7 +16,7 @@ const sections = [
   { slug: 'om-areopagos',     page: 'OmAreopagos',      fallbackTitle: 'Om Areopagos',        fallbackSubtitle: '' },
 ];
 
-export default function LesMer() {
+export default function Info() {
   const [pages, setPages] = useState({});
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function LesMer() {
         setPages(map);
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.warn('LesMer load:', e?.message || e);
+        console.warn('Info load:', e?.message || e);
       }
     })();
     return () => { mounted = false; };
@@ -52,7 +52,7 @@ export default function LesMer() {
           }}
           className="text-[#2C2C2A] dark:text-[#F4F0E9]"
         >
-          Les mer
+          Info
         </h1>
         <p
           className="text-[#6A6A6A] dark:text-[rgba(244,240,233,0.65)]"

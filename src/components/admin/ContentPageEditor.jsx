@@ -133,7 +133,7 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
           <Input
             value={page.subtitle || ''}
             onChange={(e) => onChange({ ...page, subtitle: e.target.value })}
-            placeholder="Kort beskrivelse som vises på «Les mer»-landingen"
+            placeholder="Kort beskrivelse som vises på «Info»-landingen"
           />
         </div>
       </div>
