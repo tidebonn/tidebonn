@@ -249,9 +249,9 @@ export default function Home() {
                   Se alle bønner
                 </button>
               </Link>
-              <Link to={createPageUrl('LesMer')} style={{width: '100%'}}>
+              <Link to={createPageUrl('Info')} style={{width: '100%'}}>
                 <button style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer'}} className="text-[#7A9994] border border-[#7A9994] dark:text-[#BD7B59] dark:border-[#BD7B59]/60">
-                  Les mer
+                  Info
                 </button>
               </Link>
             </div>

@@ -67,12 +67,12 @@ export default function Layout({ children }) {
     db.auth.logout();
   };
 
-  // Hovedmeny. «Les mer» har sub-elementer (vises som
-  // innrykkede underpunkter i mobilmenyen, og som ett menypunkt
-  // → /LesMer-landingsside i desktop-headeren).
+  // Hovedmeny. «Info» har sub-elementer (vises som innrykkede
+  // underpunkter i mobilmenyen, og som ett menypunkt → /Info-
+  // landingsside i desktop-headeren).
   const navItems = [
   { name: 'Bønner', page: 'Prayers', icon: BookOpen },
-  { name: 'Les mer', page: 'LesMer', icon: Info, children: [
+  { name: 'Info', page: 'Info', icon: Info, children: [
     { name: 'Hva er tidebønn', page: 'HvaErTidebonn' },
     { name: 'Hvordan be tidebønn', page: 'HvordanTidebonn' },
     { name: 'Om appen', page: 'About' },

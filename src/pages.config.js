@@ -53,7 +53,7 @@ import Admin from './pages/Admin';
 import Home from './pages/Home';
 import HvaErTidebonn from './pages/HvaErTidebonn';
 import HvordanTidebonn from './pages/HvordanTidebonn';
-import LesMer from './pages/LesMer';
+import Info from './pages/Info';
 import OmAreopagos from './pages/OmAreopagos';
 import Prayers from './pages/Prayers';
 import Settings from './pages/Settings';
@@ -66,7 +66,7 @@ export const PAGES = {
     "Home": Home,
     "HvaErTidebonn": HvaErTidebonn,
     "HvordanTidebonn": HvordanTidebonn,
-    "LesMer": LesMer,
+    "Info": Info,
     "OmAreopagos": OmAreopagos,
     "Prayers": Prayers,
     "Settings": Settings,
