@@ -519,19 +519,24 @@ export default function Admin() {
     }
   };
 
-  // Slett en innholdsside med bekreftelse
+  // Slett en innholdsside med bekreftelse. Fjerner først raden
+  // optimistisk fra lokal state så UI'et oppdateres umiddelbart;
+  // synker deretter med DB via loadData. Hvis sletting feiler
+  // rulles UI tilbake av loadData (henter ferskt fra DB).
   const handleDeletePage = async (page) => {
     const label = page.title || page.slug || 'denne siden';
     if (!confirm(`Er du sikker på at du vil slette «${label}»? Dette kan IKKE angres.`)) return;
     try {
       await db.entities.ContentPage.delete(page.id);
+      setContentPages(prev => prev.filter(p => p.id !== page.id));
       sonnerToast.success('Side slettet');
-      loadData();
+      await loadData();
     } catch (error) {
       const msg = error?.message || String(error);
       // eslint-disable-next-line no-console
       console.error('handleDeletePage error:', error);
       sonnerToast.error(`Kunne ikke slette side: ${msg}`);
+      await loadData(); // gjenopprett original state
     }
   };
 
