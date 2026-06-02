@@ -7,6 +7,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PwaSplash from '@/components/PwaSplash';
+import DynamicContentPage from './pages/DynamicContentPage';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -58,6 +59,17 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* Generisk innholdsside — leser slug fra URL og rendrer
+          tilhørende rad fra content_pages. Brukes for alle sider
+          som ikke har en dedikert page-fil. */}
+      <Route
+        path="/Side/:slug"
+        element={
+          <LayoutWrapper currentPageName="Side">
+            <DynamicContentPage />
+          </LayoutWrapper>
+        }
+      />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

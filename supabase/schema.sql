@@ -172,6 +172,9 @@ create table if not exists content_pages (
   title text,
   subtitle text,
   menu_label text,
+  -- 'menu' = vises i mobil-meny + Info-landing, 'info-only' = kun Info-landing
+  nav_visibility text not null default 'menu',
+  order_index int not null default 100,
   content text,
   last_edited_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()

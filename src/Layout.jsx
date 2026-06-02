@@ -83,26 +83,24 @@ export default function Layout({ children }) {
     db.auth.logout();
   };
 
-  // Helper: hent menyetikett for en slug — menu_label > title >
-  // hardkodet fallback (sistnevnte sikrer at menyen aldri står tom).
-  const pageBySlug = Object.fromEntries(contentPages.map(p => [p.slug, p]));
-  const menuLabel = (slug, fallback) => {
-    const p = pageBySlug[slug];
-    return (p?.menu_label && p.menu_label.trim()) || (p?.title && p.title.trim()) || fallback;
-  };
+  // Info-undermeny bygges dynamisk fra content_pages: tar med kun
+  // sider med nav_visibility = 'menu', sorterer på order_index,
+  // og lenker til den generiske /Side/<slug>-ruten.
+  const infoChildren = contentPages
+    .filter(p => (p.nav_visibility || 'menu') === 'menu')
+    .slice()
+    .sort((a, b) => (a.order_index ?? 999) - (b.order_index ?? 999))
+    .map(p => ({
+      name: (p.menu_label?.trim()) || (p.title?.trim()) || p.slug,
+      href: `/Side/${p.slug}`,
+    }));
 
   // Hovedmeny. «Info» har sub-elementer (vises som innrykkede
   // underpunkter i mobilmenyen, og som ett menypunkt → /Info-
-  // landingsside i desktop-headeren). Underpunktene henter labels
-  // fra content_pages slik at admin kan endre dem under Innhold.
+  // landingsside i desktop-headeren).
   const navItems = [
   { name: 'Bønner', page: 'Prayers', icon: BookOpen },
-  { name: 'Info', page: 'Info', icon: Info, children: [
-    { name: menuLabel('hva-er-tidebonn',  'Hva er tidebønn'),     page: 'HvaErTidebonn' },
-    { name: menuLabel('hvordan-tidebonn', 'Hvordan be tidebønn'), page: 'HvordanTidebonn' },
-    { name: menuLabel('om-appen',         'Om appen'),            page: 'About' },
-    { name: menuLabel('om-areopagos',     'Om Areopagos'),        page: 'OmAreopagos' },
-  ] },
+  { name: 'Info', page: 'Info', icon: Info, children: infoChildren },
   { name: 'Oppsett', page: 'Settings', icon: Settings }];
 
   const adminItems = [
@@ -111,10 +109,13 @@ export default function Layout({ children }) {
   const isAdmin = user?.role === 'admin' || user?.role === 'owner';
 
   const NavLink = ({ item, mobile, indent = false }) => {
-    const isActive = location.pathname === createPageUrl(item.page);
+    // item.href = ferdig URL (brukt av dynamiske Info-children).
+    // Ellers utledes URL fra item.page via createPageUrl.
+    const target = item.href || createPageUrl(item.page);
+    const isActive = location.pathname === target;
     return (
       <Link
-        to={createPageUrl(item.page)}
+        to={target}
         onClick={() => mobile && setIsOpen(false)}
         className={isActive ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.5)] dark:text-[rgba(244,240,233,0.55)]'}
         style={{
@@ -263,7 +264,7 @@ export default function Layout({ children }) {
                       <React.Fragment key={item.page}>
                         <NavLink item={item} mobile />
                         {item.children && item.children.map((child) => (
-                          <NavLink key={child.page} item={child} mobile indent />
+                          <NavLink key={child.href || child.page} item={child} mobile indent />
                         ))}
                       </React.Fragment>
                     ))}
