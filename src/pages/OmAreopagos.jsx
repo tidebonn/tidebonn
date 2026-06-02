@@ -1,7 +1,6 @@
-import MarkdownPage from '@/components/MarkdownPage';
+import { Navigate } from 'react-router-dom';
 
-// Hentes fra content_pages via slug = 'om-areopagos'.
-// Innholdet redigeres av admin under Admin → Innhold.
+// Omdirigerer til den generiske /Side/<slug>-ruten.
 export default function OmAreopagos() {
-  return <MarkdownPage slug="om-areopagos" fallbackTitle="Om Areopagos" />;
+  return <Navigate to="/Side/om-areopagos" replace />;
 }

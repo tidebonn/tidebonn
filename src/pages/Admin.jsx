@@ -5,8 +5,18 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart3, Users, BookOpen, FileEdit, Plus, Trash2, Save,
   Loader2, ChevronDown, ChevronRight, Shield, UserCog,
-  Eye, EyeOff, RotateCcw, Search, CalendarDays, Clock, Download
+  Eye, EyeOff, RotateCcw, Search, CalendarDays, Clock, Download,
+  GripVertical
 } from 'lucide-react';
+import {
+  DndContext, closestCenter, PointerSensor, KeyboardSensor,
+  useSensor, useSensors
+} from '@dnd-kit/core';
+import {
+  arrayMove, SortableContext, sortableKeyboardCoordinates,
+  verticalListSortingStrategy, useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,7 +116,10 @@ export default function Admin() {
       setPrayerLogs(logs);
       setPrayers(prayerData);
       setPrayerSeries(series);
-      setContentPages(pages);
+      // Sorter etter order_index så DnD-rekkefølgen alltid stemmer
+      setContentPages(
+        (pages || []).slice().sort((a, b) => (a.order_index ?? 999) - (b.order_index ?? 999))
+      );
       setAllUsers(users);
       setAllUserProgress(allProgress);
       
@@ -505,6 +518,57 @@ export default function Admin() {
       setSaving(false);
     }
   };
+
+  // Slett en innholdsside med bekreftelse
+  const handleDeletePage = async (page) => {
+    const label = page.title || page.slug || 'denne siden';
+    if (!confirm(`Er du sikker på at du vil slette «${label}»? Dette kan IKKE angres.`)) return;
+    try {
+      await db.entities.ContentPage.delete(page.id);
+      sonnerToast.success('Side slettet');
+      loadData();
+    } catch (error) {
+      const msg = error?.message || String(error);
+      // eslint-disable-next-line no-console
+      console.error('handleDeletePage error:', error);
+      sonnerToast.error(`Kunne ikke slette side: ${msg}`);
+    }
+  };
+
+  // DnD-sortering: når en rad slippes, renummerer alle rader fra 1
+  // og persisterer order_index per rad. Optimistisk UI-oppdatering
+  // før DB-skriv slik at lista føles snappy.
+  const handleReorderPages = async (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = contentPages.findIndex(p => p.id === active.id);
+    const newIndex = contentPages.findIndex(p => p.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(contentPages, oldIndex, newIndex);
+    setContentPages(reordered);
+    try {
+      await Promise.all(reordered.map((p, i) => {
+        const newOrder = i + 1;
+        if (p.order_index === newOrder) return null;
+        return db.entities.ContentPage.update(p.id, {
+          order_index: newOrder,
+          last_edited_by: user.id,
+        });
+      }).filter(Boolean));
+    } catch (error) {
+      const msg = error?.message || String(error);
+      // eslint-disable-next-line no-console
+      console.error('handleReorderPages error:', error);
+      sonnerToast.error(`Kunne ikke lagre rekkefølge: ${msg}`);
+      loadData(); // re-hent original rekkefølge fra DB
+    }
+  };
+
+  // DnD-sensorer — pointer for mus/touch, keyboard for tilgjengelighet
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   // Eier-eksklusivt: oppdaterer rolle via Edge Function manage-user
   // som validerer caller-rolle og bruker service_role server-side.
@@ -1585,21 +1649,27 @@ export default function Admin() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {contentPages.map(page => (
-                    <Card key={page.id} className="p-4 border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9]">{page.title || <span className="italic text-[#B6B9B3]">(uten tittel)</span>}</h3>
-                          <p className="text-sm text-[#6A6A6A] dark:text-gray-400">/{page.slug}</p>
-                        </div>
-                        <Button variant="ghost" onClick={() => setEditingPage(page)}>
-                          <FileEdit className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                <DndContext
+                  sensors={dndSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleReorderPages}
+                >
+                  <SortableContext
+                    items={contentPages.map(p => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {contentPages.map(page => (
+                        <SortablePageRow
+                          key={page.id}
+                          page={page}
+                          onEdit={setEditingPage}
+                          onDelete={handleDeletePage}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </CardContent>
             </Card>
 
@@ -1762,6 +1832,60 @@ export default function Admin() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Sorterbar rad i Innholdsliste — gir drag-håndtak, klikkbart felt
+// for redigering og slett-knapp. useSortable bindes til page.id.
+function SortablePageRow({ page, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : 'auto',
+    position: 'relative',
+  };
+  const visibilityLabel = (page.nav_visibility || 'menu') === 'menu' ? 'Meny' : 'Kun info';
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="p-3 border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 text-[#B6B9B3] hover:text-[#4A6B65] dark:hover:text-[#BD7B59] transition-colors flex-shrink-0"
+            aria-label="Dra for å endre rekkefølge"
+            title="Dra for å endre rekkefølge"
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9] truncate">
+              {page.title || <span className="italic text-[#B6B9B3]">(uten tittel)</span>}
+            </h3>
+            <p className="text-xs text-[#6A6A6A] dark:text-gray-400 flex items-center gap-2 flex-wrap">
+              <span>/Side/{page.slug}</span>
+              <span className="text-[#B6B9B3]">·</span>
+              <span>{visibilityLabel}</span>
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => onEdit(page)} title="Rediger">
+            <FileEdit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(page)}
+            title="Slett"
+            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }
