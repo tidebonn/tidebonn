@@ -4,6 +4,19 @@ import { AlertTriangle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+// Menneskelig forklaring for hver context-streng som logError-kalles med.
+// Vises i parentes etter badge-tellene så admin ikke trenger å gjette
+// hva tag-en betyr. Ukjente context'er får ingen forklaring.
+const CONTEXT_DESCRIPTIONS = {
+  prayer_log_insert_start:      'feil ved logging av at en bønn ble åpnet',
+  prayer_log_insert_fast_start: 'feil ved rask gjenopptak av nylig påbegynt bønn',
+  prayer_log_insert_complete:   'feil ved logging av at en bønn ble fullført',
+  push_subscribe:               'feil ved registrering av enhet for push-varsler',
+  push_pref_update:             'feil ved oppdatering av push-preferanser (bønnetider)',
+  newsletter_export:            'feil ved nedlasting av nyhetsbrev-CSV',
+  newsletter_confirm:           'feil ved markering som behandlet etter CSV-eksport',
+};
+
 // Viser klientfeil logget fra alle brukere. RLS gjør at kun admins
 // får lese. Hjelpemiddel for å finne stille feil hos andre brukere.
 export default function ClientErrorsCard() {
@@ -83,16 +96,23 @@ export default function ClientErrorsCard() {
           <p className="text-sm text-[#9A9A9A]">Ingen feil rapportert.</p>
         ) : (
           <>
-            {/* Sammendrag per context */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {Object.entries(byContext).map(([ctx, n]) => (
-                <span
-                  key={ctx}
-                  className="text-xs px-2 py-0.5 rounded bg-[#F4F0E9] dark:bg-[#1A1917] text-[#6A6A6A] dark:text-gray-400"
-                >
-                  {ctx}: <strong>{n}</strong>
-                </span>
-              ))}
+            {/* Sammendrag per context — tag og antall, med forklaring i parentes */}
+            <div className="flex flex-col gap-1.5 mb-3">
+              {Object.entries(byContext).map(([ctx, n]) => {
+                const desc = CONTEXT_DESCRIPTIONS[ctx];
+                return (
+                  <div
+                    key={ctx}
+                    className="text-xs px-2.5 py-1 rounded bg-[#F4F0E9] dark:bg-[#1A1917] text-[#6A6A6A] dark:text-gray-400 flex items-baseline gap-2 flex-wrap"
+                  >
+                    <span className="font-mono">{ctx}:</span>
+                    <strong className="text-[#2C2C2A] dark:text-[#F4F0E9]">{n}</strong>
+                    {desc && (
+                      <span className="italic text-[#9A9A9A]">({desc})</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {expanded && (
