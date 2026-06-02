@@ -129,7 +129,7 @@ export default function Layout({ children }) {
           header-elementet var smalere enn skjermen på mobil, så hit-
           areas så ut til å være kuttet til en tredjedel. */}
       <header className="sticky top-0 z-50 w-full bg-[#F4F0E9] dark:bg-[#2C2C2A]" style={{borderBottom: '0.5px solid #DECCB4', boxSizing: 'border-box'}}>
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-between w-full" style={{height: '3.25rem', boxSizing: 'border-box'}}>
+        <div className="relative max-w-4xl mx-auto px-4 flex items-center justify-between w-full" style={{height: '3.25rem', boxSizing: 'border-box'}}>
           {/* Logo — display:flex + height:100% gjør at hele
               headerhøyden (52px) er klikkbar, ikke bare bokstavenes
               ~14px. paddingRight gir også slingringsmonn til høyre
@@ -153,8 +153,11 @@ export default function Layout({ children }) {
             TIDEBØNN
           </Link>
 
-          {/* Desktop Navigation - center */}
-          <nav className="hidden md:flex items-center">
+          {/* Desktop Navigation — absolute-sentrert mellom logo og
+              høyre-kolonne, så de tre hovedmenypunktene står midt i
+              header uavhengig av sidekolonne-bredden. Admin-lenken
+              ligger nå i høyre-gruppen sammen med logg-ut-ikonet. */}
+          <nav className="hidden md:flex items-center absolute left-1/2 -translate-x-1/2">
             {navItems.map((item) =>
               <Link
                 key={item.page}
@@ -174,34 +177,31 @@ export default function Layout({ children }) {
                 {item.name}
               </Link>
             )}
-            {isAdmin && <>
-              <div style={{width: '0.5px', height: '1rem', backgroundColor: 'rgba(244,240,233,0.25)', margin: '0 0.25rem'}} />
-              {adminItems.map((item) =>
-                <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  className={location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]'}
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 500,
-                    fontSize: '0.58rem',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    padding: '0.375rem 0.6rem',
-                    textDecoration: 'none',
-                    transition: 'color 0.2s',
-                  }}
-                >
-                  {item.name}
-                </Link>
-              )}
-            </>}
           </nav>
 
-          {/* Right side: desktop login/logout + mobile hamburger.
-              Med flex justify-between på parent kommer denne diven
-              automatisk til høyre kant. */}
+          {/* Right side: Admin (hvis admin) + desktop login/logout
+              + mobile hamburger. Med flex justify-between på parent
+              kommer denne diven automatisk til høyre kant. */}
           <div className="flex items-center gap-1">
+            {isAdmin && adminItems.map((item) =>
+              <Link
+                key={item.page}
+                to={createPageUrl(item.page)}
+                className={`hidden md:flex ${location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]'}`}
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 500,
+                  fontSize: '0.58rem',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  padding: '0.375rem 0.6rem',
+                  textDecoration: 'none',
+                  transition: 'color 0.2s',
+                }}
+              >
+                {item.name}
+              </Link>
+            )}
             {user ? (
               <button onClick={handleLogout} className="hidden md:flex items-center text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
