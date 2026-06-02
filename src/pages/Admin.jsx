@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PrayerEditor from '../components/admin/PrayerEditor';
 import ClientErrorsCard from '../components/admin/ClientErrorsCard';
+import PushInstallStatsCard from '../components/admin/PushInstallStatsCard';
 import { injectTitleH1 } from '../components/admin/prayerBlockUtils';
 import ContentPageEditor from '../components/admin/ContentPageEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -675,6 +676,7 @@ export default function Admin() {
               userProgressList={allUserProgress}
               totalUsers={allUsers.length}
             />
+            <PushInstallStatsCard users={allUsers} />
             <ClientErrorsCard />
           </TabsContent>
 

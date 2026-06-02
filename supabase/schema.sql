@@ -37,6 +37,10 @@ create table if not exists profiles (
   -- Inferrert ekstern status: er brukeren lagt til i maillista? true
   -- når eksportert som «legg til», false når eksportert som «meld av».
   newsletter_in_mailing_list boolean not null default false,
+  -- Settes første gang vi ser brukeren i standalone (PWA-installert)
+  -- modus. Brukes for å telle hvor mange brukere som har lastet ned
+  -- appen i admin-statistikken.
+  installed_app_at timestamptz,
   created_at timestamptz not null default now()
 );
 
