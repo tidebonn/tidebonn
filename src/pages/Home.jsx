@@ -239,8 +239,8 @@ export default function Home() {
                 ovenfor, så det ses at korsets stamme fortsetter ned
                 gjennom knappene og ender i den nedre dekorasjonen. */}
             <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '0.75rem'}}>
-              <svg width="32" height="20" viewBox="0 0 32 20" aria-hidden="true">
-                <line x1="16" y1="0" x2="16" y2="20" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+              <svg width="32" height="10" viewBox="0 0 32 10" aria-hidden="true">
+                <line x1="16" y1="0" x2="16" y2="10" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
               </svg>
             </div>
 
