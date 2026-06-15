@@ -135,9 +135,13 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             value={page.slug || ''}
             onChange={(e) => onChange({ ...page, slug: e.target.value })}
             placeholder="om-tidebonn"
-            disabled={!!page.id}
             className="text-sm"
           />
+          {!!page.id && (
+            <p className="text-[10px] text-[#9A9A9A] mt-1 leading-tight">
+              Endring bryter eksisterende lenker/bokmerker.
+            </p>
+          )}
         </div>
         <div>
           <Label>Tittel</Label>
