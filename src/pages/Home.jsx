@@ -229,13 +229,22 @@ export default function Home() {
             </p>
 
             {/* Next prayer subtitle */}
-            <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontStyle: 'italic', fontSize: '1.1rem', color: '#B6B9B3', lineHeight: 1.7, textAlign: 'center', marginBottom: '2rem'}}>
+            <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontStyle: 'italic', fontSize: '1.1rem', color: '#B6B9B3', lineHeight: 1.7, textAlign: 'center', marginBottom: '1rem'}}>
               {nextPrayer && nextSeriesTitle
                 ? `Neste bønn er ${nextPrayer.title} fra ${nextSeriesTitle}.`
                 : 'Neste bønn er [navn på neste bønn] fra [navn på bønneserie].'}
             </p>
 
-            {/* Three vertical stacked buttons */}
+            {/* Liten vertikal strek — visuell forlengelse av korset
+                ovenfor, så det ses at korsets stamme fortsetter ned
+                gjennom knappene og ender i den nedre dekorasjonen. */}
+            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '0.75rem'}}>
+              <svg width="32" height="20" viewBox="0 0 32 20" aria-hidden="true">
+                <line x1="16" y1="0" x2="16" y2="20" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+              </svg>
+            </div>
+
+            {/* Two vertical stacked buttons */}
             <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '260px'}}>
               <button
                 onClick={() => nextPrayer ? setShowPrayerDialog(true) : db.auth.redirectToLogin()}
@@ -247,11 +256,6 @@ export default function Home() {
               <Link to={createPageUrl('Prayers')} style={{width: '100%'}}>
                 <button style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer'}} className="text-[#7A9994] border border-[#7A9994] dark:text-[#BD7B59] dark:border-[#BD7B59]/60">
                   Se alle bønner
-                </button>
-              </Link>
-              <Link to={createPageUrl('Info')} style={{width: '100%'}}>
-                <button style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer'}} className="text-[#7A9994] border border-[#7A9994] dark:text-[#BD7B59] dark:border-[#BD7B59]/60">
-                  Info
                 </button>
               </Link>
             </div>
