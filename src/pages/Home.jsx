@@ -16,6 +16,7 @@ import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 import { setLargeTextPref } from '@/lib/largeText';
+import { getNextPrayer, TIME_ORDER } from '@/components/prayer/PrayerSeriesCycleUtils';
 
 const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
@@ -126,53 +127,39 @@ export default function Home() {
       const prayers = allPrayers.filter(p => activeSeriesIds.includes(p.series_id));
 
       if (prayers.length > 0) {
-        let targetDay, targetTime;
-        
+        const seriesId = loadedProgress?.current_series_id || allSeries[0]?.id;
+        const seriesData = allSeries.find(s => s.id === seriesId);
+        const seriesPrayers = prayers.filter(p => p.series_id === seriesId);
+
+        let next = null;
+
         if (loadedProgress && loadedProgress.follow_date === false) {
-          targetDay = loadedProgress.current_day || 1;
-          targetTime = loadedProgress.current_prayer_time || 'laudes';
-        } else {
-          targetTime = getCurrentTimeOfDay();
-
-          // Find active series for user
-          const seriesId = loadedProgress?.current_series_id || allSeries[0]?.id;
-          const seriesData = allSeries.find(s => s.id === seriesId);
-
-          if (seriesData?.sort_by === 'weeks' && seriesData.series_start_date) {
-            const now = new Date();
-            const start = new Date(seriesData.series_start_date);
-            start.setHours(0, 0, 0, 0);
-            const today = new Date(now); today.setHours(0, 0, 0, 0);
-            const diffDays = Math.floor((today - start) / 86400000);
-            const totalCycleDays = (seriesData.total_weeks || 4) * 7;
-            const posInCycle = ((diffDays % totalCycleDays) + totalCycleDays) % totalCycleDays;
-            targetDay = posInCycle + 1;
-          } else {
-            targetDay = new Date().getDate() % (seriesData?.total_days || 30) || (seriesData?.total_days || 30);
-          }
+          // Brukeren har valgt manuell posisjon — ikke følg kalender.
+          // Bruk current_day + current_prayer_time som «cursor» og finn
+          // den bønnen, eller første som matcher i samme bønnedøgn.
+          const targetDay = loadedProgress.current_day || 1;
+          const targetTime = loadedProgress.current_prayer_time || 'laudes';
+          const tIdx = TIME_ORDER.indexOf(targetTime);
+          const sorted = [...seriesPrayers].sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day;
+            return TIME_ORDER.indexOf(a.time_of_day) - TIME_ORDER.indexOf(b.time_of_day);
+          });
+          next = sorted.find(p =>
+            p.day > targetDay || (p.day === targetDay && TIME_ORDER.indexOf(p.time_of_day) >= tIdx)
+          ) || sorted[0] || null;
+        } else if (seriesData) {
+          // Standard: regn ut neste bønn fra kalenderdato + klokke.
+          // Bruker bønnedøgn-helperen som håndterer wraparound korrekt
+          // (siste bønn i bø 28 → vesper bø 1, sømløst).
+          next = getNextPrayer(seriesData, seriesPrayers, new Date());
         }
 
-        // Find next prayer in the series
-         const seriesId = loadedProgress?.current_series_id || allSeries[0]?.id;
-         const TIME_ORDER = ['laudes', 'prim', 'ters', 'sekst', 'non', 'vesper', 'kompletorium', 'matutin'];
-         const sortedPrayers = [...prayers].filter(p => p.series_id === seriesId).sort((a, b) => {
-           if (a.day !== b.day) return a.day - b.day;
-           return TIME_ORDER.indexOf(a.time_of_day) - TIME_ORDER.indexOf(b.time_of_day);
-         });
-        
-        const nextIdx = sortedPrayers.findIndex(p => 
-          p.day > targetDay || (p.day === targetDay && TIME_ORDER.indexOf(p.time_of_day) >= TIME_ORDER.indexOf(targetTime))
-        );
-        
-        const next = nextIdx >= 0 ? sortedPrayers[nextIdx] : sortedPrayers[0];
         setNextPrayer(next);
 
-        const seriesForTitle = allSeries.find(s => s.id === seriesId);
-        if (seriesForTitle) setNextSeriesTitle(seriesForTitle.title);
+        if (seriesData) setNextSeriesTitle(seriesData.title);
 
-        if (next) {
-           const seriesData2 = allSeries.find(s => s.id === seriesId);
-          if (seriesData2?.sort_by === 'weeks') {
+        if (next && seriesData) {
+          if (seriesData.sort_by === 'weeks') {
             const week = Math.ceil(next.day / 7);
             setNextPrayerLabel(`Uke ${week}`);
           } else {
