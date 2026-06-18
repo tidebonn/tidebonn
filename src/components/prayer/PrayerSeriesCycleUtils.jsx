@@ -197,6 +197,16 @@ export function getCalendarDateForWeekAndWeekday(series, week, weekdayOffset) {
   return result;
 }
 
+// Returnerer rekkefølgen på de liturgiske tidene innenfor ett bønnedøgn,
+// med start_time først og deretter syklisk videre (start_time → ... →
+// kompletorium → matutin → ... → tilbake til like før start_time).
+// For start_time=vesper: [vesper, kompletorium, matutin, laudes, prim, ters, sekst, non].
+export function getBonnedognTimeOrder(startTime) {
+  const idx = TIME_ORDER.indexOf(startTime || 'laudes');
+  if (idx < 0) return [...TIME_ORDER];
+  return [...TIME_ORDER.slice(idx), ...TIME_ORDER.slice(0, idx)];
+}
+
 // Oversetter (bønnedøgn-nr N, time_of_day) → (kalenderUke, kalenderUkedag)
 // hvor bønnen faktisk bes. Brukt for deep-links fra Settings («fortsett her»)
 // og push-varsler så vi viser brukeren rett kalenderdag når de klikker.
