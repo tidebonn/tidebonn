@@ -36,7 +36,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast as sonnerToast } from 'sonner';
 import { motion } from 'framer-motion';
 
-import { getAdminSeriesWeek } from '../components/prayer/PrayerSeriesCycleUtils';
+import { getAdminSeriesWeek, getBonnedognTimeOrder } from '../components/prayer/PrayerSeriesCycleUtils';
 import Statistics from '../components/admin/Statistics';
 import PrayerContent from '../components/prayer/PrayerContent';
 import SeriesStartDatePicker from '../components/admin/SeriesStartDatePicker';
@@ -1089,14 +1089,14 @@ export default function Admin() {
                                   onChange={(e) => { const w = parseInt(e.target.value) || 1; setEditingPrayer({...editingPrayer, day: (w - 1) * 7 + currentDow}); }} />
                               </div>
                               <div>
-                                <Label>Dag i uken (1-7)</Label>
+                                <Label>Døgn i uken (1-7)</Label>
                                 <Input type="number" min={1} max={7} value={currentDow}
                                   onChange={(e) => { const d = parseInt(e.target.value) || 1; setEditingPrayer({...editingPrayer, day: (currentWeek - 1) * 7 + d}); }} />
                               </div>
                             </div>
                           ) : (
                             <div>
-                              <Label>Dag (1-{totalDays})</Label>
+                              <Label>Døgn (1-{totalDays})</Label>
                               <Input type="number" min={1} max={totalDays} value={currentDay}
                                 onChange={(e) => setEditingPrayer({...editingPrayer, day: parseInt(e.target.value)})} />
                             </div>
@@ -1212,19 +1212,24 @@ export default function Admin() {
                   {prayerSeries
                     .filter(s => !s.deleted_at && s.is_active)
                     .map(series => {
+                      // Bønnedøgn-syklisk rekkefølge: start_time først, så
+                      // syklisk videre. For start_time=vesper blir det
+                      // [vesper, komp, matutin, laudes, prim, ters, sekst, non].
+                      const bonnedognOrder = getBonnedognTimeOrder(series.start_time);
                       const seriesPrayers = prayers
                         .filter(p => p.series_id === series.id && !p.deleted_at)
                         .sort((a, b) => {
                           if (a.day !== b.day) return a.day - b.day;
-                          const timeOrder = ['matutin', 'laudes', 'prim', 'ters', 'sekst', 'non', 'vesper', 'kompletorium'];
-                          return timeOrder.indexOf(a.time_of_day) - timeOrder.indexOf(b.time_of_day);
+                          return bonnedognOrder.indexOf(a.time_of_day) - bonnedognOrder.indexOf(b.time_of_day);
                         });
-                      
-                      // Group by series-week (using series start_day/start_time for week-mode)
+
+                      // Grupper på bønnedøgn-uke: enkelt ceil(day/7) siden dataene
+                      // nå er bønnedøgn-tagget (migrering 010). Hver day = ett
+                      // bønnedøgn; 7 bønnedøgn = én uke.
                       const weeks = {};
                       seriesPrayers.forEach(p => {
                         const weekNum = series.sort_by === 'weeks'
-                          ? getAdminSeriesWeek(p, series).seriesWeek
+                          ? Math.ceil(p.day / 7)
                           : Math.ceil(p.day / 7);
                         if (!weeks[weekNum]) weeks[weekNum] = {};
                         if (!weeks[weekNum][p.day]) weeks[weekNum][p.day] = [];
@@ -1283,7 +1288,7 @@ export default function Admin() {
                                         {Object.entries(days).map(([day, dayPrayers]) => (
                                           <AccordionItem key={day} value={`day-${day}`} className="border-none">
                                             <AccordionTrigger className="hover:no-underline py-2 text-sm">
-                                              <span>Dag {day}</span>
+                                              <span>Døgn {day}</span>
                                             </AccordionTrigger>
                                             <AccordionContent>
                                               <div className="space-y-0.5 pl-2">
@@ -1383,19 +1388,17 @@ export default function Admin() {
                       {prayerSeries
                         .filter(s => !s.deleted_at && !s.is_active)
                         .map(series => {
+                          const bonnedognOrder = getBonnedognTimeOrder(series.start_time);
                           const seriesPrayers = prayers
                             .filter(p => p.series_id === series.id && !p.deleted_at)
                             .sort((a, b) => {
                               if (a.day !== b.day) return a.day - b.day;
-                              const timeOrder = ['matutin', 'laudes', 'prim', 'ters', 'sekst', 'non', 'vesper', 'kompletorium'];
-                              return timeOrder.indexOf(a.time_of_day) - timeOrder.indexOf(b.time_of_day);
+                              return bonnedognOrder.indexOf(a.time_of_day) - bonnedognOrder.indexOf(b.time_of_day);
                             });
 
                           const weeks = {};
                           seriesPrayers.forEach(p => {
-                            const weekNum = series.sort_by === 'weeks'
-                              ? getAdminSeriesWeek(p, series).seriesWeek
-                              : Math.ceil(p.day / 7);
+                            const weekNum = Math.ceil(p.day / 7);
                             if (!weeks[weekNum]) weeks[weekNum] = {};
                             if (!weeks[weekNum][p.day]) weeks[weekNum][p.day] = [];
                             weeks[weekNum][p.day].push(p);
@@ -1450,7 +1453,7 @@ export default function Admin() {
                                               {Object.entries(days).map(([day, dayPrayers]) => (
                                                 <AccordionItem key={day} value={`hidden-day-${day}`} className="border-none">
                                                   <AccordionTrigger className="hover:no-underline py-2 text-sm">
-                                                    <span>Dag {day}</span>
+                                                    <span>Døgn {day}</span>
                                                   </AccordionTrigger>
                                                   <AccordionContent>
                                                     <div className="space-y-0.5 pl-2">
@@ -1606,7 +1609,7 @@ export default function Admin() {
                                     </Badge>
                                   </div>
                                   <p className="text-xs text-[#6A6A6A] dark:text-gray-400">
-                                    {prayerSeries.find(s => s.id === prayer.series_id)?.title} • Dag {prayer.day} • {prayer.time_of_day}
+                                    {prayerSeries.find(s => s.id === prayer.series_id)?.title} • Døgn {prayer.day} • {prayer.time_of_day}
                                   </p>
                                 </div>
                                 <div className="flex gap-2">
