@@ -26,6 +26,7 @@ import {
   getCurrentBonnedognPosition,
   getPrayersOnCalendarDay,
   getCalendarDateForWeekAndWeekday,
+  getCalendarPositionForPrayer,
   getLastActiveDayInSeries,
   getLastActiveWeekInSeries
 } from '@/components/prayer/PrayerSeriesCycleUtils';
@@ -260,13 +261,31 @@ export default function Prayers() {
     if (!currentSeriesData) return;
     if (initialUrlParamsRef.current) {
       initialUrlParamsRef.current = false;
-      if (currentSeriesData.sort_by === 'weeks') {
-        // selectedDay holder URL-paramet 'day' (1-28). Konverter.
-        const d = selectedDay;
-        if (d > 0) {
-          setSelectedWeek(Math.floor((d - 1) / 7) + 1);
-          setSelectedWeekday((d - 1) % 7);
+
+      // Tre URL-flyter er mulige:
+      //   1. ?day=N&time=T (deep-link fra Settings) — finn kalenderpos for (bø N, T)
+      //   2. ?day=N alene — bruk start_time for å gjette kalenderpos for bønnedøgnet
+      //   3. ?time=T alene (push-varsel) — bruk dagens kalenderpos, behold T
+      // Alle bruker den nye bønnedøgn→kalender-mappingen.
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlDay = parseInt(urlParams.get('day') || '0', 10);
+      const urlTime = urlParams.get('time');
+
+      if (currentSeriesData.sort_by === 'weeks' && urlDay > 0) {
+        const timeForLookup = urlTime || currentSeriesData.start_time || 'vesper';
+        const { calendarWeek, calendarWeekday } = getCalendarPositionForPrayer(
+          currentSeriesData,
+          urlDay,
+          timeForLookup,
+        );
+        if (calendarWeek != null && calendarWeekday != null) {
+          setSelectedWeek(calendarWeek);
+          setSelectedWeekday(calendarWeekday);
         }
+      } else if (urlTime) {
+        // Push-varsel: gå til dagens kalenderpos, sett tid fra URL.
+        applyCurrentPosition(currentSeriesData);
+        setSelectedTime(urlTime);
       }
       return;
     }

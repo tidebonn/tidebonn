@@ -197,6 +197,27 @@ export function getCalendarDateForWeekAndWeekday(series, week, weekdayOffset) {
   return result;
 }
 
+// Oversetter (bønnedøgn-nr N, time_of_day) → (kalenderUke, kalenderUkedag)
+// hvor bønnen faktisk bes. Brukt for deep-links fra Settings («fortsett her»)
+// og push-varsler så vi viser brukeren rett kalenderdag når de klikker.
+//
+// Bønnedøgn N starter på dag (N-1) fra anker (= uke 1, ukedag 0).
+// «Head»-tider (klokke >= start_time) er på samme kalenderdag som N starter.
+// «Tail»-tider (klokke < start_time) er på dagen etter.
+export function getCalendarPositionForPrayer(series, bonnedognNumber, timeOfDay) {
+  const isWeekMode = series?.sort_by === 'weeks';
+  if (!isWeekMode || !bonnedognNumber) {
+    return { calendarWeek: null, calendarWeekday: null };
+  }
+  const startTime = series?.start_time || 'laudes';
+  const calOffsetWithin = getCalendarOffsetWithinBonnedogn(timeOfDay, startTime);
+  const totalOffsetDays = (bonnedognNumber - 1) + calOffsetWithin;
+  return {
+    calendarWeek: Math.floor(totalOffsetDays / 7) + 1,
+    calendarWeekday: totalOffsetDays % 7,
+  };
+}
+
 /**
  * Given a series and a reference Date (or now), compute:
  *   - seriesDayNumber: 1-based day index in the series cycle
