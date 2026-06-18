@@ -23,7 +23,9 @@ import {
   TIME_ORDER,
   START_DAY_MAP,
   WEEKDAY_NAMES_NO,
-  getCurrentSeriesPosition,
+  getCurrentBonnedognPosition,
+  getPrayersOnCalendarDay,
+  getCalendarDateForWeekAndWeekday,
   getLastActiveDayInSeries,
   getLastActiveWeekInSeries
 } from '@/components/prayer/PrayerSeriesCycleUtils';
@@ -165,12 +167,16 @@ export default function Prayers() {
     }
   };
 
+  // «Gå til i dag»: sett ukepicker + ukedag til faktisk kalenderposisjon
+  // (Lør..Fre i kalender), og sett tiden til nåværende klokkeslett.
+  // Beregningene skjer ut fra series_start_date, ikke fra bønnedøgn-
+  // tellingen — slik at brukeren ser kalenderen sin, ikke den interne
+  // liturgiske telleren.
   const applyCurrentPosition = (seriesData, targetDate = new Date()) => {
-    const pos = getCurrentSeriesPosition(seriesData, targetDate);
+    const pos = getCurrentBonnedognPosition(seriesData, targetDate);
     const available = seriesData.available_prayer_times;
     let time = pos.currentTime;
     if (available && available.length > 0 && !available.includes(time)) {
-      // Find the next available time after the computed one
       const idx = TIME_ORDER.indexOf(time);
       let found = false;
       for (let i = idx + 1; i < TIME_ORDER.length; i++) {
@@ -184,10 +190,19 @@ export default function Prayers() {
     }
     setSelectedTime(time);
     if (seriesData.sort_by === 'weeks') {
-      setSelectedWeek(pos.week || 1);
-      setSelectedWeekday(pos.weekdayOffset ?? 0);
+      // Beregn kalenderuke + kalenderdag fra targetDate, IKKE fra bønnedøgn-pos.
+      // Kalenderuke 1 og weekdayOffset 0 = første start_day på/etter
+      // series_start_date.
+      const calendarStart = getCalendarDateForWeekAndWeekday(seriesData, 1, 0);
+      const t0 = new Date(targetDate); t0.setHours(0, 0, 0, 0);
+      const c0 = new Date(calendarStart); c0.setHours(0, 0, 0, 0);
+      const totalCycleDays = (seriesData.total_weeks || 4) * 7;
+      const diffDays = Math.floor((t0 - c0) / 86400000);
+      const posInCycle = ((diffDays % totalCycleDays) + totalCycleDays) % totalCycleDays;
+      setSelectedWeek(Math.floor(posInCycle / 7) + 1);
+      setSelectedWeekday(posInCycle % 7);
     } else {
-      setSelectedDay(pos.seriesDayNumber);
+      setSelectedDay(pos.bonnedognNumber);
     }
   };
 
@@ -209,11 +224,23 @@ export default function Prayers() {
   const seriesStartDayOfWeek = START_DAY_MAP[currentSeriesData?.start_day || 'saturday'];
   const orderedWeekdays = Array.from({ length: 7 }, (_, i) => (seriesStartDayOfWeek + i) % 7);
 
+  // effectiveDay brukes fortsatt internt som "bønnedøgn nr i syklusen"
+  // i dag-modus (sort_by != 'weeks'). I uke-modus betyr selectedWeek
+  // og selectedWeekday nå KALENDERuke + KALENDERukedag — ikke bønnedøgn-
+  // nummer. Bønnene som vises der kommer fra to bønnedøgn kombinert.
   const effectiveDay = isWeekMode
-    ? (selectedWeek - 1) * 7 + (selectedWeekday ?? 0) + 1
+    ? null  // ikke meningsfylt i uke-modus med kalenderbasert visning
     : selectedDay;
 
-  const filteredPrayers = seriesPrayers.filter(p => p.day === effectiveDay);
+  // I uke-modus: hent bønnene som faktisk bes denne kalenderdagen
+  // (kombinerer kveldsbønner fra «dagens» bønnedøgn med morgenbønner
+  // fra «gårdagens» — wraparound mellom syklus 28→1 håndtert i helperen).
+  const calendarDateForSelected = isWeekMode
+    ? getCalendarDateForWeekAndWeekday(currentSeriesData, selectedWeek, selectedWeekday ?? 0)
+    : null;
+  const filteredPrayers = isWeekMode
+    ? getPrayersOnCalendarDay(currentSeriesData, calendarDateForSelected, seriesPrayers)
+    : seriesPrayers.filter(p => p.day === effectiveDay);
   const currentPrayer = filteredPrayers.find(p => p.time_of_day === selectedTime);
 
   // Auto-åpne bønnen når kommer fra push-varsel (?time=X&open=1)
@@ -489,7 +516,7 @@ export default function Prayers() {
       ) : currentPrayer ? (
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${effectiveDay}-${selectedTime}`}
+            key={isWeekMode ? `${selectedWeek}-${selectedWeekday}-${selectedTime}` : `${effectiveDay}-${selectedTime}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
