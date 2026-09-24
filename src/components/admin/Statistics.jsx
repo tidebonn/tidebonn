@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Clock, BookOpen, Activity, Hourglass, MapPin } from 'lucide-react';
+import { Users, Clock, BookOpen, Activity, MapPin } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line,
+  LineChart, Line,
 } from 'recharts';
+import { detectGroupSessions, GROUP_GAP_MS } from '@/lib/groupSessions';
 
 const COLORS = ['#4A6B65', '#BD7B59', '#7A9690', '#3a5550', '#A8CBCD', '#DECCB4', '#2D5450', '#E8A87C'];
 
@@ -19,6 +20,12 @@ const PERIOD_OPTIONS = [
 const WEEKDAYS_NO = ['Søn', 'Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør'];
 // Reorder for monday-start week
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon..Sun
+
+const TIME_DISPLAY = { sekst: 'Middagsbønn' };
+function timeLabel(t) {
+  if (!t) return 'Ukjent';
+  return TIME_DISPLAY[t] || t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 function filterByPeriod(logs, period) {
   if (period === 'all') return logs;
@@ -131,9 +138,8 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       const t = l.time_of_day || 'ukjent';
       timeMap[t] = (timeMap[t] || 0) + 1;
     });
-    const TIME_DISPLAY = { sekst: 'Middagsbønn' };
     const byTime = Object.entries(timeMap)
-      .map(([name, count]) => ({ name: TIME_DISPLAY[name] || (name.charAt(0).toUpperCase() + name.slice(1)), count }))
+      .map(([name, count]) => ({ name: timeLabel(name), count }))
       .sort((a, b) => b.count - a.count);
 
     // By series
@@ -265,6 +271,34 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       .map(([name, count]) => ({ name, count }))
       .filter((d) => d.count > 0);
 
+    // Innlogget vs anonym — telles på påbegynt-rader (én per lesning)
+    const startedLoggedIn = startedRows.filter((l) => l.user_id).length;
+    const byAuth = started > 0
+      ? [{ name: 'Innlogget', count: startedLoggedIn }, { name: 'Anonym', count: started - startedLoggedIn }]
+      : [];
+
+    // Grupper: flere som leser samme bønn samtidig (se lib/groupSessions)
+    const groups = detectGroupSessions(filtered).filter((g) => g.size >= 2);
+    const readingsInGroups = groups.reduce((sum, g) => sum + g.readings, 0);
+    const groupShare = started > 0 ? readingsInGroups / started : null;
+    const largestGroup = groups.reduce((m, g) => Math.max(m, g.size), 0);
+    const avgGroupSize = groups.length > 0 ? groups.reduce((sum, g) => sum + g.size, 0) / groups.length : 0;
+    const sizeBuckets = { '2': 0, '3–4': 0, '5–9': 0, '10+': 0 };
+    groups.forEach((g) => {
+      if (g.size === 2) sizeBuckets['2']++;
+      else if (g.size <= 4) sizeBuckets['3–4']++;
+      else if (g.size <= 9) sizeBuckets['5–9']++;
+      else sizeBuckets['10+']++;
+    });
+    const byGroupSize = Object.entries(sizeBuckets)
+      .map(([name, count]) => ({ name: `${name} personer`, count }))
+      .filter((d) => d.count > 0);
+    const recentGroups = groups.slice(0, 8).map((g) => ({
+      ...g,
+      series: prayerSeries.find((ps) => ps.id === g.series_id)?.title || 'Ukjent',
+      time: timeLabel(g.time_of_day),
+    }));
+
     return {
       totalPrayers, started, completed, completionRate,
       totalMinutes, uniqueUsers, avgMinutesPerPrayer,
@@ -274,6 +308,8 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       topPrayer,
       byCountry, byCity,
       byGender, byAge,
+      byAuth,
+      groups, groupShare, largestGroup, avgGroupSize, byGroupSize, recentGroups,
     };
   }, [filtered, prayerLogs, prayerSeries, userProgressList]);
 
@@ -397,12 +433,93 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
         </Card>
       </div>
 
-      {/* Tre kompakte stat-lister side om side */}
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Kompakte stat-lister side om side */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <CompactStatList title="Per tidebønn" data={stats.byTime} valueKey="count" />
+        <CompactStatList title="Innlogget vs anonym" data={stats.byAuth} valueKey="count" />
         <CompactStatList title="Gruppemarkører" data={stats.byGroupMarkers} valueKey="value" />
         <CompactStatList title="Per serie" data={stats.bySeries} valueKey="value" />
       </div>
+
+      {/* Grupper — flere som leser samme bønn samtidig */}
+      <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#BD7B59]" />
+            Grupper
+          </CardTitle>
+          <p className="text-xs text-[#6A6A6A] dark:text-gray-500 mt-1">
+            Lesninger av samme bønn som starter innen {GROUP_GAP_MS / 60000} minutter etter hverandre regnes som én gruppe.
+            Anonyme lesere kan ikke skilles fra hverandre, så tallene er et anslag.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {stats.groups.length === 0 ? (
+            <p className="text-sm text-[#6A6A6A] dark:text-gray-400 italic">Ingen grupper funnet i perioden</p>
+          ) : (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
+                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.groups.length}</p>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Grupper</p>
+                </div>
+                <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
+                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.largestGroup}</p>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Største gruppe</p>
+                </div>
+                <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
+                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.avgGroupSize.toFixed(1)}</p>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Snittstørrelse</p>
+                </div>
+                <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
+                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.groupShare !== null ? `${Math.round(stats.groupShare * 100)}%` : '–'}</p>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Av lesningene i gruppe</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 uppercase tracking-wide mb-2">Gruppestørrelse</p>
+                  <div className="space-y-2">
+                    {stats.byGroupSize.map((item, i) => {
+                      const max = Math.max(...stats.byGroupSize.map((d) => d.count));
+                      return (
+                        <div key={item.name} className="flex items-center gap-3">
+                          <span className="text-sm w-28 truncate text-[#4A4A4A] dark:text-gray-300">{item.name}</span>
+                          <div className="flex-1 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-full h-2">
+                            <div className="h-2 rounded-full" style={{ width: `${(item.count / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }} />
+                          </div>
+                          <span className="text-sm font-medium text-[#2C2C2A] dark:text-[#F4F0E9] w-8 text-right">{item.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6A6A6A] dark:text-gray-400 uppercase tracking-wide mb-2">Siste grupper</p>
+                  <div className="space-y-2">
+                    {stats.recentGroups.map((g) => (
+                      <div key={`${g.series_id}-${g.day}-${g.time_of_day}-${g.startedAt.getTime()}`} className="flex items-baseline justify-between gap-3 text-sm">
+                        <span className="text-[#6A6A6A] dark:text-gray-400 tabular-nums whitespace-nowrap">
+                          {g.startedAt.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' })}{' '}
+                          {g.startedAt.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="flex-1 truncate text-[#4A4A4A] dark:text-gray-300">
+                          {g.series} — dag {g.day}, {g.time}
+                        </span>
+                        <span className="font-medium text-[#2C2C2A] dark:text-[#F4F0E9] whitespace-nowrap">
+                          {g.size}{' '}
+                          <span className="font-normal text-xs text-[#6A6A6A] dark:text-gray-400">({g.loggedIn} innlogget, {g.anonymous} anonyme)</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Gender & Age */}
       <div className="grid md:grid-cols-2 gap-6">
