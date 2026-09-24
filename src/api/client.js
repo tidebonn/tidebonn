@@ -113,12 +113,16 @@ function makeEntity(entityName) {
       return data;
     },
 
-    async create(row) {
-      const { data, error } = await sb
-        .from(table)
-        .insert(row)
-        .select()
-        .single();
+    // minimal=true ber ikke om raden tilbake. Trengs for anonyme inserts
+    // (prayer_logs): RETURNING krever at SELECT-policyen også passerer.
+    async create(row, { minimal = false } = {}) {
+      const q = sb.from(table).insert(row);
+      if (minimal) {
+        const { error } = await q;
+        if (error) throw error;
+        return null;
+      }
+      const { data, error } = await q.select().single();
       if (error) throw error;
       return data;
     },

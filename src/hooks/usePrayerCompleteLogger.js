@@ -66,7 +66,7 @@ export function usePrayerCompleteLogger({
           location_country: geoData?.country ?? null,
           location_country_code: geoData?.country_code ?? null,
           location_city: geoData?.city ?? null,
-        });
+        }, { minimal: true });
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('PrayerLog (start) feilet:', error);
@@ -107,7 +107,7 @@ export function usePrayerCompleteLogger({
         if (!startLoggedRef.current) {
           startLoggedRef.current = true;
           try {
-            await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: 0, completed: false });
+            await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: 0, completed: false }, { minimal: true });
           } catch (e) {
             // eslint-disable-next-line no-console
             console.error('PrayerLog (start, rask) feilet:', e);
@@ -115,7 +115,7 @@ export function usePrayerCompleteLogger({
           }
         }
 
-        await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: duration, completed: true });
+        await db.entities.PrayerLog.create({ ...baseRow, duration_minutes: duration, completed: true }, { minimal: true });
 
         // Oppdater UserProgress kun for innloggede
         if (userProgress) {
