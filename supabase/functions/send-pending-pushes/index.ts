@@ -5,6 +5,9 @@ import webpush from "npm:web-push@3.6.7";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://tidebonn.no";
 const TZ = "Europe/Oslo";
+// Cron-jobben kjører hvert 10. minutt. Varsler eldre enn dette sendes ikke
+// (etter nedetid skal ikke morgenens laudes-varsel komme på ettermiddagen).
+const MAX_LATE_MIN = 30;
 
 const TIME_LABELS: Record<string, string> = {
   matutin: "Matutin",
@@ -137,6 +140,18 @@ function currentOsloTime(now: Date): { hhmm: string; date: string } {
   };
 }
 
+function minutesOfDay(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function previousDate(yyyymmdd: string): string {
+  const [y, m, d] = yyyymmdd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() - 1);
+  return dt.toISOString().slice(0, 10);
+}
+
 // Bygg en Date som tilsvarer Oslo-tid midnatt for kalenderdatoen.
 function osloMidnightDate(yyyymmdd: string): Date {
   // Vi tolker datoen som lokal i Oslo. UTC-offsett kan variere; bruk
@@ -165,21 +180,30 @@ Deno.serve(async (_req) => {
 
   const now = new Date();
   const { hhmm, date } = currentOsloTime(now);
-  const calendarDate = osloMidnightDate(date);
 
-  // Finn brukere som skal ha varsel på akkurat dette minuttet og som
-  // ikke allerede er varslet i dag for denne bønnetiden.
-  const { data: pending, error: prefErr } = await supabase
+  // Forfalt = notify_at er passert med under MAX_LATE_MIN, og ikke allerede
+  // sendt for døgnet varselet hører til. Et 23:50-varsel som sendes 00:00
+  // tilhører gårsdagen — derfor scheduledDate, ikke dagens dato.
+  const { data: enabledPrefs, error: prefErr } = await supabase
     .from("push_preferences")
-    .select("id, user_id, time_of_day, notify_at")
-    .eq("enabled", true)
-    .filter("notify_at", "eq", `${hhmm}:00`)
-    .or(`last_sent_date.is.null,last_sent_date.lt.${date}`);
+    .select("id, user_id, time_of_day, notify_at, last_sent_date")
+    .eq("enabled", true);
 
   if (prefErr) {
     return new Response(JSON.stringify({ error: prefErr.message }), { status: 500 });
   }
-  if (!pending || pending.length === 0) {
+
+  const nowMin = minutesOfDay(hhmm);
+  const pending = (enabledPrefs || []).flatMap((pref: any) => {
+    const notifyMin = minutesOfDay(pref.notify_at);
+    const late = (nowMin - notifyMin + 1440) % 1440;
+    if (late >= MAX_LATE_MIN) return [];
+    const scheduledDate = nowMin >= notifyMin ? date : previousDate(date);
+    if (pref.last_sent_date && pref.last_sent_date >= scheduledDate) return [];
+    return [{ ...pref, scheduledDate }];
+  });
+
+  if (pending.length === 0) {
     return new Response(JSON.stringify({ checked: hhmm, sent: 0 }), { status: 200 });
   }
 
@@ -216,7 +240,7 @@ Deno.serve(async (_req) => {
     // Hvilken bønnedøgn-rad skal denne pref'en lande på?
     const bonnedognN = resolveBonnedognForCalendarTime(
       series,
-      calendarDate,
+      osloMidnightDate(pref.scheduledDate),
       pref.time_of_day,
     );
 
@@ -236,7 +260,7 @@ Deno.serve(async (_req) => {
       // sendt så vi ikke prøver om igjen senere samme dag.
       await supabase
         .from("push_preferences")
-        .update({ last_sent_date: date })
+        .update({ last_sent_date: pref.scheduledDate })
         .eq("id", pref.id);
       skippedNoPrayer++;
       continue;
@@ -250,7 +274,7 @@ Deno.serve(async (_req) => {
     if (!subs || subs.length === 0) {
       await supabase
         .from("push_preferences")
-        .update({ last_sent_date: date })
+        .update({ last_sent_date: pref.scheduledDate })
         .eq("id", pref.id);
       continue;
     }
@@ -279,7 +303,7 @@ Deno.serve(async (_req) => {
 
     await supabase
       .from("push_preferences")
-      .update({ last_sent_date: date })
+      .update({ last_sent_date: pref.scheduledDate })
       .eq("id", pref.id);
   }
 

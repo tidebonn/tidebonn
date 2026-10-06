@@ -30,6 +30,15 @@ const TIME_LABELS = {
   kompletorium: 'Kompletorium',
 };
 
+// Push-jobben kjører hvert 10. minutt; varslingstid rundes til nærmeste 10.
+const STEP_MIN = 10;
+function roundToStep(hhmm) {
+  const [h, m] = (hhmm || '').split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return hhmm;
+  const total = (Math.round((h * 60 + m) / STEP_MIN) * STEP_MIN) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 // VAPID public key (settes som env-var i Vercel + .env.local)
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
@@ -149,6 +158,7 @@ export default function PushSettingsSection({ user, series }) {
 
   const updatePref = async (time_of_day, patch) => {
     const newState = { ...preferences[time_of_day], ...patch };
+    if (patch.notify_at) newState.notify_at = roundToStep(patch.notify_at);
     setPreferences({ ...preferences, [time_of_day]: newState });
     try {
       // Upsert (POST hvis ny, PATCH hvis finnes)
@@ -248,6 +258,7 @@ export default function PushSettingsSection({ user, series }) {
                       </div>
                       <Input
                         type="time"
+                        step={STEP_MIN * 60}
                         value={pref.notify_at}
                         disabled={!pref.enabled}
                         onChange={(e) => updatePref(t, { notify_at: e.target.value })}
@@ -256,6 +267,9 @@ export default function PushSettingsSection({ user, series }) {
                     </div>
                   );
                 })}
+                <p className="text-xs text-[#9A9A9A] pt-1">
+                  Varsler sendes hvert 10. minutt — tidspunkt rundes til nærmeste 10 minutter.
+                </p>
               </div>
             )}
           </>
