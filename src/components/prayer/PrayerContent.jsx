@@ -1,32 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-
-const formatPrayerText = (text) => {
-  if (!text) return null;
-  
-  const lines = text.split('\n');
-  
-  return lines.map((line, index) => {
-    if (line.trim() === '') {
-      return <div key={index} className="h-4" />;
-    }
-    
-    const trimmedLine = line.trim();
-    if (trimmedLine && trimmedLine === trimmedLine.toUpperCase() && /[A-ZÆØÅ]/.test(trimmedLine)) {
-      return (
-        <h4 key={index} className="mb-3 mt-6 text-[#4D8082] dark:text-[#6B9EA0] font-serif font-semibold text-lg tracking-wide">
-          {trimmedLine}
-        </h4>
-      );
-    }
-    
-    return (
-      <p key={index} className="mb-2 leading-relaxed text-[#4A4A4A] dark:text-gray-200">
-        {line}
-      </p>
-    );
-  });
-};
 
 export default function PrayerContent({ prayer, onScrollComplete, noInternalScroll, showGroupMarkers = false, largeText = false }) {
   const contentRef = useRef(null);
@@ -66,26 +38,6 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
       return () => element.removeEventListener('scroll', handleScroll);
     }
   }, [hasScrolledToEnd, onScrollComplete]);
-
-  const Section = ({ title, content, icon }) => {
-    if (!content) return null;
-    
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-2 mb-4">
-          {icon && <span className="text-[#6B9EA0]">{icon}</span>}
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[#6B9EA0]">{title}</h3>
-        </div>
-        <div className="pl-0 md:pl-4">
-          {formatPrayerText(content)}
-        </div>
-      </motion.div>
-    );
-  };
 
   return (
     <div 
