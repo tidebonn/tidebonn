@@ -8,15 +8,12 @@ import { createPageUrl } from '@/utils';
 import { ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import PrayerContent from '@/components/prayer/PrayerContent';
-import TextSizeButton from '@/components/prayer/TextSizeButton';
+import PrayerDialog from '@/components/prayer/PrayerDialog';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
-import { usePhoneViewport } from '@/hooks/usePhoneViewport';
-import { setLargeTextPref } from '@/lib/largeText';
+import { usePrayerViewPrefs } from '@/hooks/usePrayerViewPrefs';
+import { usePrayerContent } from '@/hooks/usePrayerContent';
 import { timeLabel } from '@/lib/prayerTimes';
-import { loadActivePrayerMeta, loadPrayerContent, readLastNext, writeLastNext } from '@/lib/prayerData';
+import { loadActivePrayerMeta, readLastNext, writeLastNext } from '@/lib/prayerData';
 import {
   getNextPrayer,
   getCalendarPositionForPrayer,
@@ -77,22 +74,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [showPrayerDialog, setShowPrayerDialog] = useState(false);
-  const [content, setContent] = useState({ id: null, data: null, error: null, loading: false });
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
-  // I/II-toggle: samme localStorage-fallback som /Bønner, så uinnloggede
-  // også kan styre visningen.
-  const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
-  });
-  // Større tekst — kun store skjermer (toggle). På telefon styres
-  // størrelsen av skjermretningen via CSS.
-  const [largeText, setLargeText] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('tidebonn.largeText') === 'true';
-  });
-  const { isPhone, isPortrait } = usePhoneViewport();
-  const landscapePhone = isPhone && !isPortrait;
+  const prefs = usePrayerViewPrefs({ userProgress, setUserProgress });
+  const { content, load: loadContent, ensure: ensureContent } = usePrayerContent();
 
   // Sist kjente neste bønn vises umiddelbart, og beholdes hvis henting feiler.
   const [cached] = useState(() => (typeof window === 'undefined' ? null : readLastNext()));
@@ -122,18 +106,6 @@ export default function Home() {
     }
   }, []);
 
-  // Visningsvalg fra brukerens progresjon (kommer fra AuthContext når den er klar).
-  useEffect(() => {
-    if (!userProgress) return;
-    if (typeof userProgress.show_group_markers === 'boolean') {
-      setShowGroupMarkers(userProgress.show_group_markers);
-    }
-    if (typeof userProgress.large_text === 'boolean') {
-      setLargeText(userProgress.large_text);
-      setLargeTextPref(userProgress.large_text);
-    }
-  }, [userProgress?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     loadPublic();
   }, [loadPublic]);
@@ -152,30 +124,10 @@ export default function Home() {
     };
   }, [loadError, loadPublic]);
 
-  const loadContent = useCallback(async (id) => {
-    setContent({ id, data: null, error: null, loading: true });
-    try {
-      const data = await loadPrayerContent(id);
-      setContent({ id, data, error: null, loading: false });
-    } catch (error) {
-      setContent({ id, data: null, error, loading: false });
-    }
-  }, []);
-
   const openPrayer = () => {
     if (!nextPrayer) return;
     setShowPrayerDialog(true);
-    if (content.id !== nextPrayer.id || content.error) loadContent(nextPrayer.id);
-  };
-
-  const saveProgress = async (patch) => {
-    if (!userProgress) return;
-    try {
-      await db.entities.UserProgress.update(userProgress.id, patch);
-      setUserProgress((prev) => ({ ...prev, ...patch }));
-    } catch (error) {
-      console.warn('Home: kunne ikke lagre visningsvalg:', error);
-    }
+    ensureContent(nextPrayer.id);
   };
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
@@ -185,7 +137,7 @@ export default function Home() {
     prayer: showPrayerDialog ? nextPrayer : null,
     user,
     userProgress,
-    showGroupMarkers,
+    showGroupMarkers: prefs.showGroupMarkers,
     onCompleted: (_key, duration) => {
       if (userProgress) {
         setUserProgress(prev => ({
@@ -294,80 +246,16 @@ export default function Home() {
         </div>
       </section>
 
-      <Dialog open={showPrayerDialog} onOpenChange={(open) => { setShowPrayerDialog(open); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
-          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto">
-          <DialogHeader className={`text-left bg-white dark:bg-[#1A1917] ${landscapePhone ? 'pb-4' : 'sticky top-0 z-10 border-b border-[#E8E0D8] dark:border-gray-800 pb-4'}`}>
-            <div>
-              <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
-                {nextPrayer ? badgeLabel(display.series, nextPrayer) : ''}
-              </Badge>
-              <div className="flex items-center gap-2">
-                <DialogTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white">
-                  {nextPrayer?.title}
-                </DialogTitle>
-                <button
-                  onClick={() => {
-                    const newVal = !showGroupMarkers;
-                    setShowGroupMarkers(newVal);
-                    if (typeof window !== 'undefined') {
-                      window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
-                    }
-                    saveProgress({ show_group_markers: newVal });
-                  }}
-                  className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
-                    showGroupMarkers
-                      ? 'bg-[#6B9EA0]/10 text-[#6B9EA0] hover:bg-[#6B9EA0]/20 dark:bg-[#BD7B59]/15 dark:text-[#BD7B59] dark:hover:bg-[#BD7B59]/25'
-                      : 'hover:bg-[#F5F0EB] dark:hover:bg-gray-800 text-[#9A9A9A]'
-                  }`}
-                  title={showGroupMarkers ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
-                >
-                  I/II
-                </button>
-                <TextSizeButton
-                  isPhone={isPhone}
-                  active={largeText}
-                  onToggle={() => {
-                    const newVal = !largeText;
-                    setLargeText(newVal);
-                    setLargeTextPref(newVal);
-                    saveProgress({ large_text: newVal });
-                  }}
-                />
-              </div>
-            </div>
-            <DialogDescription className="sr-only">
-              Tekst og veiledning for bønnen. Bla nedover for å lese hele.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {content.loading && (
-              <div className="space-y-3" aria-label="Henter bønneteksten">
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-4/6" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            )}
-            {content.error && !content.loading && (
-              <div className="text-center py-6">
-                <p className="text-sm text-[#6A6A6A] dark:text-gray-400 mb-3">Kunne ikke hente bønneteksten.</p>
-                <button type="button" onClick={() => loadContent(nextPrayer.id)} style={retryStyle}>
-                  Prøv igjen
-                </button>
-              </div>
-            )}
-            {content.data && nextPrayer && content.id === nextPrayer.id && (
-              <PrayerContent
-                prayer={{ ...nextPrayer, free_text_content: content.data.free_text_content }}
-                noInternalScroll
-                showGroupMarkers={showGroupMarkers}
-                largeText={!isPhone && largeText}
-              />
-            )}
-          </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PrayerDialog
+        open={showPrayerDialog}
+        onOpenChange={setShowPrayerDialog}
+        prayer={nextPrayer}
+        badge={nextPrayer ? badgeLabel(display.series, nextPrayer) : ''}
+        content={content}
+        onRetryContent={loadContent}
+        prefs={prefs}
+        scrollRef={setPrayerScrollEl}
+      />
     </div>
   );
 }

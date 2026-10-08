@@ -8,20 +8,17 @@ import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import PrayerCard from '@/components/prayer/PrayerCard';
-import PrayerContent from '@/components/prayer/PrayerContent';
-import TextSizeButton from '@/components/prayer/TextSizeButton';
+import PrayerDialog from '@/components/prayer/PrayerDialog';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
-import { usePhoneViewport } from '@/hooks/usePhoneViewport';
-import { setLargeTextPref } from '@/lib/largeText';
+import { usePrayerViewPrefs } from '@/hooks/usePrayerViewPrefs';
+import { usePrayerContent } from '@/hooks/usePrayerContent';
 import { TIME_LABELS, TIME_SHORT } from '@/lib/prayerTimes';
-import { loadActivePrayerMeta, loadPrayerContent } from '@/lib/prayerData';
+import { loadActivePrayerMeta } from '@/lib/prayerData';
 import {
   TIME_ORDER,
   START_DAY_MAP,
@@ -54,25 +51,8 @@ export default function Prayers() {
   const [completedPrayers, setCompletedPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  // Bønneteksten hentes først når en bønn åpnes (listen har bare metadata).
-  const [prayerContent, setPrayerContent] = useState({ id: null, data: null, error: null, loading: false });
-  // Gruppemarkører-toggle: lagres til UserProgress når innlogget, ellers
-  // til localStorage så uinnloggede også kan styre visningen.
-  const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('tidebonn.showGroupMarkers') === 'true';
-  });
-  // Større tekst — kun for store skjermer (toggle, persisteres lokalt).
-  // På telefon styres størrelsen av skjermretningen via CSS
-  // (stående = normal, liggende = stor), så largeText brukes ikke der.
-  const [largeText, setLargeText] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('tidebonn.largeText') === 'true';
-  });
-  const { isPhone, isPortrait } = usePhoneViewport();
-  // Telefon i liggende = stor tekst-modus. Da lar vi headeren scrolle
-  // bort (ikke sticky) for å gi mer plass til teksten.
-  const landscapePhone = isPhone && !isPortrait;
+  const prefs = usePrayerViewPrefs({ userProgress, setUserProgress });
+  const { content, load: loadContent, ensure: ensureContent } = usePrayerContent();
 
   // Navigation state
   const [selectedDay, setSelectedDay] = useState(1);         // for days-mode
@@ -128,18 +108,6 @@ export default function Prayers() {
       .catch((error) => console.warn('Prayers: fullførte utilgjengelig:', error));
     return () => { cancelled = true; };
   }, [user?.id]);
-
-  // Visningsvalg fra brukerens progresjon.
-  useEffect(() => {
-    if (!userProgress) return;
-    if (typeof userProgress.show_group_markers === 'boolean') {
-      setShowGroupMarkers(userProgress.show_group_markers);
-    }
-    if (typeof userProgress.large_text === 'boolean') {
-      setLargeText(userProgress.large_text);
-      setLargeTextPref(userProgress.large_text);
-    }
-  }, [userProgress?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Velg serie først når både seriene og auth-avklaringen er på plass,
   // så brukerens egen serie ikke overstyres av standardserien.
@@ -343,29 +311,9 @@ export default function Prayers() {
     }
   };
 
-  const loadContent = async (id) => {
-    setPrayerContent({ id, data: null, error: null, loading: true });
-    try {
-      const data = await loadPrayerContent(id);
-      setPrayerContent({ id, data, error: null, loading: false });
-    } catch (error) {
-      setPrayerContent({ id, data: null, error, loading: false });
-    }
-  };
-
   const openPrayer = (prayer) => {
     setSelectedPrayer(prayer);
-    if (prayerContent.id !== prayer.id || prayerContent.error) loadContent(prayer.id);
-  };
-
-  const saveProgress = async (patch) => {
-    if (!userProgress) return;
-    try {
-      await db.entities.UserProgress.update(userProgress.id, patch);
-      setUserProgress(prev => ({ ...prev, ...patch }));
-    } catch (error) {
-      console.warn('Prayers: kunne ikke lagre visningsvalg:', error);
-    }
+    ensureContent(prayer.id);
   };
 
   const closePrayer = () => {
@@ -381,7 +329,7 @@ export default function Prayers() {
     prayer: selectedPrayer,
     user,
     userProgress,
-    showGroupMarkers,
+    showGroupMarkers: prefs.showGroupMarkers,
     onCompleted: (key, duration) => {
       setCompletedPrayers(prev => [...prev, key]);
       if (userProgress) {
@@ -639,84 +587,16 @@ export default function Prayers() {
         </div>
       )}
 
-      {/* Prayer Dialog */}
-      <Dialog open={!!selectedPrayer} onOpenChange={(open) => { if (!open) { closePrayer(); } }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#1A1917] border-[#D8D0C8] dark:border-gray-800">
-          <div ref={setPrayerScrollEl} className="flex-1 overflow-y-auto">
-          <DialogHeader className={`text-left bg-white dark:bg-[#1A1917] ${landscapePhone ? 'pb-4' : 'sticky top-0 z-10 border-b border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] pb-4'}`}>
-            <div>
-              <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
-                {currentDayLabel} • {timeOptions.find(t => t.id === selectedPrayer?.time_of_day)?.name}
-              </Badge>
-              <div className="flex items-center gap-2">
-              <DialogTitle
-                style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '1.5rem'}}
-                className="text-[#2C2C2A] dark:text-[#F4F0E9]"
-              >
-                {selectedPrayer?.title}
-              </DialogTitle>
-              <button
-                onClick={async () => {
-                  const newVal = !showGroupMarkers;
-                  setShowGroupMarkers(newVal);
-                  if (typeof window !== 'undefined') {
-                    window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
-                  }
-                  saveProgress({ show_group_markers: newVal });
-                }}
-                className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
-                  showGroupMarkers
-                    ? 'bg-[#4A6B65]/10 text-[#4A6B65] hover:bg-[#4A6B65]/20 dark:bg-[#BD7B59]/15 dark:text-[#BD7B59] dark:hover:bg-[#BD7B59]/25'
-                    : 'hover:bg-[#F4F0E9] dark:hover:bg-gray-800 text-[#B6B9B3]'
-                }`}
-                title={showGroupMarkers ? 'Skjul gruppemarkører' : 'Vis gruppemarkører'}
-              >
-                I/II
-              </button>
-              <TextSizeButton
-                isPhone={isPhone}
-                active={largeText}
-                onToggle={async () => {
-                  const newVal = !largeText;
-                  setLargeText(newVal);
-                  setLargeTextPref(newVal);
-                  saveProgress({ large_text: newVal });
-                }}
-              />
-              </div>
-            </div>
-            <DialogDescription className="sr-only">
-              Tekst og veiledning for bønnen. Bla nedover for å lese hele.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {prayerContent.loading && (
-              <div className="space-y-3" aria-label="Henter bønneteksten">
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-4/6" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            )}
-            {prayerContent.error && !prayerContent.loading && selectedPrayer && (
-              <div className="text-center py-6">
-                <p className="text-sm text-[#6A6A6A] dark:text-gray-400 mb-3">Kunne ikke hente bønneteksten.</p>
-                <Button variant="outline" size="sm" onClick={() => loadContent(selectedPrayer.id)} className="border-[#E8E0D8] dark:border-gray-700">
-                  Prøv igjen
-                </Button>
-              </div>
-            )}
-            {selectedPrayer && prayerContent.data && prayerContent.id === selectedPrayer.id && (
-              <PrayerContent
-                prayer={{ ...selectedPrayer, free_text_content: prayerContent.data.free_text_content }}
-                noInternalScroll
-                showGroupMarkers={showGroupMarkers}
-                largeText={!isPhone && largeText}
-              />
-            )}
-          </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PrayerDialog
+        open={!!selectedPrayer}
+        onOpenChange={(open) => { if (!open) closePrayer(); }}
+        prayer={selectedPrayer}
+        badge={`${currentDayLabel} • ${timeOptions.find(t => t.id === selectedPrayer?.time_of_day)?.name ?? ''}`}
+        content={content}
+        onRetryContent={loadContent}
+        prefs={prefs}
+        scrollRef={setPrayerScrollEl}
+      />
     </div>
   );
 }
