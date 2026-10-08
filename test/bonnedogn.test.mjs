@@ -91,7 +91,7 @@ describe('getNextPrayer rundt vesper torsdag 8. okt 2026 (bønnedøgn 12 → 13)
   // Kjent feil: mellom midnatt og 02:00 regner getCurrentTimeSlot oss
   // som i kompletorium (21), så første bønn >= 21 samme kalenderdag
   // blir kveldens kompletorium — hele dagen hoppes over.
-  test('kl. 01:30 burde gi matutin samme morgen', { todo: 'getNextPrayer hopper over dagen mellom 00 og 02' }, () => {
+  test('kl. 01:30 gir matutin samme morgen (ikke kveldens kompletorium)', () => {
     assert.equal(key(getNextPrayer(series, prayers, new Date(2026, 9, 8, 1, 30))), '12/matutin');
   });
 
@@ -101,6 +101,13 @@ describe('getNextPrayer rundt vesper torsdag 8. okt 2026 (bønnedøgn 12 → 13)
 });
 
 describe('getCalendarPositionForPrayer', () => {
+  test('siste bønnedøgn (28), laudes: morgenen etter → uke 1, ukedag 0 (wraparound)', () => {
+    assert.deepEqual(getCalendarPositionForPrayer(series, 28, 'laudes'), {
+      calendarWeek: 1,
+      calendarWeekday: 0,
+    });
+  });
+
   test('bønnedøgn 8, laudes: morgenen etter → uke 2, ukedag 1', () => {
     assert.deepEqual(getCalendarPositionForPrayer(series, 8, 'laudes'), {
       calendarWeek: 2,

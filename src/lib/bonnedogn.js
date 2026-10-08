@@ -166,7 +166,11 @@ export function getPrayersOnCalendarDay(series, calendarDate, allPrayersInSeries
 export function getNextPrayer(series, allPrayersInSeries, now = new Date()) {
   if (!allPrayersInSeries || allPrayersInSeries.length === 0) return null;
   const currentTime = getCurrentTimeSlot(now);
-  const currentHour = SLOT_START_HOURS[currentTime] ?? 0;
+  // Mellom midnatt og matutin er «nåværende» slot nattens kompletorium;
+  // neste bønn er likevel morgenens første, så alt i dag teller.
+  const currentHour = now.getHours() < SLOT_START_HOURS.matutin
+    ? 0
+    : (SLOT_START_HOURS[currentTime] ?? 0);
 
   for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
     const checkDate = new Date(now);
@@ -220,7 +224,10 @@ export function getCalendarPositionForPrayer(series, bonnedognNumber, timeOfDay)
   }
   const startTime = series?.start_time || 'laudes';
   const calOffsetWithin = getCalendarOffsetWithinBonnedogn(timeOfDay, startTime);
-  const totalOffsetDays = (bonnedognNumber - 1) + calOffsetWithin;
+  // Tail-tidene i siste bønnedøgn faller på første kalenderdag i neste
+  // runde av syklusen — derfor modulo, ellers blir det «uke 5».
+  const cycleLength = getCycleLength(series);
+  const totalOffsetDays = ((bonnedognNumber - 1) + calOffsetWithin) % cycleLength;
   return {
     calendarWeek: Math.floor(totalOffsetDays / 7) + 1,
     calendarWeekday: totalOffsetDays % 7,
