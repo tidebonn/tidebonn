@@ -6,7 +6,9 @@ import { BarChart3, Users, BookOpen, FileEdit, Loader2, Shield } from 'lucide-re
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { toast as sonnerToast } from 'sonner';
 
+import { PRAYER_META_COLUMNS } from '@/lib/prayerData';
 import Statistics from '../components/admin/Statistics';
 import ClientErrorsCard from '../components/admin/ClientErrorsCard';
 import PushInstallStatsCard from '../components/admin/PushInstallStatsCard';
@@ -15,8 +17,28 @@ import PrayersTab from '../components/admin/PrayersTab';
 import ContentTab from '../components/admin/ContentTab';
 import UsersTab from '../components/admin/UsersTab';
 
+// Kolonnene Statistics.jsx og lib/groupSessions.js faktisk leser.
+// select * ga ~2× payload på 5 000 rader.
+const PRAYER_LOG_COLUMNS =
+  'id,user_id,prayer_id,series_id,day,time_of_day,duration_minutes,completed,used_group_markers,location_country,location_city,created_at';
+
+// Sorter etter order_index så DnD-rekkefølgen alltid stemmer
+const sortPages = (pages) =>
+  (pages || []).slice().sort((a, b) => (a.order_index ?? 999) - (b.order_index ?? 999));
+
+// Én henter per entitet. Brukes både ved første last og av reload().
+const fetchers = {
+  // Bare metadata — bønneteksten (95 % av tabellen) hentes når en bønn åpnes.
+  prayers: () => db.entities.Prayer.list(undefined, undefined, { select: PRAYER_META_COLUMNS }),
+  series: () => db.entities.PrayerSeries.list(),
+  pages: () => db.entities.ContentPage.list().then(sortPages),
+  users: () => db.entities.User.list(),
+  progress: () => db.entities.UserProgress.list(),
+  logs: () => db.entities.PrayerLog.list('-created_at', 5000, { select: PRAYER_LOG_COLUMNS }),
+};
+
 // Admin-skall: innlogging/rolle, delt data og fanenavigasjon. Hver fane
-// bor i src/components/admin/*Tab.jsx og får data + loadData som props.
+// bor i src/components/admin/*Tab.jsx og får data + reload som props.
 export default function Admin() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,13 +59,36 @@ export default function Admin() {
   const tabAccent = isDark ? '#BD7B59' : '#4A6B65';
 
   // Data states
-  const [prayerLogs, setPrayerLogs] = useState([]);
+  const [prayerLogs, setPrayerLogs] = useState(null); // null = ikke hentet ennå
   const [prayers, setPrayers] = useState([]);
   const [prayerSeries, setPrayerSeries] = useState([]);
   const [contentPages, setContentPages] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [allUserProgress, setAllUserProgress] = useState([]);
   const [selectedSeriesFilter, setSelectedSeriesFilter] = useState('all');
+
+  const setters = {
+    prayers: setPrayers,
+    series: setPrayerSeries,
+    pages: setContentPages,
+    users: setAllUsers,
+    progress: setAllUserProgress,
+    logs: setPrayerLogs,
+  };
+
+  // Målrettet oppfrisking etter en mutasjon: henter bare de berørte
+  // entitetene på nytt fra serveren. Ingen lokal gjetting om sortering,
+  // order_index o.l. Feil logges bare — kallet som utløste den har
+  // allerede vist sin egen toast.
+  const reload = async (...entities) => {
+    await Promise.all(entities.map(async (entity) => {
+      try {
+        setters[entity](await fetchers[entity]());
+      } catch (error) {
+        console.error(`Admin reload(${entity}) feilet:`, error);
+      }
+    }));
+  };
 
   useEffect(() => {
     loadData();
@@ -64,24 +109,19 @@ export default function Admin() {
         return;
       }
 
-      // Load all data
-      const [logs, prayerData, series, pages, users, userProgress, allProgress] = await Promise.all([
-        db.entities.PrayerLog.list('-created_at', 5000),
-        db.entities.Prayer.list(),
-        db.entities.PrayerSeries.list(),
-        db.entities.ContentPage.list(),
-        db.entities.User.list(),
+      // Load all data (bønnelogg hentes lazy når statistikk-fanen åpnes)
+      const [prayerData, series, pages, users, userProgress, allProgress] = await Promise.all([
+        fetchers.prayers(),
+        fetchers.series(),
+        fetchers.pages(),
+        fetchers.users(),
         db.entities.UserProgress.filter({ user_id: currentUser.id }),
-        db.entities.UserProgress.list()
+        fetchers.progress(),
       ]);
 
-      setPrayerLogs(logs);
       setPrayers(prayerData);
       setPrayerSeries(series);
-      // Sorter etter order_index så DnD-rekkefølgen alltid stemmer
-      setContentPages(
-        (pages || []).slice().sort((a, b) => (a.order_index ?? 999) - (b.order_index ?? 999))
-      );
+      setContentPages(pages);
       setAllUsers(users);
       setAllUserProgress(allProgress);
 
@@ -95,6 +135,23 @@ export default function Admin() {
       setLoading(false);
     }
   };
+
+  // Bønnelogg (5 000 rader) hentes først når statistikk-fanen er åpen,
+  // og bare én gang. reload('logs') fra andre faner setter nye data direkte.
+  useEffect(() => {
+    if (activeTab !== 'statistics' || !user || prayerLogs !== null) return;
+    let cancelled = false;
+    fetchers.logs()
+      .then((logs) => { if (!cancelled) setPrayerLogs(logs); })
+      .catch((error) => {
+        console.error('Admin: henting av bønnelogg feilet:', error);
+        if (!cancelled) {
+          setPrayerLogs([]);
+          sonnerToast.error('Kunne ikke hente bønnelogg');
+        }
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, user, prayerLogs]);
 
   if (loading) {
     return (
@@ -167,24 +224,31 @@ export default function Admin() {
 
           {/* Statistics Tab */}
           <TabsContent value="statistics" className="space-y-6">
-            <Statistics
-              prayerLogs={prayerLogs}
-              prayerSeries={prayerSeries}
-              userProgressList={allUserProgress}
-              totalUsers={allUsers.length}
-            />
+            {prayerLogs === null ? (
+              <p className="flex items-center gap-2 text-sm text-[#6A6A6A] dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Laster statistikk …
+              </p>
+            ) : (
+              <Statistics
+                prayerLogs={prayerLogs}
+                prayerSeries={prayerSeries}
+                userProgressList={allUserProgress}
+                totalUsers={allUsers.length}
+              />
+            )}
             <PushInstallStatsCard users={allUsers} />
             <ClientErrorsCard />
           </TabsContent>
 
           {/* Prayer Series Tab */}
           <TabsContent value="series">
-            <SeriesTab user={user} prayerSeries={prayerSeries} loadData={loadData} />
+            <SeriesTab user={user} prayerSeries={prayerSeries} reload={reload} />
           </TabsContent>
 
           {/* Prayers Tab */}
           <TabsContent value="prayers">
-            <PrayersTab user={user} prayers={prayers} prayerSeries={prayerSeries} loadData={loadData} />
+            <PrayersTab user={user} prayers={prayers} prayerSeries={prayerSeries} reload={reload} />
           </TabsContent>
 
           {/* Content Tab */}
@@ -193,14 +257,14 @@ export default function Admin() {
               user={user}
               contentPages={contentPages}
               setContentPages={setContentPages}
-              loadData={loadData}
+              reload={reload}
             />
           </TabsContent>
 
           {/* Users Tab — kun for eiere */}
           {user.role === 'owner' && (
             <TabsContent value="users">
-              <UsersTab user={user} allUsers={allUsers} loadData={loadData} />
+              <UsersTab user={user} allUsers={allUsers} reload={reload} />
             </TabsContent>
           )}
         </Tabs>

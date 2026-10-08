@@ -10,7 +10,7 @@ import { toast as sonnerToast } from 'sonner';
 import NewsletterCsvDialog from './NewsletterCsvDialog';
 
 // Brukere-fanen (kun eier): roller, sletting og nyhetsbrev-eksport.
-export default function UsersTab({ user, allUsers, loadData }) {
+export default function UsersTab({ user, allUsers, reload }) {
   // Ventende nyhetsbrev-eksport som må bekreftes som «behandlet»
   const [pendingNewsletterExport, setPendingNewsletterExport] = useState(null);
 
@@ -114,7 +114,7 @@ export default function UsersTab({ user, allUsers, loadData }) {
       if (p.removeIds.length > 0) {
         await sb.from('profiles').update({ newsletter_in_mailing_list: false }).in('id', p.removeIds);
       }
-      loadData();
+      reload('users');
       sonnerToast.success('Markert som behandlet');
     } catch (error) {
       console.error('Bekreft nyhetsbrev feilet:', error);
@@ -134,7 +134,7 @@ export default function UsersTab({ user, allUsers, loadData }) {
       return;
     }
     sonnerToast.success('Brukerrolle oppdatert');
-    loadData();
+    reload('users');
   };
 
   const handleDeleteUser = async (userId, email) => {
@@ -145,7 +145,8 @@ export default function UsersTab({ user, allUsers, loadData }) {
       return;
     }
     sonnerToast.success('Bruker slettet');
-    loadData();
+    // Sletting kaskaderer til user_progress og prayer_logs (auth.users-FK)
+    reload('users', 'progress', 'logs');
   };
 
   return (

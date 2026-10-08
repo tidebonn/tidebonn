@@ -11,12 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { toast as sonnerToast } from 'sonner';
 import PrayerEditor from './PrayerEditor';
 import { injectTitleH1 } from './prayerBlockUtils';
+import { loadPrayerContent } from '@/lib/prayerData';
 import PrayerContent from '../prayer/PrayerContent';
 import SeriesPrayerGroup from './SeriesPrayerGroup';
 
 // Bønner-fanen: redigeringsdialog, bønner gruppert per serie/uke/døgn,
 // skjulte serier, forhåndsvisning og slettede bønner.
-export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
+export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
   const [editingPrayer, setEditingPrayer] = useState(null);
   const [saving, setSaving] = useState(false);
   const [collapsedSeries, setCollapsedSeries] = useState({});
@@ -25,6 +26,28 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
   const [selectedActivePrayers, setSelectedActivePrayers] = useState([]);
   const [editorFullscreen, setEditorFullscreen] = useState(false);
 
+  // Lista har bare metadata (PRAYER_META_COLUMNS). Teksten hentes idet
+  // en bønn åpnes; dialogen åpner straks og viser «Laster …» imens.
+  // Funksjonell oppdatering + id-sjekk så et sent svar ikke overskriver
+  // en annen bønn brukeren rakk å åpne.
+  const withContent = async (prayer, setter) => {
+    setter(prayer);
+    try {
+      const row = await loadPrayerContent(prayer.id);
+      setter(prev => (prev?.id === prayer.id
+        ? { ...prev, free_text_content: row?.free_text_content ?? '' }
+        : prev));
+    } catch (error) {
+      console.error('Henting av bønnetekst feilet:', error);
+      sonnerToast.error('Kunne ikke hente bønnetekst');
+      setter(prev => (prev?.id === prayer.id ? null : prev));
+    }
+  };
+  const openPrayerEditor = (prayer) => withContent(prayer, setEditingPrayer);
+  const openPreview = (prayer) => withContent(prayer, setPreviewingPrayer);
+  // Eksisterende bønn der teksten ennå ikke er hentet — da må vi ikke lagre.
+  const contentPending = !!editingPrayer?.id && editingPrayer.free_text_content === undefined;
+
   // Toggle prayer active status
   const handleTogglePrayerActive = async (prayer) => {
     try {
@@ -32,7 +55,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
         is_active: !prayer.is_active
       });
       sonnerToast.success(prayer.is_active ? 'Bønn skjult' : 'Bønn aktivert');
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke oppdatere bønn');
     }
@@ -46,7 +69,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
         deleted_at: new Date().toISOString()
       });
       sonnerToast.success('Bønn slettet (kan gjenopprettes i 10 dager)');
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette bønn');
     }
@@ -59,7 +82,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
         deleted_at: null
       });
       sonnerToast.success('Bønn gjenopprettet');
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke gjenopprette bønn');
     }
@@ -71,7 +94,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
     try {
       await db.entities.Prayer.delete(prayer.id);
       sonnerToast.success('Bønn permanent slettet');
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette bønn');
     }
@@ -88,7 +111,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       );
       sonnerToast.success(`${selectedDeletedPrayers.length} bønner permanent slettet`);
       setSelectedDeletedPrayers([]);
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette bønner');
     }
@@ -103,7 +126,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       );
       sonnerToast.success(`${selectedDeletedPrayers.length} bønner gjenopprettet`);
       setSelectedDeletedPrayers([]);
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke gjenopprette bønner');
     }
@@ -118,7 +141,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       );
       sonnerToast.success(`${selectedActivePrayers.length} bønner skjult`);
       setSelectedActivePrayers([]);
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke skjule bønner');
     }
@@ -134,7 +157,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       );
       sonnerToast.success(`${selectedActivePrayers.length} bønner slettet`);
       setSelectedActivePrayers([]);
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette bønner');
     }
@@ -144,6 +167,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
   const handleSavePrayerSilent = async (prayerData) => {
     const target = prayerData || editingPrayer;
     if (!target?.id) return; // Only silent-save existing prayers
+    if (target.free_text_content === undefined) return; // teksten er ikke hentet ennå
     try {
       const composed = {
         ...target,
@@ -151,7 +175,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       };
       await db.entities.Prayer.update(target.id, composed);
       sonnerToast.success('Bønn lagret');
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke lagre bønn');
     }
@@ -159,6 +183,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
 
   // Save prayer and close the editor
   const handleSavePrayer = async () => {
+    if (contentPending) return;
     setSaving(true);
     try {
       // Check for duplicate — only warn when creating a new prayer (no id yet)
@@ -190,7 +215,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
       }
       sonnerToast.success('Bønn lagret');
       setEditingPrayer(null);
-      loadData();
+      reload('prayers');
     } catch (error) {
       sonnerToast.error('Kunne ikke lagre bønn');
     } finally {
@@ -202,7 +227,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
   const groupProps = {
     prayers, user, collapsedSeries, setCollapsedSeries,
     selectedIds: selectedActivePrayers, setSelectedIds: setSelectedActivePrayers,
-    onPreview: setPreviewingPrayer, onEdit: setEditingPrayer,
+    onPreview: openPreview, onEdit: openPrayerEditor,
     onToggleActive: handleTogglePrayerActive, onSoftDelete: handleSoftDeletePrayer,
   };
 
@@ -323,6 +348,12 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
                   <div className="flex items-center justify-between mb-2">
                     <Label>Bønneinnhold (rikteksteditor)</Label>
                   </div>
+                  {contentPending ? (
+                    <p className="flex items-center gap-2 py-6 text-sm text-[#6A6A6A] dark:text-gray-400">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Laster bønnetekst …
+                    </p>
+                  ) : (
                   <PrayerEditor
                     value={editingPrayer.free_text_content || ''}
                     onChange={(content) => setEditingPrayer({...editingPrayer, free_text_content: content})}
@@ -332,6 +363,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
                     onCancel={() => { setEditingPrayer(null); setEditorFullscreen(false); }}
                     prayer={editingPrayer}
                   />
+                  )}
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setEditingPrayer(null)}>
@@ -339,7 +371,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
                   </Button>
                   <Button
                     onClick={handleSavePrayer}
-                    disabled={saving}
+                    disabled={saving || contentPending}
                     className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
@@ -421,7 +453,13 @@ export default function PrayersTab({ user, prayers, prayerSeries, loadData }) {
             <DialogHeader>
               <DialogTitle>Forhåndsvisning: {previewingPrayer?.title}</DialogTitle>
             </DialogHeader>
-            {previewingPrayer && (
+            {previewingPrayer && previewingPrayer.free_text_content === undefined && (
+              <p className="flex items-center gap-2 py-6 text-sm text-[#6A6A6A] dark:text-gray-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Laster …
+              </p>
+            )}
+            {previewingPrayer && previewingPrayer.free_text_content !== undefined && (
               <div className="flex-1 overflow-y-auto px-1">
                 <PrayerContent
                   prayer={previewingPrayer}

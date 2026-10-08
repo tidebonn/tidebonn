@@ -17,7 +17,7 @@ import ContentPageEditor from './ContentPageEditor';
 import SortablePageRow from './SortablePageRow';
 
 // Innhold-fanen: innholdssider med DnD-sortering og redigeringsdialog.
-export default function ContentTab({ user, contentPages, setContentPages, loadData }) {
+export default function ContentTab({ user, contentPages, setContentPages, reload }) {
   const [editingPage, setEditingPage] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -38,7 +38,7 @@ export default function ContentTab({ user, contentPages, setContentPages, loadDa
       }
       sonnerToast.success('Side lagret');
       setEditingPage(null);
-      loadData();
+      reload('pages');
     } catch (error) {
       // Vis faktisk feilmelding fra Supabase så vi kan se hva som
       // er galt (f.eks. manglende kolonne etter pending migration).
@@ -53,8 +53,8 @@ export default function ContentTab({ user, contentPages, setContentPages, loadDa
 
   // Slett en innholdsside med bekreftelse. Fjerner først raden
   // optimistisk fra lokal state så UI'et oppdateres umiddelbart;
-  // synker deretter med DB via loadData. Hvis sletting feiler
-  // rulles UI tilbake av loadData (henter ferskt fra DB).
+  // synker deretter med DB via reload. Hvis sletting feiler
+  // rulles UI tilbake av reload (henter ferskt fra DB).
   const handleDeletePage = async (page) => {
     const label = page.title || page.slug || 'denne siden';
     if (!confirm(`Er du sikker på at du vil slette «${label}»? Dette kan IKKE angres.`)) return;
@@ -62,13 +62,13 @@ export default function ContentTab({ user, contentPages, setContentPages, loadDa
       await db.entities.ContentPage.delete(page.id);
       setContentPages(prev => prev.filter(p => p.id !== page.id));
       sonnerToast.success('Side slettet');
-      await loadData();
+      await reload('pages');
     } catch (error) {
       const msg = error?.message || String(error);
       // eslint-disable-next-line no-console
       console.error('handleDeletePage error:', error);
       sonnerToast.error(`Kunne ikke slette side: ${msg}`);
-      await loadData(); // gjenopprett original state
+      await reload('pages'); // gjenopprett original state
     }
   };
 
@@ -97,7 +97,7 @@ export default function ContentTab({ user, contentPages, setContentPages, loadDa
       // eslint-disable-next-line no-console
       console.error('handleReorderPages error:', error);
       sonnerToast.error(`Kunne ikke lagre rekkefølge: ${msg}`);
-      loadData(); // re-hent original rekkefølge fra DB
+      reload('pages'); // re-hent original rekkefølge fra DB
     }
   };
 

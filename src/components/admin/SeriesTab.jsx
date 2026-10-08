@@ -16,7 +16,7 @@ import { toast as sonnerToast } from 'sonner';
 import SeriesStartDatePicker from './SeriesStartDatePicker';
 
 // Bønneserier-fanen: liste, redigeringsdialog og slettede serier.
-export default function SeriesTab({ user, prayerSeries, loadData }) {
+export default function SeriesTab({ user, prayerSeries, reload }) {
   const [editingSeries, setEditingSeries] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -27,7 +27,7 @@ export default function SeriesTab({ user, prayerSeries, loadData }) {
         is_active: !series.is_active
       });
       sonnerToast.success(series.is_active ? 'Serie skjult' : 'Serie aktivert');
-      loadData();
+      reload('series');
     } catch (error) {
       sonnerToast.error('Kunne ikke oppdatere serie');
     }
@@ -41,7 +41,7 @@ export default function SeriesTab({ user, prayerSeries, loadData }) {
         deleted_at: new Date().toISOString()
       });
       sonnerToast.success('Serie slettet (kan gjenopprettes i 10 dager)');
-      loadData();
+      reload('series');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette serie');
     }
@@ -54,7 +54,7 @@ export default function SeriesTab({ user, prayerSeries, loadData }) {
         deleted_at: null
       });
       sonnerToast.success('Serie gjenopprettet');
-      loadData();
+      reload('series');
     } catch (error) {
       sonnerToast.error('Kunne ikke gjenopprette serie');
     }
@@ -66,7 +66,7 @@ export default function SeriesTab({ user, prayerSeries, loadData }) {
     try {
       await db.entities.PrayerSeries.delete(series.id);
       sonnerToast.success('Serie permanent slettet');
-      loadData();
+      reload('series');
     } catch (error) {
       sonnerToast.error('Kunne ikke slette serie');
     }
@@ -83,7 +83,7 @@ export default function SeriesTab({ user, prayerSeries, loadData }) {
       }
       sonnerToast.success('Serie lagret');
       setEditingSeries(null);
-      loadData();
+      reload('series');
     } catch (error) {
       sonnerToast.error('Kunne ikke lagre serie');
     } finally {
