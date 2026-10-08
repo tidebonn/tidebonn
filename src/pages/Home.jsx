@@ -1,12 +1,10 @@
 import db from '@/api/client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-import { ArrowRight, BookOpen, Clock, Users, Sparkles } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -16,40 +14,70 @@ import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 import { setLargeTextPref } from '@/lib/largeText';
-import { getNextPrayer, TIME_ORDER } from '@/components/prayer/PrayerSeriesCycleUtils';
+import { timeLabel } from '@/lib/prayerTimes';
+import { loadActivePrayerMeta, loadPrayerContent, readLastNext, writeLastNext } from '@/lib/prayerData';
+import {
+  getNextPrayer,
+  getCalendarPositionForPrayer,
+  START_DAY_MAP,
+  WEEKDAY_NAMES_NO,
+} from '@/components/prayer/PrayerSeriesCycleUtils';
 
-const WEEKDAY_NAMES = ['Lørdag', 'Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag'];
-
-const timeLabels = {
-  matutin: 'Matutin',
-  laudes: 'Laudes',
-  prim: 'Prim',
-  ters: 'Ters',
-  sekst: 'Middagsbønn',
-  non: 'Non',
-  vesper: 'Vesper',
-  kompletorium: 'Kompletorium',
+const subtitleStyle = {
+  fontFamily: "'Spectral', Georgia, serif",
+  fontWeight: 300,
+  fontStyle: 'italic',
+  fontSize: '1.1rem',
+  color: '#B6B9B3',
+  lineHeight: 1.7,
+  textAlign: 'center',
+  marginBottom: '1rem',
 };
 
-const getCurrentTimeOfDay = () => {
-  const hour = new Date().getHours();
-  if (hour >= 2 && hour < 6) return 'matutin';
-  if (hour >= 6 && hour < 9) return 'laudes';
-  if (hour >= 9 && hour < 12) return 'ters';
-  if (hour >= 12 && hour < 15) return 'sekst';
-  if (hour >= 15 && hour < 17) return 'non';
-  if (hour >= 17 && hour < 21) return 'vesper';
-  return 'kompletorium';
+const retryStyle = {
+  fontFamily: "'Montserrat', sans-serif",
+  fontWeight: 500,
+  fontSize: '0.6rem',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  color: '#BD7B59',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  marginBottom: '1rem',
 };
+
+// Neste bønn i brukerens serie (eller første aktive serie).
+function computeNext(publicData, progress, now = new Date()) {
+  if (!publicData) return null;
+  const { prayers, series } = publicData;
+  const seriesId = progress?.current_series_id || series[0]?.id;
+  const seriesData = series.find((s) => s.id === seriesId);
+  if (!seriesData) return null;
+  const next = getNextPrayer(seriesData, prayers.filter((p) => p.series_id === seriesId), now);
+  return next ? { next, seriesTitle: seriesData.title, series: seriesData } : null;
+}
+
+function badgeLabel(series, prayer) {
+  const time = timeLabel(prayer.time_of_day);
+  if (series?.sort_by === 'weeks') {
+    const { calendarWeek, calendarWeekday } = getCalendarPositionForPrayer(series, prayer.day, prayer.time_of_day);
+    if (calendarWeek != null) {
+      const startDow = START_DAY_MAP[series.start_day || 'saturday'];
+      return `Uke ${calendarWeek} · ${WEEKDAY_NAMES_NO[(startDow + calendarWeekday) % 7]} · ${time}`;
+    }
+  }
+  return `Dag ${prayer.day} · ${time}`;
+}
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [userProgress, setUserProgress] = useState(null);
-  const [nextPrayer, setNextPrayer] = useState(null);
-  const [nextPrayerLabel, setNextPrayerLabel] = useState('');
+  const [publicData, setPublicData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [showPrayerDialog, setShowPrayerDialog] = useState(false);
-  const [nextSeriesTitle, setNextSeriesTitle] = useState('');
+  const [content, setContent] = useState({ id: null, data: null, error: null, loading: false });
   const [prayerScrollEl, setPrayerScrollEl] = useState(null);
   // I/II-toggle: samme localStorage-fallback som /Bønner, så uinnloggede
   // også kan styre visningen.
@@ -65,6 +93,103 @@ export default function Home() {
   });
   const { isPhone, isPortrait } = usePhoneViewport();
   const landscapePhone = isPhone && !isPortrait;
+
+  // Sist kjente neste bønn vises umiddelbart, og beholdes hvis henting feiler.
+  const [cached] = useState(() => (typeof window === 'undefined' ? null : readLastNext()));
+  const computed = useMemo(() => computeNext(publicData, userProgress), [publicData, userProgress]);
+  const display = computed || cached;
+  const nextPrayer = display?.next ?? null;
+
+  useEffect(() => {
+    if (computed) writeLastNext(computed);
+  }, [computed]);
+
+  const loadPublic = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [prayers, series] = await Promise.all([
+        loadActivePrayerMeta(),
+        db.entities.PrayerSeries.filter({ is_active: true }),
+      ]);
+      const activeSeriesIds = new Set(series.map((s) => s.id));
+      setPublicData({ prayers: prayers.filter((p) => activeSeriesIds.has(p.series_id)), series });
+    } catch (error) {
+      console.warn('Home: kunne ikke hente bønner:', error);
+      setLoadError(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Brukerdata påvirker bare valg av serie og visningsvalg; feil her skal
+  // aldri hindre at neste bønn vises.
+  const loadUser = useCallback(async () => {
+    try {
+      if (!(await db.auth.isAuthenticated())) return;
+      const currentUser = await db.auth.me();
+      if (!currentUser) return;
+      setUser(currentUser);
+      const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
+      const progress = progressList[0];
+      if (!progress) return;
+      setUserProgress(progress);
+      if (typeof progress.show_group_markers === 'boolean') {
+        setShowGroupMarkers(progress.show_group_markers);
+      }
+      if (typeof progress.large_text === 'boolean') {
+        setLargeText(progress.large_text);
+        setLargeTextPref(progress.large_text);
+      }
+    } catch (error) {
+      console.warn('Home: brukerdata utilgjengelig:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPublic();
+    loadUser();
+  }, [loadPublic, loadUser]);
+
+  // Ett nytt forsøk når nettet eller fanen er tilbake — ingen polling.
+  useEffect(() => {
+    if (!loadError) return undefined;
+    const retry = () => {
+      if (document.visibilityState === 'visible') loadPublic();
+    };
+    window.addEventListener('online', retry);
+    document.addEventListener('visibilitychange', retry);
+    return () => {
+      window.removeEventListener('online', retry);
+      document.removeEventListener('visibilitychange', retry);
+    };
+  }, [loadError, loadPublic]);
+
+  const loadContent = useCallback(async (id) => {
+    setContent({ id, data: null, error: null, loading: true });
+    try {
+      const data = await loadPrayerContent(id);
+      setContent({ id, data, error: null, loading: false });
+    } catch (error) {
+      setContent({ id, data: null, error, loading: false });
+    }
+  }, []);
+
+  const openPrayer = () => {
+    if (!nextPrayer) return;
+    setShowPrayerDialog(true);
+    if (content.id !== nextPrayer.id || content.error) loadContent(nextPrayer.id);
+  };
+
+  const saveProgress = async (patch) => {
+    if (!userProgress) return;
+    try {
+      await db.entities.UserProgress.update(userProgress.id, patch);
+      setUserProgress((prev) => ({ ...prev, ...patch }));
+    } catch (error) {
+      console.warn('Home: kunne ikke lagre visningsvalg:', error);
+    }
+  };
 
   // Logg bønne-fullføring (også for uinnloggede — registreres med
   // user_id=null og telles som "Ukjent" i statistikken).
@@ -84,95 +209,6 @@ export default function Home() {
       }
     },
   });
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      // Check if user is logged in
-      const isAuth = await db.auth.isAuthenticated();
-      
-      let loadedProgress = null;
-      
-      if (isAuth) {
-        const currentUser = await db.auth.me();
-        setUser(currentUser);
-        
-        // Load user progress
-        const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
-        if (progressList.length > 0) {
-          loadedProgress = progressList[0];
-          setUserProgress(loadedProgress);
-          if (typeof loadedProgress.show_group_markers === 'boolean') {
-            setShowGroupMarkers(loadedProgress.show_group_markers);
-          }
-          if (typeof loadedProgress.large_text === 'boolean') {
-            setLargeText(loadedProgress.large_text);
-            setLargeTextPref(loadedProgress.large_text);
-          }
-        }
-      }
-
-      // Load prayers and active series (skjuler bønner med
-      // is_active=false fra brukervisning)
-      const [allPrayers, allSeries] = await Promise.all([
-        db.entities.Prayer.filter({ is_active: true }),
-        db.entities.PrayerSeries.filter({ is_active: true })
-      ]);
-
-      // Filter prayers to only include those from active series
-      const activeSeriesIds = allSeries.map(s => s.id);
-      const prayers = allPrayers.filter(p => activeSeriesIds.includes(p.series_id));
-
-      if (prayers.length > 0) {
-        const seriesId = loadedProgress?.current_series_id || allSeries[0]?.id;
-        const seriesData = allSeries.find(s => s.id === seriesId);
-        const seriesPrayers = prayers.filter(p => p.series_id === seriesId);
-
-        let next = null;
-
-        if (loadedProgress && loadedProgress.follow_date === false) {
-          // Brukeren har valgt manuell posisjon — ikke følg kalender.
-          // Bruk current_day + current_prayer_time som «cursor» og finn
-          // den bønnen, eller første som matcher i samme bønnedøgn.
-          const targetDay = loadedProgress.current_day || 1;
-          const targetTime = loadedProgress.current_prayer_time || 'laudes';
-          const tIdx = TIME_ORDER.indexOf(targetTime);
-          const sorted = [...seriesPrayers].sort((a, b) => {
-            if (a.day !== b.day) return a.day - b.day;
-            return TIME_ORDER.indexOf(a.time_of_day) - TIME_ORDER.indexOf(b.time_of_day);
-          });
-          next = sorted.find(p =>
-            p.day > targetDay || (p.day === targetDay && TIME_ORDER.indexOf(p.time_of_day) >= tIdx)
-          ) || sorted[0] || null;
-        } else if (seriesData) {
-          // Standard: regn ut neste bønn fra kalenderdato + klokke.
-          // Bruker bønnedøgn-helperen som håndterer wraparound korrekt
-          // (siste bønn i bø 28 → vesper bø 1, sømløst).
-          next = getNextPrayer(seriesData, seriesPrayers, new Date());
-        }
-
-        setNextPrayer(next);
-
-        if (seriesData) setNextSeriesTitle(seriesData.title);
-
-        if (next && seriesData) {
-          if (seriesData.sort_by === 'weeks') {
-            const week = Math.ceil(next.day / 7);
-            setNextPrayerLabel(`Uke ${week}`);
-          } else {
-            setNextPrayerLabel(`Dag ${next.day}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-full flex flex-col">
@@ -215,12 +251,24 @@ export default function Home() {
               VELKOMMEN TIL TIDEBØNN
             </p>
 
-            {/* Next prayer subtitle */}
-            <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontStyle: 'italic', fontSize: '1.1rem', color: '#B6B9B3', lineHeight: 1.7, textAlign: 'center', marginBottom: '1rem'}}>
-              {nextPrayer && nextSeriesTitle
-                ? `Neste bønn er ${nextPrayer.title} fra ${nextSeriesTitle}.`
-                : 'Neste bønn er [navn på neste bønn] fra [navn på bønneserie].'}
-            </p>
+            {/* Next prayer subtitle: data / laster / feil */}
+            {display ? (
+              <p style={subtitleStyle}>
+                Neste bønn er {display.next.title} fra {display.seriesTitle}.
+              </p>
+            ) : loading ? (
+              <div style={{ width: '100%', marginBottom: '1rem' }} aria-label="Henter neste bønn">
+                <Skeleton className="h-5 w-3/4 mx-auto mb-2" />
+                <Skeleton className="h-5 w-1/2 mx-auto" />
+              </div>
+            ) : (
+              <p style={subtitleStyle}>Kunne ikke hente neste bønn akkurat nå.</p>
+            )}
+            {loadError && !loading && (
+              <button type="button" onClick={loadPublic} style={retryStyle}>
+                {display ? 'Viser sist kjente bønn · Prøv igjen' : 'Prøv igjen'}
+              </button>
+            )}
 
             {/* Liten vertikal strek — visuell forlengelse av korset
                 ovenfor, så det ses at korsets stamme fortsetter ned
@@ -234,8 +282,9 @@ export default function Home() {
             {/* Two vertical stacked buttons */}
             <div style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '260px'}}>
               <button
-                onClick={() => nextPrayer ? setShowPrayerDialog(true) : db.auth.redirectToLogin()}
-                className="dark:!bg-[#BD7B59]"
+                onClick={openPrayer}
+                disabled={!nextPrayer}
+                className="dark:!bg-[#BD7B59] disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}
               >
                 Be neste bønn <ArrowRight className="w-4 h-4" />
@@ -264,23 +313,20 @@ export default function Home() {
           <DialogHeader className={`text-left bg-white dark:bg-[#1A1917] ${landscapePhone ? 'pb-4' : 'sticky top-0 z-10 border-b border-[#E8E0D8] dark:border-gray-800 pb-4'}`}>
             <div>
               <Badge className="mb-2" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', border: 'none', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase'}}>
-                {nextPrayer ? `Uke ${Math.ceil(nextPrayer.day / 7)} · ${WEEKDAY_NAMES[(nextPrayer.day - 1) % 7]} · ${timeLabels[nextPrayer.time_of_day] || nextPrayer.time_of_day}` : ''}
+                {nextPrayer ? badgeLabel(display.series, nextPrayer) : ''}
               </Badge>
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-xl font-semibold text-[#1A1A1A] dark:text-white">
                   {nextPrayer?.title}
                 </DialogTitle>
                 <button
-                  onClick={async () => {
+                  onClick={() => {
                     const newVal = !showGroupMarkers;
                     setShowGroupMarkers(newVal);
                     if (typeof window !== 'undefined') {
                       window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
                     }
-                    if (userProgress) {
-                      await db.entities.UserProgress.update(userProgress.id, { show_group_markers: newVal });
-                      setUserProgress(prev => ({ ...prev, show_group_markers: newVal }));
-                    }
+                    saveProgress({ show_group_markers: newVal });
                   }}
                   className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
                     showGroupMarkers
@@ -294,14 +340,11 @@ export default function Home() {
                 <TextSizeButton
                   isPhone={isPhone}
                   active={largeText}
-                  onToggle={async () => {
+                  onToggle={() => {
                     const newVal = !largeText;
                     setLargeText(newVal);
                     setLargeTextPref(newVal);
-                    if (userProgress) {
-                      await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
-                      setUserProgress(prev => ({ ...prev, large_text: newVal }));
-                    }
+                    saveProgress({ large_text: newVal });
                   }}
                 />
               </div>
@@ -311,8 +354,28 @@ export default function Home() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {nextPrayer && (
-              <PrayerContent prayer={nextPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
+            {content.loading && (
+              <div className="space-y-3" aria-label="Henter bønneteksten">
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            )}
+            {content.error && !content.loading && (
+              <div className="text-center py-6">
+                <p className="text-sm text-[#6A6A6A] dark:text-gray-400 mb-3">Kunne ikke hente bønneteksten.</p>
+                <button type="button" onClick={() => loadContent(nextPrayer.id)} style={retryStyle}>
+                  Prøv igjen
+                </button>
+              </div>
+            )}
+            {content.data && nextPrayer && content.id === nextPrayer.id && (
+              <PrayerContent
+                prayer={{ ...nextPrayer, free_text_content: content.data.free_text_content }}
+                noInternalScroll
+                showGroupMarkers={showGroupMarkers}
+                largeText={!isPhone && largeText}
+              />
             )}
           </div>
           </div>

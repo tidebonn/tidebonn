@@ -2,7 +2,7 @@ import db from '@/api/client';
 
 import React, { useState, useEffect, useRef } from 'react';
 
-import { ChevronLeft, ChevronRight, BookOpen, Calendar, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card } from '@/components/ui/card';
@@ -19,6 +19,8 @@ import TextSizeButton from '@/components/prayer/TextSizeButton';
 import { usePrayerCompleteLogger } from '@/hooks/usePrayerCompleteLogger';
 import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 import { setLargeTextPref } from '@/lib/largeText';
+import { TIME_LABELS, TIME_SHORT } from '@/lib/prayerTimes';
+import { loadActivePrayerMeta, loadPrayerContent } from '@/lib/prayerData';
 import {
   TIME_ORDER,
   START_DAY_MAP,
@@ -31,18 +33,8 @@ import {
   getLastActiveWeekInSeries
 } from '@/components/prayer/PrayerSeriesCycleUtils';
 
-const timeOptions = [
-  { id: 'matutin', name: 'Matutin', short: 'M' },
-  { id: 'laudes', name: 'Laudes', short: 'L' },
-  { id: 'prim', name: 'Prim', short: 'P' },
-  { id: 'ters', name: 'Ters', short: 'T' },
-  { id: 'sekst', name: 'Middagsbønn', short: 'S' },
-  { id: 'non', name: 'Non', short: 'N' },
-  { id: 'vesper', name: 'Vesper', short: 'V' },
-  { id: 'kompletorium', name: 'Kompletorium', short: 'K' },
-];
+const timeOptions = TIME_ORDER.map((id) => ({ id, name: TIME_LABELS[id], short: TIME_SHORT[id] }));
 
-const NORWEGIAN_DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
 const NORWEGIAN_MONTHS = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
 
 function formatNorwegianDate(date) {
@@ -61,6 +53,11 @@ export default function Prayers() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [completedPrayers, setCompletedPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  // Bønneteksten hentes først når en bønn åpnes (listen har bare metadata).
+  const [prayerContent, setPrayerContent] = useState({ id: null, data: null, error: null, loading: false });
+  // URL-params fra første last, så «Prøv igjen» gir samme resultat.
+  const urlParamsRef = useRef({ day: null, time: null });
   // Gruppemarkører-toggle: lagres til UserProgress når innlogget, ellers
   // til localStorage så uinnloggede også kan styre visningen.
   const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
@@ -111,62 +108,95 @@ export default function Prayers() {
     if (dayParam) setSelectedDay(parseInt(dayParam));
     if (timeParam) setSelectedTime(timeParam);
     if (openParam === '1' && timeParam) autoOpenTimeRef.current = timeParam;
-    loadData(dayParam ? parseInt(dayParam) : null, timeParam);
+    urlParamsRef.current = { day: dayParam ? parseInt(dayParam) : null, time: timeParam };
+    loadData(urlParamsRef.current.day, urlParamsRef.current.time);
   }, []);
 
-  const loadData = async (urlDay, urlTime) => {
+  // Brukerdata (serievalg, visningsvalg, fullførte) må aldri hindre at
+  // bønnene vises: feil her gir bare standardserien.
+  const loadUserContext = async () => {
     try {
-      const isAuth = await db.auth.isAuthenticated();
-      const allSeries = await db.entities.PrayerSeries.filter({ is_active: true });
-      setPrayerSeries(allSeries);
-
-      let chosenSeriesId = allSeries[0]?.id;
-
-      if (isAuth) {
-        const currentUser = await db.auth.me();
-        setUser(currentUser);
-        const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
-        if (progressList.length > 0) {
-          let progress = progressList[0];
-          setUserProgress(progress);
-          if (progress.current_series_id) chosenSeriesId = progress.current_series_id;
-          if (typeof progress.show_group_markers === 'boolean') {
-            setShowGroupMarkers(progress.show_group_markers);
-          }
-          if (typeof progress.large_text === 'boolean') {
-            setLargeText(progress.large_text);
-            setLargeTextPref(progress.large_text);
-          }
-        }
-        const logs = await db.entities.PrayerLog.filter({ user_id: currentUser.id, completed: true });
-        setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
+      if (!(await db.auth.isAuthenticated())) return null;
+      const currentUser = await db.auth.me();
+      if (!currentUser) return null;
+      setUser(currentUser);
+      const [progressList, logs] = await Promise.all([
+        db.entities.UserProgress.filter({ user_id: currentUser.id }),
+        db.entities.PrayerLog.filter(
+          { user_id: currentUser.id, completed: true },
+          undefined,
+          undefined,
+          { select: 'series_id,day,time_of_day' },
+        ),
+      ]);
+      setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
+      const progress = progressList[0];
+      if (!progress) return null;
+      setUserProgress(progress);
+      if (typeof progress.show_group_markers === 'boolean') {
+        setShowGroupMarkers(progress.show_group_markers);
       }
+      if (typeof progress.large_text === 'boolean') {
+        setLargeText(progress.large_text);
+        setLargeTextPref(progress.large_text);
+      }
+      return progress;
+    } catch (error) {
+      console.warn('Prayers: brukerdata utilgjengelig:', error);
+      return null;
+    }
+  };
 
-      setSelectedSeries(chosenSeriesId);
+  const loadData = async (urlDay, urlTime) => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [[allSeries, allPrayers], progress] = await Promise.all([
+        Promise.all([
+          db.entities.PrayerSeries.filter({ is_active: true }),
+          loadActivePrayerMeta(),
+        ]),
+        loadUserContext(),
+      ]);
+      setPrayerSeries(allSeries);
 
       // Filter ut bønner som er skjult i admin (is_active=false) eller
       // som tilhører skjult serie. allSeries inneholder bare aktive
       // serier, så en bønn fra en skjult serie får ikke matche.
-      const allPrayers = await db.entities.Prayer.filter({ is_active: true });
       const activeSeriesIds = new Set(allSeries.map(s => s.id));
-      const activePrayers = allPrayers.filter(
-        p => !p.deleted_at && activeSeriesIds.has(p.series_id)
-      );
-      setPrayers(activePrayers);
+      setPrayers(allPrayers.filter(p => !p.deleted_at && activeSeriesIds.has(p.series_id)));
+
+      const chosenSeriesId = progress?.current_series_id || allSeries[0]?.id;
+      setSelectedSeries(chosenSeriesId);
 
       // Auto-navigate to current position in series
       if (!urlDay && !urlTime) {
         const seriesData = allSeries.find(s => s.id === chosenSeriesId);
-        if (seriesData) {
-          applyCurrentPosition(seriesData);
-        }
+        if (seriesData) applyCurrentPosition(seriesData);
       }
     } catch (error) {
-      console.log('Error:', error);
+      console.warn('Prayers: kunne ikke hente bønner:', error);
+      setLoadError(error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Ett nytt forsøk når nettet eller fanen er tilbake — ingen polling.
+  useEffect(() => {
+    if (!loadError) return undefined;
+    const retry = () => {
+      if (document.visibilityState === 'visible') {
+        loadData(urlParamsRef.current.day, urlParamsRef.current.time);
+      }
+    };
+    window.addEventListener('online', retry);
+    document.addEventListener('visibilitychange', retry);
+    return () => {
+      window.removeEventListener('online', retry);
+      document.removeEventListener('visibilitychange', retry);
+    };
+  }, [loadError]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // «Gå til i dag»: sett ukepicker + ukedag til faktisk kalenderposisjon
   // (Lør..Fre i kalender), og sett tiden til nåværende klokkeslett.
@@ -247,7 +277,7 @@ export default function Prayers() {
   // Auto-åpne bønnen når kommer fra push-varsel (?time=X&open=1)
   useEffect(() => {
     if (autoOpenTimeRef.current && currentPrayer && currentPrayer.time_of_day === autoOpenTimeRef.current) {
-      setSelectedPrayer(currentPrayer);
+      openPrayer(currentPrayer);
       autoOpenTimeRef.current = null;
     }
   }, [currentPrayer]);
@@ -325,8 +355,29 @@ export default function Prayers() {
     }
   };
 
+  const loadContent = async (id) => {
+    setPrayerContent({ id, data: null, error: null, loading: true });
+    try {
+      const data = await loadPrayerContent(id);
+      setPrayerContent({ id, data, error: null, loading: false });
+    } catch (error) {
+      setPrayerContent({ id, data: null, error, loading: false });
+    }
+  };
+
   const openPrayer = (prayer) => {
     setSelectedPrayer(prayer);
+    if (prayerContent.id !== prayer.id || prayerContent.error) loadContent(prayer.id);
+  };
+
+  const saveProgress = async (patch) => {
+    if (!userProgress) return;
+    try {
+      await db.entities.UserProgress.update(userProgress.id, patch);
+      setUserProgress(prev => ({ ...prev, ...patch }));
+    } catch (error) {
+      console.warn('Prayers: kunne ikke lagre visningsvalg:', error);
+    }
   };
 
   const closePrayer = () => {
@@ -532,6 +583,22 @@ export default function Prayers() {
             </Card>
           ))}
         </div>
+      ) : loadError ? (
+        <Card className="p-8 text-center border-[#E8E0D8] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
+          <h3 className="text-xl font-semibold text-[#1A1A1A] dark:text-white mb-2">
+            Kunne ikke hente bønnene
+          </h3>
+          <p className="text-[#6A6A6A] dark:text-gray-400 mb-4">
+            Sjekk nettforbindelsen og prøv igjen.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => loadData(urlParamsRef.current.day, urlParamsRef.current.time)}
+            className="border-[#E8E0D8] dark:border-gray-700"
+          >
+            Prøv igjen
+          </Button>
+        </Card>
       ) : currentPrayer ? (
         <AnimatePresence mode="wait">
           <motion.div
@@ -607,10 +674,7 @@ export default function Prayers() {
                   if (typeof window !== 'undefined') {
                     window.localStorage.setItem('tidebonn.showGroupMarkers', String(newVal));
                   }
-                  if (userProgress) {
-                    await db.entities.UserProgress.update(userProgress.id, { show_group_markers: newVal });
-                    setUserProgress(prev => ({ ...prev, show_group_markers: newVal }));
-                  }
+                  saveProgress({ show_group_markers: newVal });
                 }}
                 className={`p-1.5 rounded transition-colors flex-shrink-0 text-xs font-medium ${
                   showGroupMarkers
@@ -628,10 +692,7 @@ export default function Prayers() {
                   const newVal = !largeText;
                   setLargeText(newVal);
                   setLargeTextPref(newVal);
-                  if (userProgress) {
-                    await db.entities.UserProgress.update(userProgress.id, { large_text: newVal });
-                    setUserProgress(prev => ({ ...prev, large_text: newVal }));
-                  }
+                  saveProgress({ large_text: newVal });
                 }}
               />
               </div>
@@ -641,8 +702,28 @@ export default function Prayers() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            {selectedPrayer && (
-              <PrayerContent prayer={selectedPrayer} noInternalScroll showGroupMarkers={showGroupMarkers} largeText={!isPhone && largeText} />
+            {prayerContent.loading && (
+              <div className="space-y-3" aria-label="Henter bønneteksten">
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            )}
+            {prayerContent.error && !prayerContent.loading && selectedPrayer && (
+              <div className="text-center py-6">
+                <p className="text-sm text-[#6A6A6A] dark:text-gray-400 mb-3">Kunne ikke hente bønneteksten.</p>
+                <Button variant="outline" size="sm" onClick={() => loadContent(selectedPrayer.id)} className="border-[#E8E0D8] dark:border-gray-700">
+                  Prøv igjen
+                </Button>
+              </div>
+            )}
+            {selectedPrayer && prayerContent.data && prayerContent.id === selectedPrayer.id && (
+              <PrayerContent
+                prayer={{ ...selectedPrayer, free_text_content: prayerContent.data.free_text_content }}
+                noInternalScroll
+                showGroupMarkers={showGroupMarkers}
+                largeText={!isPhone && largeText}
+              />
             )}
           </div>
           </div>

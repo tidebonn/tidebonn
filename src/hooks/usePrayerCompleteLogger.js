@@ -1,9 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import db from '@/api/client';
+import db, { sb } from '@/api/client';
 
 // Antall ms før en åpen bønn telles som "påbegynt" (completed=false).
 // Filtrerer bort kjappe avbrutte åpninger.
 const START_THRESHOLD_MS = 5000;
+
+// Bruker-id fra sesjonen, ikke bare fra user-propen: hvis profil-oppslaget
+// timet ut er user null selv om sesjonen finnes, og RLS avviser da en
+// anonym rad (user_id null mens auth.uid() er satt).
+async function resolveUserId(user) {
+  if (user?.id) return user.id;
+  try {
+    const { data } = await sb.auth.getSession();
+    return data?.session?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Geo-oppslag én gang per økt og bruker (var to edge-kall per lesning).
+const geoCache = new Map();
+function lookupGeo(userId) {
+  const key = userId ?? 'anon';
+  if (!geoCache.has(key)) geoCache.set(key, db.geo.lookup().catch(() => ({})));
+  return geoCache.get(key);
+}
 
 /**
  * Logger to typer hendelser til prayer_logs:
@@ -53,9 +74,10 @@ export function usePrayerCompleteLogger({
       if (startLoggedRef.current || triggeredRef.current) return;
       startLoggedRef.current = true;
       try {
-        const geoData = await db.geo.lookup().catch(() => ({}));
+        const userId = await resolveUserId(user);
+        const geoData = await lookupGeo(userId);
         await db.entities.PrayerLog.create({
-          user_id: user?.id ?? null,
+          user_id: userId,
           prayer_id: prayerId,
           series_id: prayer.series_id,
           day: prayer.day,
@@ -88,10 +110,11 @@ export function usePrayerCompleteLogger({
       const duration = Math.max(1, Math.round((Date.now() - (startTime ?? Date.now())) / 60000));
 
       try {
-        const geoData = await db.geo.lookup().catch(() => ({}));
+        const userId = await resolveUserId(user);
+        const geoData = await lookupGeo(userId);
 
         const baseRow = {
-          user_id: user?.id ?? null,
+          user_id: userId,
           prayer_id: prayer.id,
           series_id: prayer.series_id,
           day: prayer.day,

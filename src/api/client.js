@@ -80,15 +80,16 @@ function makeEntity(entityName) {
   if (!table) throw new Error(`Ukjent entitet: ${entityName}`);
   const filterSoftDeleted = SOFT_DELETE_TABLES.has(table);
 
-  const baseSelect = () => {
-    let q = sb.from(table).select('*');
+  // select: kommaseparert kolonneliste (PostgREST-syntaks). Standard '*'.
+  const baseSelect = (select = '*') => {
+    let q = sb.from(table).select(select);
     if (filterSoftDeleted) q = q.is('deleted_at', null);
     return q;
   };
 
   return {
-    async list(sort, limit) {
-      let q = baseSelect();
+    async list(sort, limit, { select } = {}) {
+      let q = baseSelect(select);
       q = applySort(q, sort);
       if (limit) q = q.limit(limit);
       const { data, error } = await q;
@@ -96,8 +97,8 @@ function makeEntity(entityName) {
       return data ?? [];
     },
 
-    async filter(where, sort, limit) {
-      let q = baseSelect().match(where ?? {});
+    async filter(where, sort, limit, { select } = {}) {
+      let q = baseSelect(select).match(where ?? {});
       q = applySort(q, sort);
       if (limit) q = q.limit(limit);
       const { data, error } = await q;
@@ -105,10 +106,8 @@ function makeEntity(entityName) {
       return data ?? [];
     },
 
-    async get(id) {
-      let q = sb.from(table).select('*').eq('id', id);
-      if (filterSoftDeleted) q = q.is('deleted_at', null);
-      const { data, error } = await q.maybeSingle();
+    async get(id, { select } = {}) {
+      const { data, error } = await baseSelect(select).eq('id', id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -221,10 +220,9 @@ const auth = {
   },
 
   async isAuthenticated() {
-    const {
-      data: { session },
-    } = await sb.auth.getSession();
-    return !!session;
+    const result = await withTimeout(sb.auth.getSession(), 3000);
+    if (result?.__timeout) return false;
+    return !!result?.data?.session;
   },
 
   // Magic-link via e-post. Brukeren får en lenke i mailen som logger

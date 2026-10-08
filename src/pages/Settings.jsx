@@ -1,4 +1,5 @@
 import db, { sb } from '@/api/client';
+import { PRAYER_META_COLUMNS } from '@/lib/prayerData';
 
 import React, { useState, useEffect } from 'react';
 
@@ -9,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -138,7 +138,12 @@ export default function Settings() {
     setLoadingIncomplete(true);
     try {
       const [allPrayers, logs] = await Promise.all([
-        db.entities.Prayer.filter({ series_id: selectedSeries, is_active: true }),
+        db.entities.Prayer.filter(
+          { series_id: selectedSeries, is_active: true },
+          undefined,
+          undefined,
+          { select: PRAYER_META_COLUMNS },
+        ),
         db.entities.PrayerLog.filter({ user_id: user.id, series_id: selectedSeries, completed: true })
       ]);
       setSeriesPrayers(allPrayers.filter(p => !p.deleted_at));
