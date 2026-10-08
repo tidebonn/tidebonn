@@ -16,7 +16,6 @@ export default function MarkdownPage({ slug, fallbackTitle }) {
         const pages = await db.entities.ContentPage.filter({ slug });
         if (mounted && pages.length > 0) setPage(pages[0]);
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.warn('MarkdownPage load:', e?.message || e);
       } finally {
         if (mounted) setLoading(false);
