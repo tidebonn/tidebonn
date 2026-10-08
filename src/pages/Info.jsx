@@ -16,7 +16,9 @@ export default function Info() {
     let mounted = true;
     (async () => {
       try {
-        const all = await db.entities.ContentPage.list();
+        const all = await db.entities.ContentPage.list(undefined, undefined, {
+          select: 'id,slug,title,subtitle,menu_label,nav_visibility,order_index',
+        });
         if (!mounted) return;
         const sorted = (all || []).slice().sort((a, b) => {
           const ao = a.order_index ?? 999;

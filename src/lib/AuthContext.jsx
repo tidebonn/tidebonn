@@ -1,117 +1,86 @@
 import db, { sb } from '@/api/client';
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
-// Auth-kontekst som speiler Base44-formen (samme felt og metoder),
-// men med Supabase under panseret. Behold-overflaten gjør at alle
-// sider og komponenter fungerer uten endringer.
-
+// Én kilde for innlogget bruker og brukerens progresjon. Sidene leser
+// herfra i stedet for å kalle isAuthenticated()/me()/UserProgress selv.
 const AuthContext = createContext();
+
+// Anvend evt. nyhetsbrev-samtykke valgt i LoginDialog (også etter
+// magic-link-redirect). Kjøres én gang, så fjernes flagget.
+async function applyPendingNewsletter(session) {
+  try {
+    if (
+      typeof window !== 'undefined' &&
+      window.localStorage.getItem('tidebonn.pendingNewsletter') === 'true' &&
+      session.user?.id
+    ) {
+      await sb.from('profiles').update({ wants_newsletter: true }).eq('id', session.user.id);
+      window.localStorage.removeItem('tidebonn.pendingNewsletter');
+    }
+  } catch (e) {
+    console.warn('Nyhetsbrev-flagg feilet:', e);
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Starter på false: appen rendres umiddelbart. user-state
-  // populeres i bakgrunnen av me() / onAuthStateChange. Header
-  // viser "Logg inn" et øyeblikk før det evt. flipper til
-  // "Logg ut" — bedre UX enn 6-sek spinner ved første load.
-  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
-  // Disse to feltene var Base44-spesifikke (app config + auth-feil
-  // fra hosted endpoint). Vi beholder dem som no-op for at App.jsx
-  // og pages skal kunne destrukturere uten å krasje.
-  const [isLoadingPublicSettings] = useState(false);
-  const [authError] = useState(null);
-  const [appPublicSettings] = useState(null);
+  const [userProgress, setUserProgress] = useState(null);
+  // true når første avklaring (sesjon eller ikke) er gjort
+  const [authReady, setAuthReady] = useState(false);
 
-  // Initial sjekk + abonnement på auth-endringer.
-  // Kjører i bakgrunnen — appen er allerede rendret når dette starter.
+  const refreshUser = useCallback(async () => {
+    const me = await db.auth.me();
+    setUser(me);
+    if (!me) {
+      setUserProgress(null);
+      return null;
+    }
+    const list = await db.entities.UserProgress.filter({ user_id: me.id });
+    setUserProgress(list[0] ?? null);
+    return me;
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-
-    (async () => {
+    // INITIAL_SESSION fyrer én gang ved oppstart, så et eget me()-kall i
+    // tillegg er unødvendig. TOKEN_REFRESHED endrer ingen brukerdata.
+    const { data } = sb.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted || event === 'TOKEN_REFRESHED') return;
+      if (!session) {
+        setUser(null);
+        setUserProgress(null);
+        setAuthReady(true);
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') await applyPendingNewsletter(session);
       try {
-        const me = await db.auth.me();
-        if (!mounted) return;
-        setUser(me);
-        setIsAuthenticated(!!me);
+        await refreshUser();
       } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('Auth-init feilet:', e);
+        console.warn('Auth: kunne ikke hente bruker:', e);
+      } finally {
+        if (mounted) setAuthReady(true);
       }
-    })();
-
-    const { data: subscription } = sb.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!mounted) return;
-        if (session) {
-          // Anvend evt. nyhetsbrev-samtykke valgt i LoginDialog (også
-          // etter magic-link-redirect). Kjøres én gang, så fjernes.
-          try {
-            if (
-              typeof window !== 'undefined' &&
-              window.localStorage.getItem('tidebonn.pendingNewsletter') === 'true' &&
-              session.user?.id
-            ) {
-              await sb
-                .from('profiles')
-                .update({ wants_newsletter: true })
-                .eq('id', session.user.id);
-              window.localStorage.removeItem('tidebonn.pendingNewsletter');
-            }
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn('Nyhetsbrev-flagg feilet:', e);
-          }
-
-          try {
-            const me = await db.auth.me();
-            if (!mounted) return;
-            setUser(me);
-            setIsAuthenticated(!!me);
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn('onAuthStateChange me() feilet:', e);
-          }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      }
-    );
+    });
 
     return () => {
       mounted = false;
-      subscription?.subscription?.unsubscribe?.();
+      data?.subscription?.unsubscribe?.();
     };
-  }, []);
-
-  const checkAppState = async () => {
-    setIsLoadingAuth(true);
-    try {
-      const me = await db.auth.me();
-      setUser(me);
-      setIsAuthenticated(!!me);
-    } finally {
-      setIsLoadingAuth(false);
-    }
-  };
+  }, [refreshUser]);
 
   const logout = () => db.auth.logout();
-
-  const navigateToLogin = () => db.auth.redirectToLogin();
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated,
-        isLoadingAuth,
-        isLoadingPublicSettings,
-        authError,
-        appPublicSettings,
+        userProgress,
+        setUserProgress,
+        isAuthenticated: !!user,
+        authReady,
+        refreshUser,
         logout,
-        navigateToLogin,
-        checkAppState,
       }}
     >
       {children}

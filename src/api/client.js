@@ -453,6 +453,46 @@ async function callManageUser(body) {
   }
 }
 
+// Feil der databasen/nettet selv er problemet skal ikke skrives til
+// databasen (det doblet skrivelasten under utfallet 6. okt). De køes
+// lokalt (maks 20) og sendes når databasen svarer igjen.
+const ERROR_QUEUE_KEY = 'tidebonn.errorQueue';
+
+function isTransientError(error) {
+  const msg = String(error?.message || error || '');
+  return (
+    /failed to fetch|networkerror|load failed|timeout|tidsavbrudd/i.test(msg) ||
+    ['PGRST002', '57014', '57P01', '08006', '08001'].includes(error?.code)
+  );
+}
+
+function readErrorQueue() {
+  try {
+    return JSON.parse(window.localStorage.getItem(ERROR_QUEUE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function writeErrorQueue(rows) {
+  try {
+    window.localStorage.setItem(ERROR_QUEUE_KEY, JSON.stringify(rows.slice(-20)));
+  } catch {
+    /* localStorage utilgjengelig */
+  }
+}
+
+async function flushErrorQueue() {
+  const queued = readErrorQueue();
+  if (queued.length === 0) return;
+  const rows = queued.map(({ queued_at, ...row }) => ({
+    ...row,
+    message: `${row.message} (køet ${queued_at})`.slice(0, 1000),
+  }));
+  const { error } = await sb.from('client_errors').insert(rows);
+  if (!error) writeErrorQueue([]);
+}
+
 // Logger en klient-side feil til client_errors-tabellen. Brukes til å
 // fange opp stille feil (RLS-avvisning, nett-timeout, etc) som
 // ellers bare ville endt i console.error. Aldri throw — selv om
@@ -468,14 +508,21 @@ async function logError(context, error, extra = null) {
     } catch {
       /* ignorer */
     }
-    await sb.from('client_errors').insert({
+    const row = {
       user_id,
       context,
       message: String(msg).slice(0, 1000),
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
       url: typeof window !== 'undefined' ? window.location.href.slice(0, 500) : null,
       extra: extra || null,
-    });
+    };
+    const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (offline || isTransientError(error)) {
+      writeErrorQueue([...readErrorQueue(), { ...row, queued_at: new Date().toISOString() }]);
+      return;
+    }
+    await flushErrorQueue().catch(() => {});
+    await sb.from('client_errors').insert(row);
   } catch {
     /* svelg — feil-logger skal aldri krasje appen */
   }
@@ -487,6 +534,7 @@ export const db = {
   geo,
   users,
   logError,
+  flushErrorQueue: () => flushErrorQueue().catch(() => {}),
   // Tomme stubs for kall som ble fjernet i Fase A (PDF).
   // Kaster slik at evt. gjenværende referanser blir synlige i runtime.
   integrations: {

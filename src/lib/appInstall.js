@@ -17,23 +17,16 @@ export function isStandalone() {
   return false;
 }
 
-export async function markInstalledIfNeeded(userId) {
-  if (!userId) return;
+// user er objektet fra db.auth.me(), som allerede inneholder installed_app_at.
+export async function markInstalledIfNeeded(user) {
+  if (!user?.id || user.installed_app_at) return;
   if (!isStandalone()) return;
   try {
-    // Sjekk om allerede satt
-    const { data, error: selErr } = await sb
-      .from('profiles')
-      .select('installed_app_at')
-      .eq('id', userId)
-      .maybeSingle();
-    if (selErr) return;
-    if (data?.installed_app_at) return;
     // Sett tidsstempelet — feiler stille om RLS nekter
     await sb
       .from('profiles')
       .update({ installed_app_at: new Date().toISOString() })
-      .eq('id', userId);
+      .eq('id', user.id);
   } catch {
     // Stilt — dette er observasjonell logging, ikke kritisk for app-flyten
   }

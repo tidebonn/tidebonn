@@ -6,14 +6,27 @@
 // - push-handler for tidebønn-varsler
 // - notification-click åpner /Prayers?time=...&open=1
 
-import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { clientsClaim } from 'workbox-core';
+
+// Ny versjon tas i bruk med én gang. registerType 'autoUpdate' setter
+// ikke dette selv med injectManifest, så uten det måtte en åpen app
+// startes to ganger før ny kode var aktiv.
+self.skipWaiting();
+clientsClaim();
 
 // vite-plugin-pwa injiserer manifest-listen i denne placeholderen
 precacheAndRoute(self.__WB_MANIFEST || []);
+
+// SPA-navigasjon (f.eks. /Prayers fra et push-varsel, eller offline)
+// serveres fra precachet index.html. /overforing er en egen statisk side.
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/overforing/] }),
+);
 
 // Supabase data (bønner, serier, content) — StaleWhileRevalidate
 registerRoute(

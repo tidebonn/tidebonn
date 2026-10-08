@@ -1,4 +1,5 @@
 import db from '@/api/client';
+import { useAuth } from '@/lib/AuthContext';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -71,8 +72,7 @@ function badgeLabel(series, prayer) {
 }
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [userProgress, setUserProgress] = useState(null);
+  const { user, userProgress, setUserProgress } = useAuth();
   const [publicData, setPublicData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -122,34 +122,21 @@ export default function Home() {
     }
   }, []);
 
-  // Brukerdata påvirker bare valg av serie og visningsvalg; feil her skal
-  // aldri hindre at neste bønn vises.
-  const loadUser = useCallback(async () => {
-    try {
-      if (!(await db.auth.isAuthenticated())) return;
-      const currentUser = await db.auth.me();
-      if (!currentUser) return;
-      setUser(currentUser);
-      const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
-      const progress = progressList[0];
-      if (!progress) return;
-      setUserProgress(progress);
-      if (typeof progress.show_group_markers === 'boolean') {
-        setShowGroupMarkers(progress.show_group_markers);
-      }
-      if (typeof progress.large_text === 'boolean') {
-        setLargeText(progress.large_text);
-        setLargeTextPref(progress.large_text);
-      }
-    } catch (error) {
-      console.warn('Home: brukerdata utilgjengelig:', error);
+  // Visningsvalg fra brukerens progresjon (kommer fra AuthContext når den er klar).
+  useEffect(() => {
+    if (!userProgress) return;
+    if (typeof userProgress.show_group_markers === 'boolean') {
+      setShowGroupMarkers(userProgress.show_group_markers);
     }
-  }, []);
+    if (typeof userProgress.large_text === 'boolean') {
+      setLargeText(userProgress.large_text);
+      setLargeTextPref(userProgress.large_text);
+    }
+  }, [userProgress?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadPublic();
-    loadUser();
-  }, [loadPublic, loadUser]);
+  }, [loadPublic]);
 
   // Ett nytt forsøk når nettet eller fanen er tilbake — ingen polling.
   useEffect(() => {

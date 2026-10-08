@@ -1,4 +1,5 @@
 import db from '@/api/client';
+import { useAuth } from '@/lib/AuthContext';
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -46,8 +47,7 @@ function formatNorwegianDate(date) {
 }
 
 export default function Prayers() {
-  const [user, setUser] = useState(null);
-  const [userProgress, setUserProgress] = useState(null);
+  const { user, userProgress, setUserProgress, authReady } = useAuth();
   const [prayers, setPrayers] = useState([]);
   const [prayerSeries, setPrayerSeries] = useState([]);
   const [selectedSeries, setSelectedSeries] = useState(null);
@@ -56,8 +56,6 @@ export default function Prayers() {
   const [loadError, setLoadError] = useState(null);
   // Bønneteksten hentes først når en bønn åpnes (listen har bare metadata).
   const [prayerContent, setPrayerContent] = useState({ id: null, data: null, error: null, loading: false });
-  // URL-params fra første last, så «Prøv igjen» gir samme resultat.
-  const urlParamsRef = useRef({ day: null, time: null });
   // Gruppemarkører-toggle: lagres til UserProgress når innlogget, ellers
   // til localStorage så uinnloggede også kan styre visningen.
   const [showGroupMarkers, setShowGroupMarkers] = useState(() => {
@@ -108,55 +106,56 @@ export default function Prayers() {
     if (dayParam) setSelectedDay(parseInt(dayParam));
     if (timeParam) setSelectedTime(timeParam);
     if (openParam === '1' && timeParam) autoOpenTimeRef.current = timeParam;
-    urlParamsRef.current = { day: dayParam ? parseInt(dayParam) : null, time: timeParam };
-    loadData(urlParamsRef.current.day, urlParamsRef.current.time);
+    loadData();
   }, []);
 
-  // Brukerdata (serievalg, visningsvalg, fullførte) må aldri hindre at
-  // bønnene vises: feil her gir bare standardserien.
-  const loadUserContext = async () => {
-    try {
-      if (!(await db.auth.isAuthenticated())) return null;
-      const currentUser = await db.auth.me();
-      if (!currentUser) return null;
-      setUser(currentUser);
-      const [progressList, logs] = await Promise.all([
-        db.entities.UserProgress.filter({ user_id: currentUser.id }),
-        db.entities.PrayerLog.filter(
-          { user_id: currentUser.id, completed: true },
-          undefined,
-          undefined,
-          { select: 'series_id,day,time_of_day' },
-        ),
-      ]);
-      setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
-      const progress = progressList[0];
-      if (!progress) return null;
-      setUserProgress(progress);
-      if (typeof progress.show_group_markers === 'boolean') {
-        setShowGroupMarkers(progress.show_group_markers);
-      }
-      if (typeof progress.large_text === 'boolean') {
-        setLargeText(progress.large_text);
-        setLargeTextPref(progress.large_text);
-      }
-      return progress;
-    } catch (error) {
-      console.warn('Prayers: brukerdata utilgjengelig:', error);
-      return null;
+  // Fullførte bønner for innlogget bruker (bare nøklene som trengs).
+  useEffect(() => {
+    if (!user?.id) {
+      setCompletedPrayers([]);
+      return undefined;
     }
-  };
+    let cancelled = false;
+    db.entities.PrayerLog.filter(
+      { user_id: user.id, completed: true },
+      undefined,
+      undefined,
+      { select: 'series_id,day,time_of_day' },
+    )
+      .then((logs) => {
+        if (!cancelled) setCompletedPrayers(logs.map(l => `${l.series_id}-${l.day}-${l.time_of_day}`));
+      })
+      .catch((error) => console.warn('Prayers: fullførte utilgjengelig:', error));
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
-  const loadData = async (urlDay, urlTime) => {
+  // Visningsvalg fra brukerens progresjon.
+  useEffect(() => {
+    if (!userProgress) return;
+    if (typeof userProgress.show_group_markers === 'boolean') {
+      setShowGroupMarkers(userProgress.show_group_markers);
+    }
+    if (typeof userProgress.large_text === 'boolean') {
+      setLargeText(userProgress.large_text);
+      setLargeTextPref(userProgress.large_text);
+    }
+  }, [userProgress?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Velg serie først når både seriene og auth-avklaringen er på plass,
+  // så brukerens egen serie ikke overstyres av standardserien.
+  useEffect(() => {
+    if (selectedSeries || !authReady || prayerSeries.length === 0) return;
+    const preferred = prayerSeries.find(s => s.id === userProgress?.current_series_id)?.id;
+    setSelectedSeries(preferred || prayerSeries[0].id);
+  }, [authReady, prayerSeries, userProgress?.current_series_id, selectedSeries]);
+
+  const loadData = async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const [[allSeries, allPrayers], progress] = await Promise.all([
-        Promise.all([
-          db.entities.PrayerSeries.filter({ is_active: true }),
-          loadActivePrayerMeta(),
-        ]),
-        loadUserContext(),
+      const [allSeries, allPrayers] = await Promise.all([
+        db.entities.PrayerSeries.filter({ is_active: true }),
+        loadActivePrayerMeta(),
       ]);
       setPrayerSeries(allSeries);
 
@@ -165,15 +164,6 @@ export default function Prayers() {
       // serier, så en bønn fra en skjult serie får ikke matche.
       const activeSeriesIds = new Set(allSeries.map(s => s.id));
       setPrayers(allPrayers.filter(p => !p.deleted_at && activeSeriesIds.has(p.series_id)));
-
-      const chosenSeriesId = progress?.current_series_id || allSeries[0]?.id;
-      setSelectedSeries(chosenSeriesId);
-
-      // Auto-navigate to current position in series
-      if (!urlDay && !urlTime) {
-        const seriesData = allSeries.find(s => s.id === chosenSeriesId);
-        if (seriesData) applyCurrentPosition(seriesData);
-      }
     } catch (error) {
       console.warn('Prayers: kunne ikke hente bønner:', error);
       setLoadError(error);
@@ -186,9 +176,7 @@ export default function Prayers() {
   useEffect(() => {
     if (!loadError) return undefined;
     const retry = () => {
-      if (document.visibilityState === 'visible') {
-        loadData(urlParamsRef.current.day, urlParamsRef.current.time);
-      }
+      if (document.visibilityState === 'visible') loadData();
     };
     window.addEventListener('online', retry);
     document.addEventListener('visibilitychange', retry);
@@ -574,7 +562,7 @@ export default function Prayers() {
       </div>
 
       {/* Prayer Display */}
-      {loading ? (
+      {loading || (!loadError && prayerSeries.length > 0 && !selectedSeries) ? (
         <div className="space-y-4">
           {[1, 2].map(i => (
             <Card key={i} className="p-4 border-[#E8E0D8] dark:border-gray-800">
@@ -593,7 +581,7 @@ export default function Prayers() {
           </p>
           <Button
             variant="outline"
-            onClick={() => loadData(urlParamsRef.current.day, urlParamsRef.current.time)}
+            onClick={loadData}
             className="border-[#E8E0D8] dark:border-gray-700"
           >
             Prøv igjen

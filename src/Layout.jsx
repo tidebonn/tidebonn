@@ -1,19 +1,19 @@
-import db, { sb } from '@/api/client';
+import db from '@/api/client';
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 
-import { Menu, X, Home, BookOpen, Info, Settings, Heart, Users, LogOut, User } from 'lucide-react';
+import { Menu, BookOpen, Info, Settings, Users, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Toaster } from '@/components/ui/sonner';
 import LoginDialog from '@/components/LoginDialog';
 import { markInstalledIfNeeded } from '@/lib/appInstall';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Layout({ children }) {
-  const [user, setUser] = useState(null);
-  const [userProgress, setUserProgress] = useState(null);
+  const { user, userProgress, logout } = useAuth();
   const [contentPages, setContentPages] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -25,8 +25,12 @@ export default function Layout({ children }) {
     let mounted = true;
     (async () => {
       try {
-        const pages = await db.entities.ContentPage.list();
+        const pages = await db.entities.ContentPage.list(undefined, undefined, {
+          select: 'id,slug,title,menu_label,nav_visibility,order_index',
+        });
         if (mounted) setContentPages(pages || []);
+        // Databasen svarer — send evt. feil som ble køet lokalt under et utfall.
+        db.flushErrorQueue();
       } catch (e) {
         // Tom liste er trygt — menyen bruker fallback-labels.
       }
@@ -34,22 +38,11 @@ export default function Layout({ children }) {
     return () => { mounted = false; };
   }, []);
 
+  // Hvis appen kjøres i standalone-modus (PWA-installert), logges det
+  // på profilen én gang så admin-statistikken vet om det.
   useEffect(() => {
-    loadUser();
-
-    // Lytt på auth-endringer så header (Logg inn/Logg ut + meny)
-    // oppdateres umiddelbart etter passord-/magic-link-innlogging,
-    // uten at brukeren må refreshe.
-    const { data } = sb.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        loadUser();
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setUserProgress(null);
-      }
-    });
-    return () => data?.subscription?.unsubscribe?.();
-  }, []);
+    if (user) markInstalledIfNeeded(user);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Standardvisning: light. Dark krever eksplisitt valg via
@@ -62,32 +55,7 @@ export default function Layout({ children }) {
     }
   }, [userProgress?.theme]);
 
-  const loadUser = async () => {
-    try {
-      const isAuth = await db.auth.isAuthenticated();
-      if (isAuth) {
-        const currentUser = await db.auth.me();
-        setUser(currentUser);
-
-        // Hvis appen kjøres i standalone-modus (PWA-installert),
-        // logger vi det på profilen så admin-statistikken vet om
-        // det. No-op om allerede satt eller om vi ikke er i PWA.
-        markInstalledIfNeeded(currentUser.id);
-
-        // Load user progress
-        const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
-        if (progressList.length > 0) {
-          setUserProgress(progressList[0]);
-        }
-      }
-    } catch (e) {
-      console.log('Not logged in');
-    }
-  };
-
-  const handleLogout = () => {
-    db.auth.logout();
-  };
+  const handleLogout = () => logout();
 
   // Info-undermeny bygges dynamisk fra content_pages: tar med kun
   // sider med nav_visibility = 'menu', sorterer på order_index,
@@ -144,7 +112,6 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F0E9] dark:bg-[#2C2C2A] transition-colors duration-300">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap');
         body {
           font-family: 'Spectral', Georgia, serif;
           background-color: #F4F0E9;

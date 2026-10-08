@@ -1,4 +1,5 @@
-import db, { sb } from '@/api/client';
+import db from '@/api/client';
+import { useAuth } from '@/lib/AuthContext';
 import { PRAYER_META_COLUMNS } from '@/lib/prayerData';
 
 import React, { useState, useEffect } from 'react';
@@ -22,10 +23,10 @@ import { usePhoneViewport } from '@/hooks/usePhoneViewport';
 import { setLargeTextPref } from '@/lib/largeText';
 
 export default function Settings() {
-  const [user, setUser] = useState(null);
-  const [userProgress, setUserProgress] = useState(null);
+  const { user, userProgress, setUserProgress, authReady, refreshUser } = useAuth();
   const [prayerSeries, setPrayerSeries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingSeries, setLoadingSeries] = useState(true);
+  const loading = !authReady || loadingSeries;
 
   const [displayName, setDisplayName] = useState('');
   const [gender, setGender] = useState('');
@@ -84,54 +85,33 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    loadData();
-    // Reagér også på fersk innlogging fra LoginDialog-en på siden
-    // (eller andre faner). Uten dette ville Settings vise
-    // 'Logg inn'-skjermen til siden manuelt refreshes.
-    const { data: sub } = sb.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        loadData();
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setUserProgress(null);
-      }
-    });
-    return () => sub?.subscription?.unsubscribe?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let mounted = true;
+    db.entities.PrayerSeries.filter({ is_active: true })
+      .then((series) => { if (mounted) setPrayerSeries(series); })
+      .catch((error) => console.warn('Settings: serier utilgjengelig:', error))
+      .finally(() => { if (mounted) setLoadingSeries(false); });
+    return () => { mounted = false; };
   }, []);
 
-  const loadData = async () => {
-    try {
-      const isAuth = await db.auth.isAuthenticated();
-      if (!isAuth) { db.auth.redirectToLogin(); return; }
+  // Skjemafelt speiler bruker og progresjon fra AuthContext (også etter
+  // innlogging via LoginDialog på siden).
+  useEffect(() => {
+    if (!user) return;
+    setDisplayName(user.display_name || user.full_name || '');
+    setWantsNewsletter(!!user.wants_newsletter);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-      const currentUser = await db.auth.me();
-      setUser(currentUser);
-      setDisplayName(currentUser.display_name || currentUser.full_name || '');
-      setWantsNewsletter(!!currentUser.wants_newsletter);
-
-      const progressList = await db.entities.UserProgress.filter({ user_id: currentUser.id });
-      if (progressList.length > 0) {
-        const progress = progressList[0];
-        setUserProgress(progress);
-        setTheme(progress.theme || 'system');
-        setSelectedSeries(progress.current_series_id || '');
-        setGender(progress.gender || '');
-        setBirthDate(progress.birth_date || '');
-        if (typeof progress.large_text === 'boolean') {
-          setLargeText(progress.large_text);
-          setLargeTextPref(progress.large_text);
-        }
-      }
-
-      const series = await db.entities.PrayerSeries.filter({ is_active: true });
-      setPrayerSeries(series);
-    } catch (error) {
-      console.log('Error:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!userProgress) return;
+    setTheme(userProgress.theme || 'system');
+    setSelectedSeries(userProgress.current_series_id || '');
+    setGender(userProgress.gender || '');
+    setBirthDate(userProgress.birth_date || '');
+    if (typeof userProgress.large_text === 'boolean') {
+      setLargeText(userProgress.large_text);
+      setLargeTextPref(userProgress.large_text);
     }
-  };
+  }, [userProgress?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadIncompleteData = async () => {
     if (!user || !selectedSeries || loadingIncomplete) return;
@@ -162,15 +142,13 @@ export default function Settings() {
   };
 
   const saveSettings = async (updates = {}) => {
-    console.log('[Settings] saveSettings start, updates=', updates);
     try {
       // Bare kall updateMe når det faktisk er user-felter å oppdatere
       // (display_name etc.). Ellers risikerer vi en hengende auth-call
       // med tom metadata.
       if (updates.user && Object.keys(updates.user).length > 0) {
-        console.log('[Settings] kaller db.auth.updateMe', updates.user);
         await db.auth.updateMe(updates.user);
-        console.log('[Settings] updateMe OK');
+        await refreshUser();
       }
 
       const progressData = {
@@ -183,18 +161,14 @@ export default function Settings() {
       };
 
       if (userProgress) {
-        console.log('[Settings] UserProgress.update', userProgress.id, progressData);
         await db.entities.UserProgress.update(userProgress.id, progressData);
-        console.log('[Settings] UserProgress.update OK');
+        setUserProgress((prev) => ({ ...prev, ...progressData }));
       } else {
-        console.log('[Settings] UserProgress.create (ingen eksisterende rad)', progressData);
         const created = await db.entities.UserProgress.create(progressData);
         setUserProgress(created);
-        console.log('[Settings] UserProgress.create OK', created);
       }
 
       toast.success('Innstillinger lagret');
-      if (updates.progress?.theme) setTimeout(() => window.location.reload(), 500);
     } catch (error) {
       console.error('Settings.saveSettings feilet:', error);
       toast.error('Kunne ikke lagre');
