@@ -65,7 +65,6 @@ export default function Admin() {
   const [contentPages, setContentPages] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [allUserProgress, setAllUserProgress] = useState([]);
-  const [selectedSeriesFilter, setSelectedSeriesFilter] = useState('all');
 
   const setters = {
     prayers: setPrayers,
@@ -110,12 +109,11 @@ export default function Admin() {
       }
 
       // Load all data (bønnelogg hentes lazy når statistikk-fanen åpnes)
-      const [prayerData, series, pages, users, userProgress, allProgress] = await Promise.all([
+      const [prayerData, series, pages, users, allProgress] = await Promise.all([
         fetchers.prayers(),
         fetchers.series(),
         fetchers.pages(),
         fetchers.users(),
-        db.entities.UserProgress.filter({ user_id: currentUser.id }),
         fetchers.progress(),
       ]);
 
@@ -124,11 +122,6 @@ export default function Admin() {
       setContentPages(pages);
       setAllUsers(users);
       setAllUserProgress(allProgress);
-
-      // Set series filter to user's selected series if available
-      if (userProgress.length > 0 && userProgress[0].current_series_id) {
-        setSelectedSeriesFilter(userProgress[0].current_series_id);
-      }
     } catch (error) {
       console.error('Admin loadData feilet:', error);
     } finally {

@@ -12,85 +12,49 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { toast as sonnerToast } from 'sonner';
 import SeriesStartDatePicker from './SeriesStartDatePicker';
+import { run } from './adminActions';
 
 // Bønneserier-fanen: liste, redigeringsdialog og slettede serier.
 export default function SeriesTab({ user, prayerSeries, reload }) {
   const [editingSeries, setEditingSeries] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  // Felles mønster: mutasjon → suksess-toast → reload('series'); feil → feil-toast
+  const mutate = (ok, fail, fn) => run({ ok, fail, after: () => reload('series') }, fn);
+
   // Toggle series active status
-  const handleToggleSeriesActive = async (series) => {
-    try {
-      await db.entities.PrayerSeries.update(series.id, {
-        is_active: !series.is_active
-      });
-      sonnerToast.success(series.is_active ? 'Serie skjult' : 'Serie aktivert');
-      reload('series');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke oppdatere serie');
-    }
-  };
+  const handleToggleSeriesActive = (series) => mutate(
+    series.is_active ? 'Serie skjult' : 'Serie aktivert', 'Kunne ikke oppdatere serie',
+    () => db.entities.PrayerSeries.update(series.id, { is_active: !series.is_active }),
+  );
 
   // Soft delete series (superadmin only)
-  const handleSoftDeleteSeries = async (series) => {
+  const handleSoftDeleteSeries = (series) => {
     if (!confirm(`Er du sikker på at du vil slette serien "${series.title}"? Den kan gjenopprettes innen 10 dager.`)) return;
-    try {
-      await db.entities.PrayerSeries.update(series.id, {
-        deleted_at: new Date().toISOString()
-      });
-      sonnerToast.success('Serie slettet (kan gjenopprettes i 10 dager)');
-      reload('series');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette serie');
-    }
+    return mutate('Serie slettet (kan gjenopprettes i 10 dager)', 'Kunne ikke slette serie',
+      () => db.entities.PrayerSeries.update(series.id, { deleted_at: new Date().toISOString() }));
   };
 
   // Restore series (superadmin only)
-  const handleRestoreSeries = async (seriesId) => {
-    try {
-      await db.entities.PrayerSeries.update(seriesId, {
-        deleted_at: null
-      });
-      sonnerToast.success('Serie gjenopprettet');
-      reload('series');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke gjenopprette serie');
-    }
-  };
+  const handleRestoreSeries = (seriesId) => mutate('Serie gjenopprettet', 'Kunne ikke gjenopprette serie',
+    () => db.entities.PrayerSeries.update(seriesId, { deleted_at: null }));
 
   // Permanent delete series (superadmin only)
-  const handlePermanentDeleteSeries = async (series) => {
+  const handlePermanentDeleteSeries = (series) => {
     if (!confirm(`Er du helt sikker på at du vil slette "${series.title}" permanent? Dette kan IKKE angres!`)) return;
-    try {
-      await db.entities.PrayerSeries.delete(series.id);
-      sonnerToast.success('Serie permanent slettet');
-      reload('series');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette serie');
-    }
+    return mutate('Serie permanent slettet', 'Kunne ikke slette serie', () => db.entities.PrayerSeries.delete(series.id));
   };
 
   // Save prayer series
   const handleSaveSeries = async () => {
     setSaving(true);
-    try {
-      if (editingSeries.id) {
-        await db.entities.PrayerSeries.update(editingSeries.id, editingSeries);
-      } else {
-        await db.entities.PrayerSeries.create(editingSeries);
-      }
-      sonnerToast.success('Serie lagret');
-      setEditingSeries(null);
-      reload('series');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke lagre serie');
-    } finally {
-      setSaving(false);
-    }
+    const ok = await mutate('Serie lagret', 'Kunne ikke lagre serie', () => (editingSeries.id
+      ? db.entities.PrayerSeries.update(editingSeries.id, editingSeries)
+      : db.entities.PrayerSeries.create(editingSeries)));
+    setSaving(false);
+    if (ok) setEditingSeries(null);
   };
-
   return (
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">

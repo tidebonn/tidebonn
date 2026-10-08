@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast as sonnerToast } from 'sonner';
 import NewsletterCsvDialog from './NewsletterCsvDialog';
+import { run, unwrap } from './adminActions';
 
 // Brukere-fanen (kun eier): roller, sletting og nyhetsbrev-eksport.
 export default function UsersTab({ user, allUsers, reload }) {
@@ -127,28 +128,19 @@ export default function UsersTab({ user, allUsers, reload }) {
 
   // Eier-eksklusivt: oppdaterer rolle via Edge Function manage-user
   // som validerer caller-rolle og bruker service_role server-side.
-  const handleUpdateUserRole = async (userId, newRole) => {
-    const { error } = await db.users.setRole(userId, newRole);
-    if (error) {
-      sonnerToast.error(error.message || 'Kunne ikke oppdatere bruker');
-      return;
-    }
-    sonnerToast.success('Brukerrolle oppdatert');
-    reload('users');
-  };
+  const handleUpdateUserRole = (userId, newRole) => run(
+    { ok: 'Brukerrolle oppdatert', fail: (e) => e?.message || 'Kunne ikke oppdatere bruker', after: () => reload('users') },
+    async () => unwrap(await db.users.setRole(userId, newRole)),
+  );
 
-  const handleDeleteUser = async (userId, email) => {
+  const handleDeleteUser = (userId, email) => {
     if (!confirm(`Slette brukeren ${email ?? userId}? Alle bønne-logger og oppsett blir borte. Kan ikke angres.`)) return;
-    const { error } = await db.users.deleteUser(userId);
-    if (error) {
-      sonnerToast.error(error.message || 'Kunne ikke slette bruker');
-      return;
-    }
-    sonnerToast.success('Bruker slettet');
-    // Sletting kaskaderer til user_progress og prayer_logs (auth.users-FK)
-    reload('users', 'progress', 'logs');
+    return run(
+      // Sletting kaskaderer til user_progress og prayer_logs (auth.users-FK)
+      { ok: 'Bruker slettet', fail: (e) => e?.message || 'Kunne ikke slette bruker', after: () => reload('users', 'progress', 'logs') },
+      async () => unwrap(await db.users.deleteUser(userId)),
+    );
   };
-
   return (
     <>
       <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">

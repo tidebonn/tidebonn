@@ -12,64 +12,46 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast as sonnerToast } from 'sonner';
 import ContentPageEditor from './ContentPageEditor';
 import SortablePageRow from './SortablePageRow';
+import { run } from './adminActions';
 
 // Innhold-fanen: innholdssider med DnD-sortering og redigeringsdialog.
 export default function ContentTab({ user, contentPages, setContentPages, reload }) {
   const [editingPage, setEditingPage] = useState(null);
   const [saving, setSaving] = useState(false);
 
+  // Vis faktisk feilmelding fra Supabase så vi kan se hva som er galt
+  // (f.eks. manglende kolonne etter pending migration).
+  const withMessage = (prefix) => (error) =>
+    `${prefix}: ${error?.message || error?.error_description || String(error)}`;
+
   // Save content page
   const handleSavePage = async () => {
     setSaving(true);
-    try {
-      if (editingPage.id) {
-        await db.entities.ContentPage.update(editingPage.id, {
-          ...editingPage,
-          last_edited_by: user.id
-        });
-      } else {
-        await db.entities.ContentPage.create({
-          ...editingPage,
-          last_edited_by: user.id
-        });
-      }
-      sonnerToast.success('Side lagret');
-      setEditingPage(null);
-      reload('pages');
-    } catch (error) {
-      // Vis faktisk feilmelding fra Supabase så vi kan se hva som
-      // er galt (f.eks. manglende kolonne etter pending migration).
-      const msg = error?.message || error?.error_description || String(error);
-      // eslint-disable-next-line no-console
-      console.error('handleSavePage error:', error);
-      sonnerToast.error(`Kunne ikke lagre side: ${msg}`);
-    } finally {
-      setSaving(false);
-    }
+    const row = { ...editingPage, last_edited_by: user.id };
+    const ok = await run(
+      { ok: 'Side lagret', fail: withMessage('Kunne ikke lagre side'), after: () => reload('pages') },
+      () => (editingPage.id
+        ? db.entities.ContentPage.update(editingPage.id, row)
+        : db.entities.ContentPage.create(row)),
+    );
+    setSaving(false);
+    if (ok) setEditingPage(null);
   };
 
   // Slett en innholdsside med bekreftelse. Fjerner først raden
   // optimistisk fra lokal state så UI'et oppdateres umiddelbart;
-  // synker deretter med DB via reload. Hvis sletting feiler
-  // rulles UI tilbake av reload (henter ferskt fra DB).
+  // synker deretter med DB via reload — også ved feil, så UI'et
+  // rulles tilbake (henter ferskt fra DB).
   const handleDeletePage = async (page) => {
     const label = page.title || page.slug || 'denne siden';
     if (!confirm(`Er du sikker på at du vil slette «${label}»? Dette kan IKKE angres.`)) return;
-    try {
+    await run({ ok: 'Side slettet', fail: withMessage('Kunne ikke slette side') }, async () => {
       await db.entities.ContentPage.delete(page.id);
       setContentPages(prev => prev.filter(p => p.id !== page.id));
-      sonnerToast.success('Side slettet');
-      await reload('pages');
-    } catch (error) {
-      const msg = error?.message || String(error);
-      // eslint-disable-next-line no-console
-      console.error('handleDeletePage error:', error);
-      sonnerToast.error(`Kunne ikke slette side: ${msg}`);
-      await reload('pages'); // gjenopprett original state
-    }
+    });
+    await reload('pages');
   };
 
   // DnD-sortering: når en rad slippes, renummerer alle rader fra 1
@@ -83,24 +65,15 @@ export default function ContentTab({ user, contentPages, setContentPages, reload
     if (oldIndex < 0 || newIndex < 0) return;
     const reordered = arrayMove(contentPages, oldIndex, newIndex);
     setContentPages(reordered);
-    try {
-      await Promise.all(reordered.map((p, i) => {
+    const ok = await run({ fail: withMessage('Kunne ikke lagre rekkefølge') }, () => Promise.all(
+      reordered.map((p, i) => {
         const newOrder = i + 1;
         if (p.order_index === newOrder) return null;
-        return db.entities.ContentPage.update(p.id, {
-          order_index: newOrder,
-          last_edited_by: user.id,
-        });
-      }).filter(Boolean));
-    } catch (error) {
-      const msg = error?.message || String(error);
-      // eslint-disable-next-line no-console
-      console.error('handleReorderPages error:', error);
-      sonnerToast.error(`Kunne ikke lagre rekkefølge: ${msg}`);
-      reload('pages'); // re-hent original rekkefølge fra DB
-    }
+        return db.entities.ContentPage.update(p.id, { order_index: newOrder, last_edited_by: user.id });
+      }).filter(Boolean),
+    ));
+    if (!ok) reload('pages'); // re-hent original rekkefølge fra DB
   };
-
   // DnD-sensorer — pointer for mus/touch, keyboard for tilgjengelighet
   const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

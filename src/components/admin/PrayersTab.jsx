@@ -12,6 +12,7 @@ import { toast as sonnerToast } from 'sonner';
 import PrayerEditor from './PrayerEditor';
 import { injectTitleH1 } from './prayerBlockUtils';
 import { loadPrayerContent } from '@/lib/prayerData';
+import { run } from './adminActions';
 import PrayerContent from '../prayer/PrayerContent';
 import SeriesPrayerGroup from './SeriesPrayerGroup';
 
@@ -48,181 +49,106 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
   // Eksisterende bønn der teksten ennå ikke er hentet — da må vi ikke lagre.
   const contentPending = !!editingPrayer?.id && editingPrayer.free_text_content === undefined;
 
+  // Felles mønster: mutasjon → suksess-toast → (nullstill utvalg) → reload('prayers')
+  const mutate = (ok, fail, fn, clearSelection) => run(
+    { ok, fail, after: () => { clearSelection?.([]); reload('prayers'); } }, fn,
+  );
+
   // Toggle prayer active status
-  const handleTogglePrayerActive = async (prayer) => {
-    try {
-      await db.entities.Prayer.update(prayer.id, {
-        is_active: !prayer.is_active
-      });
-      sonnerToast.success(prayer.is_active ? 'Bønn skjult' : 'Bønn aktivert');
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke oppdatere bønn');
-    }
-  };
+  const handleTogglePrayerActive = (prayer) => mutate(
+    prayer.is_active ? 'Bønn skjult' : 'Bønn aktivert', 'Kunne ikke oppdatere bønn',
+    () => db.entities.Prayer.update(prayer.id, { is_active: !prayer.is_active }),
+  );
 
   // Soft delete prayer
-  const handleSoftDeletePrayer = async (prayer) => {
+  const handleSoftDeletePrayer = (prayer) => {
     if (!confirm(`Er du sikker på at du vil slette bønnen "${prayer.title}"? Den kan gjenopprettes innen 10 dager.`)) return;
-    try {
-      await db.entities.Prayer.update(prayer.id, {
-        deleted_at: new Date().toISOString()
-      });
-      sonnerToast.success('Bønn slettet (kan gjenopprettes i 10 dager)');
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette bønn');
-    }
+    return mutate('Bønn slettet (kan gjenopprettes i 10 dager)', 'Kunne ikke slette bønn',
+      () => db.entities.Prayer.update(prayer.id, { deleted_at: new Date().toISOString() }));
   };
 
   // Restore prayer
-  const handleRestorePrayer = async (prayerId) => {
-    try {
-      await db.entities.Prayer.update(prayerId, {
-        deleted_at: null
-      });
-      sonnerToast.success('Bønn gjenopprettet');
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke gjenopprette bønn');
-    }
-  };
+  const handleRestorePrayer = (prayerId) => mutate('Bønn gjenopprettet', 'Kunne ikke gjenopprette bønn',
+    () => db.entities.Prayer.update(prayerId, { deleted_at: null }));
 
   // Permanent delete prayer
-  const handlePermanentDeletePrayer = async (prayer) => {
+  const handlePermanentDeletePrayer = (prayer) => {
     if (!confirm(`Er du helt sikker på at du vil slette "${prayer.title}" permanent? Dette kan IKKE angres!`)) return;
-    try {
-      await db.entities.Prayer.delete(prayer.id);
-      sonnerToast.success('Bønn permanent slettet');
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette bønn');
-    }
+    return mutate('Bønn permanent slettet', 'Kunne ikke slette bønn', () => db.entities.Prayer.delete(prayer.id));
   };
 
   // Bulk delete selected prayers
-  const handleBulkDeletePrayers = async () => {
-    if (selectedDeletedPrayers.length === 0) return;
-    if (!confirm(`Er du helt sikker på at du vil slette ${selectedDeletedPrayers.length} bønner permanent? Dette kan IKKE angres!`)) return;
-
-    try {
-      await Promise.all(
-        selectedDeletedPrayers.map(id => db.entities.Prayer.delete(id))
-      );
-      sonnerToast.success(`${selectedDeletedPrayers.length} bønner permanent slettet`);
-      setSelectedDeletedPrayers([]);
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette bønner');
-    }
+  const handleBulkDeletePrayers = () => {
+    const ids = selectedDeletedPrayers;
+    if (ids.length === 0) return;
+    if (!confirm(`Er du helt sikker på at du vil slette ${ids.length} bønner permanent? Dette kan IKKE angres!`)) return;
+    return mutate(`${ids.length} bønner permanent slettet`, 'Kunne ikke slette bønner',
+      () => Promise.all(ids.map(id => db.entities.Prayer.delete(id))), setSelectedDeletedPrayers);
   };
 
   // Bulk restore selected prayers
-  const handleBulkRestorePrayers = async () => {
-    if (selectedDeletedPrayers.length === 0) return;
-    try {
-      await Promise.all(
-        selectedDeletedPrayers.map(id => db.entities.Prayer.update(id, { deleted_at: null }))
-      );
-      sonnerToast.success(`${selectedDeletedPrayers.length} bønner gjenopprettet`);
-      setSelectedDeletedPrayers([]);
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke gjenopprette bønner');
-    }
+  const handleBulkRestorePrayers = () => {
+    const ids = selectedDeletedPrayers;
+    if (ids.length === 0) return;
+    return mutate(`${ids.length} bønner gjenopprettet`, 'Kunne ikke gjenopprette bønner',
+      () => Promise.all(ids.map(id => db.entities.Prayer.update(id, { deleted_at: null }))), setSelectedDeletedPrayers);
   };
 
   // Bulk hide selected active prayers
-  const handleBulkHidePrayers = async () => {
-    if (selectedActivePrayers.length === 0) return;
-    try {
-      await Promise.all(
-        selectedActivePrayers.map(id => db.entities.Prayer.update(id, { is_active: false }))
-      );
-      sonnerToast.success(`${selectedActivePrayers.length} bønner skjult`);
-      setSelectedActivePrayers([]);
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke skjule bønner');
-    }
+  const handleBulkHidePrayers = () => {
+    const ids = selectedActivePrayers;
+    if (ids.length === 0) return;
+    return mutate(`${ids.length} bønner skjult`, 'Kunne ikke skjule bønner',
+      () => Promise.all(ids.map(id => db.entities.Prayer.update(id, { is_active: false }))), setSelectedActivePrayers);
   };
 
   // Bulk soft delete selected active prayers
-  const handleBulkSoftDeletePrayers = async () => {
-    if (selectedActivePrayers.length === 0) return;
-    if (!confirm(`Er du sikker på at du vil slette ${selectedActivePrayers.length} bønner? De kan gjenopprettes innen 10 dager.`)) return;
-    try {
-      await Promise.all(
-        selectedActivePrayers.map(id => db.entities.Prayer.update(id, { deleted_at: new Date().toISOString() }))
-      );
-      sonnerToast.success(`${selectedActivePrayers.length} bønner slettet`);
-      setSelectedActivePrayers([]);
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke slette bønner');
-    }
+  const handleBulkSoftDeletePrayers = () => {
+    const ids = selectedActivePrayers;
+    if (ids.length === 0) return;
+    if (!confirm(`Er du sikker på at du vil slette ${ids.length} bønner? De kan gjenopprettes innen 10 dager.`)) return;
+    return mutate(`${ids.length} bønner slettet`, 'Kunne ikke slette bønner',
+      () => Promise.all(ids.map(id => db.entities.Prayer.update(id, { deleted_at: new Date().toISOString() }))), setSelectedActivePrayers);
   };
 
   // Save prayer without closing the editor
-  const handleSavePrayerSilent = async (prayerData) => {
+  const handleSavePrayerSilent = (prayerData) => {
     const target = prayerData || editingPrayer;
     if (!target?.id) return; // Only silent-save existing prayers
     if (target.free_text_content === undefined) return; // teksten er ikke hentet ennå
-    try {
-      const composed = {
-        ...target,
-        free_text_content: injectTitleH1(target.free_text_content, target.title),
-      };
-      await db.entities.Prayer.update(target.id, composed);
-      sonnerToast.success('Bønn lagret');
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke lagre bønn');
-    }
+    return mutate('Bønn lagret', 'Kunne ikke lagre bønn', () => db.entities.Prayer.update(target.id, {
+      ...target,
+      free_text_content: injectTitleH1(target.free_text_content, target.title),
+    }));
   };
 
   // Save prayer and close the editor
   const handleSavePrayer = async () => {
     if (contentPending) return;
+    // Check for duplicate — only warn when creating a new prayer (no id yet)
+    const isDuplicate = !editingPrayer.id && prayers.some(p =>
+      p.series_id === editingPrayer.series_id &&
+      p.day === editingPrayer.day &&
+      p.time_of_day === editingPrayer.time_of_day &&
+      !p.deleted_at
+    );
+    if (isDuplicate && !confirm(
+      `Det finnes allerede en bønn for dag ${editingPrayer.day} ${editingPrayer.time_of_day} i denne serien.\n\nVil du fortsette og opprette en duplikat?`
+    )) return;
+
     setSaving(true);
-    try {
-      // Check for duplicate — only warn when creating a new prayer (no id yet)
-      const existingPrayers = editingPrayer.id ? [] : prayers.filter(p =>
-        p.series_id === editingPrayer.series_id &&
-        p.day === editingPrayer.day &&
-        p.time_of_day === editingPrayer.time_of_day &&
-        !p.deleted_at
-      );
-
-      if (existingPrayers.length > 0) {
-        const proceed = confirm(
-          `Det finnes allerede en bønn for dag ${editingPrayer.day} ${editingPrayer.time_of_day} i denne serien.\n\nVil du fortsette og opprette en duplikat?`
-        );
-        if (!proceed) {
-          setSaving(false);
-          return;
-        }
-      }
-
+    const ok = await mutate('Bønn lagret', 'Kunne ikke lagre bønn', () => {
       const composed = {
         ...editingPrayer,
         free_text_content: injectTitleH1(editingPrayer.free_text_content, editingPrayer.title),
       };
-      if (editingPrayer.id) {
-        await db.entities.Prayer.update(editingPrayer.id, composed);
-      } else {
-        await db.entities.Prayer.create(composed);
-      }
-      sonnerToast.success('Bønn lagret');
-      setEditingPrayer(null);
-      reload('prayers');
-    } catch (error) {
-      sonnerToast.error('Kunne ikke lagre bønn');
-    } finally {
-      setSaving(false);
-    }
+      return editingPrayer.id
+        ? db.entities.Prayer.update(editingPrayer.id, composed)
+        : db.entities.Prayer.create(composed);
+    });
+    setSaving(false);
+    if (ok) setEditingPrayer(null);
   };
-
   // Felles props for serie-kortene (aktive og skjulte serier)
   const groupProps = {
     prayers, user, collapsedSeries, setCollapsedSeries,

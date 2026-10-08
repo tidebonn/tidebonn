@@ -33,7 +33,6 @@ export default function ClientErrorsCard() {
       .order('created_at', { ascending: false })
       .limit(200);
     if (error) {
-      // eslint-disable-next-line no-console
       console.error('Last client_errors feilet:', error);
     }
     setRows(data || []);
