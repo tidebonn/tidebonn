@@ -42,7 +42,6 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
   const [blocks, setBlocks] = useState([]);
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
-  const [focusedBlockIndex, setFocusedBlockIndex] = useState(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [previewHtml, setPreviewHtml] = useState('');
