@@ -8,7 +8,7 @@
 
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
@@ -28,13 +28,16 @@ registerRoute(
   new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/overforing/] }),
 );
 
-// Supabase data (bønner, serier, content) — StaleWhileRevalidate
+// Supabase data (bønner, serier, content) — NetworkFirst: ferskt svar når
+// nettet svarer innen 4 s (ellers viste admin-endringer seg først ved
+// neste sidelast), cache når databasen er treg eller nede.
 registerRoute(
   ({ url }) =>
     url.origin.includes('supabase.co') &&
     /\/rest\/v1\/(prayers|prayer_series|content_pages)/.test(url.pathname),
-  new StaleWhileRevalidate({
+  new NetworkFirst({
     cacheName: 'tidebonn-data',
+    networkTimeoutSeconds: 4,
     plugins: [
       new ExpirationPlugin({ maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }),
       new CacheableResponsePlugin({ statuses: [0, 200] }),
