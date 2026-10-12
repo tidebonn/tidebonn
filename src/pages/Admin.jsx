@@ -22,6 +22,8 @@ import UsersTab from '../components/admin/UsersTab';
 const PRAYER_LOG_COLUMNS =
   'id,user_id,prayer_id,series_id,day,time_of_day,duration_minutes,completed,used_group_markers,location_country,location_city,created_at';
 
+const ADMIN_TABS = ['statistics', 'series', 'prayers', 'content', 'users'];
+
 // Sorter etter order_index så DnD-rekkefølgen alltid stemmer
 const sortPages = (pages) =>
   (pages || []).slice().sort((a, b) => (a.order_index ?? 999) - (b.order_index ?? 999));
@@ -42,7 +44,17 @@ const fetchers = {
 export default function Admin() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('statistics');
+  // Aktiv fane ligger i URL-en (?tab=…) så den overlever refresh.
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    return ADMIN_TABS.includes(tab) ? tab : 'statistics';
+  });
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState(window.history.state, '', url);
+  };
   // Dark-mode for inline-styled aksent (tab-underline). Holdes synket
   // med .dark-klassen på <html>.
   const [isDark, setIsDark] = useState(() =>
@@ -189,7 +201,7 @@ export default function Admin() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={changeTab}>
           <TabsList className="mb-8 bg-transparent p-0 h-auto" style={{borderBottom: '1px solid #DECCB4'}}>
             <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <BarChart3 className="w-4 h-4 sm:mr-2" />
