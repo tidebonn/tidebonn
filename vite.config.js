@@ -1,10 +1,24 @@
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Kort commit-hash for bygget (Vercel, GitHub Actions eller lokal git).
+// Legges ved klientfeil så vi ser om en feil kommer fra gammel kode.
+function buildId() {
+  const fromEnv = process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA;
+  if (fromEnv) return fromEnv.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    return 'dev';
+  }
+}
+process.env.VITE_BUILD_ID = buildId();
 
 // https://vite.dev/config/
 export default defineConfig({

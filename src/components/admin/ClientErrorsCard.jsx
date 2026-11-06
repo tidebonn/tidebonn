@@ -1,3 +1,4 @@
+import { BUILD_ID } from '@/api/client';
 import React, { useEffect, useState } from 'react';
 import { sb } from '@/api/client';
 import { AlertTriangle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function ClientErrorsCard() {
     setLoading(true);
     const { data, error } = await sb
       .from('client_errors')
-      .select('id, user_id, context, message, user_agent, url, created_at')
+      .select('id, user_id, context, message, user_agent, url, created_at, extra')
       .order('created_at', { ascending: false })
       .limit(200);
     if (error) {
@@ -70,6 +71,7 @@ export default function ClientErrorsCard() {
           <AlertTriangle className="w-4 h-4 text-[#BD7B59]" />
           Klientfeil
           <span className="text-xs font-normal text-[#9A9A9A]">({rows.length})</span>
+          <span className="font-normal text-[10px] text-[#9A9A9A]" title="Versjonen du kjører nå">build {BUILD_ID}</span>
         </CardTitle>
         <div className="flex gap-1">
           {rows.length > 0 && (
@@ -145,6 +147,11 @@ export default function ClientErrorsCard() {
                       <div className="text-[#4A4A4A] dark:text-gray-300 font-mono break-words">
                         {r.message}
                       </div>
+                      {r.extra?.build && (
+                        <div className={`text-[10px] ${r.extra.build === BUILD_ID ? 'text-[#9A9A9A]' : 'text-[#BD7B59]'}`} title="App-versjonen feilen kom fra">
+                          build {r.extra.build}{r.extra.build !== BUILD_ID ? ' (eldre enn din)' : ''}
+                        </div>
+                      )}
                       {r.url && (
                         <div className="text-[#9A9A9A] text-[10px] truncate" title={r.url}>
                           {r.url}

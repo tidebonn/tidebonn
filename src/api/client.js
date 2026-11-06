@@ -457,6 +457,7 @@ async function callManageUser(body) {
 // databasen (det doblet skrivelasten under utfallet 6. okt). De køes
 // lokalt (maks 20) og sendes når databasen svarer igjen.
 const ERROR_QUEUE_KEY = 'tidebonn.errorQueue';
+export const BUILD_ID = import.meta.env.VITE_BUILD_ID || 'dev';
 
 function isTransientError(error) {
   const msg = String(error?.message || error || '');
@@ -514,7 +515,7 @@ async function logError(context, error, extra = null) {
       message: String(msg).slice(0, 1000),
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
       url: typeof window !== 'undefined' ? window.location.href.slice(0, 500) : null,
-      extra: extra || null,
+      extra: { ...(extra || {}), build: BUILD_ID },
     };
     const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
     if (offline || isTransientError(error)) {
