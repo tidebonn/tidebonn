@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import db from '@/api/client';
 import { Plus, Trash2, Save, Loader2, EyeOff, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,10 +44,27 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
       setter(prev => (prev?.id === prayer.id ? null : prev));
     }
   };
-  const openPrayerEditor = (prayer) => withContent(prayer, setEditingPrayer);
+  const openPrayerEditor = (prayer) => {
+    setEditorDirty(false);
+    loadedLengthRef.current = 0;
+    return withContent(prayer, setEditingPrayer);
+  };
   const openPreview = (prayer) => withContent(prayer, setPreviewingPrayer);
   // Eksisterende bønn der teksten ennå ikke er hentet — da må vi ikke lagre.
   const contentPending = !!editingPrayer?.id && editingPrayer.free_text_content === undefined;
+
+  // Vern mot tap av struktur (jf. 10. nov): husk lengden på teksten slik den
+  // ble hentet, og nekt lagring som krymper den kraftig. Stille lagring
+  // skjer bare når noe faktisk er endret i editoren.
+  const [editorDirty, setEditorDirty] = useState(false);
+  const loadedLengthRef = useRef(0);
+  useEffect(() => {
+    if (editingPrayer?.id && editingPrayer.free_text_content !== undefined && !editorDirty) {
+      loadedLengthRef.current = editingPrayer.free_text_content.length;
+    }
+  }, [editingPrayer?.id, editingPrayer?.free_text_content, editorDirty]);
+  const looksCollapsed = (html) =>
+    loadedLengthRef.current > 500 && (html?.length || 0) < loadedLengthRef.current * 0.6;
 
   // Felles mønster: mutasjon → suksess-toast → (nullstill utvalg) → reload('prayers')
   const mutate = (ok, fail, fn, clearSelection) => run(
@@ -116,9 +133,15 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
     const target = prayerData || editingPrayer;
     if (!target?.id) return; // Only silent-save existing prayers
     if (target.free_text_content === undefined) return; // teksten er ikke hentet ennå
+    if (!editorDirty) return; // ingenting endret — ikke skriv om urørt innhold
+    const content = injectTitleH1(target.free_text_content, target.title);
+    if (looksCollapsed(content)) {
+      sonnerToast.error('Lagret ikke automatisk: teksten har mistet struktur. Lukk uten å lagre.');
+      return;
+    }
     return mutate('Bønn lagret', 'Kunne ikke lagre bønn', () => db.entities.Prayer.update(target.id, {
       ...target,
-      free_text_content: injectTitleH1(target.free_text_content, target.title),
+      free_text_content: content,
     }));
   };
 
@@ -136,11 +159,17 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
       `Det finnes allerede en bønn for dag ${editingPrayer.day} ${editingPrayer.time_of_day} i denne serien.\n\nVil du fortsette og opprette en duplikat?`
     )) return;
 
+    const content = injectTitleH1(editingPrayer.free_text_content, editingPrayer.title);
+    if (looksCollapsed(content) && !confirm(
+      `Teksten er blitt mye kortere enn da den ble åpnet (${content.length} mot ${loadedLengthRef.current} tegn).\n\n`
+      + 'Det skjer når editoren ikke klarer å tolke strukturen, og lagring vil ødelegge bønnen.\n\nVil du lagre likevel?'
+    )) return;
+
     setSaving(true);
     const ok = await mutate('Bønn lagret', 'Kunne ikke lagre bønn', () => {
       const composed = {
         ...editingPrayer,
-        free_text_content: injectTitleH1(editingPrayer.free_text_content, editingPrayer.title),
+        free_text_content: content,
       };
       return editingPrayer.id
         ? db.entities.Prayer.update(editingPrayer.id, composed)
@@ -282,7 +311,10 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                   ) : (
                   <PrayerEditor
                     value={editingPrayer.free_text_content || ''}
-                    onChange={(content) => setEditingPrayer({...editingPrayer, free_text_content: content})}
+                    onChange={(content) => {
+                      setEditorDirty(true);
+                      setEditingPrayer({...editingPrayer, free_text_content: content});
+                    }}
                     onFullscreenChange={setEditorFullscreen}
                     onSave={handleSavePrayer}
                     onSaveQuiet={handleSavePrayerSilent}

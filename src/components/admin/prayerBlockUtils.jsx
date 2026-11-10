@@ -23,7 +23,7 @@ export function htmlToBlocks(html) {
   const article = root.querySelector(':scope > article');
   const iterRoot = article || root;
 
-  iterRoot.childNodes.forEach((node) => {
+  const walk = (node) => {
     if (node.nodeType === Node.TEXT_NODE) {
       const text = node.textContent.trim();
       if (text) {
@@ -34,6 +34,17 @@ export function htmlToBlocks(html) {
 
     const el = node;
     const tag = el.tagName?.toLowerCase();
+
+    // Omslag rundt blokkene (nestet <article> fra en tidligere feil-lagring,
+    // <section>, <div> uten kjent klasse): gå inn i barna. Uten dette ble
+    // hele bønnen én tekstblokk og mistet all struktur ved lagring (10. nov).
+    const isKnownBlock = tag === 'div'
+      && (el.classList.contains('linje') || el.classList.contains('header-henvisning'));
+    if (!isKnownBlock && ['article', 'section', 'div', 'main', 'body'].includes(tag)
+        && el.querySelector('.linje, .header-henvisning, h1, h2, h3, h4')) {
+      el.childNodes.forEach(walk);
+      return;
+    }
 
     // <header class="header-henvisning"> — canonical heading format
     if (tag === 'header') {
@@ -125,7 +136,8 @@ export function htmlToBlocks(html) {
     if (innerHtml) {
       blocks.push({ id: nextId(), type: 'line', marker: '', text: innerHtml, reference: '' });
     }
-  });
+  };
+  iterRoot.childNodes.forEach(walk);
 
   return blocks;
 }
@@ -185,10 +197,17 @@ export function injectTitleH1(html, title) {
   if (!html || !html.trim()) {
     return `<article class="bønn">\n${headerHtml}\n</article>`;
   }
-  if (html.includes('<article class="bønn">')) {
-    return html.replace(/<article class="bønn">\n?/, `<article class="bønn">\n${headerHtml}\n`);
-  }
-  return `<article class="bønn">\n${headerHtml}\n${html}\n</article>`;
+  // Fjern eksisterende tittel-header(e) så det aldri blir to <h1>.
+  const body = html.replace(
+    /<header class="header-henvisning">\s*<h1>[\s\S]*?<\/h1>\s*(?:<h3 class="henvisning">[\s\S]*?<\/h3>)?\s*<\/header>\s*/g,
+    '',
+  );
+  // <article class="bønn" …> med eller uten attributter (seed-filene har data-*).
+  // Før matchet bare varianten uten attributter, og alt ble pakket inn i en
+  // ny artikkel med ny tittel — nestet artikkel som editoren ikke forstod.
+  const open = body.match(/<article\s+class="bønn"[^>]*>\n?/);
+  if (open) return body.replace(open[0], `${open[0].trimEnd()}\n${headerHtml}\n`);
+  return `<article class="bønn">\n${headerHtml}\n${body}\n</article>`;
 }
 
 /**
