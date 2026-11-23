@@ -91,7 +91,7 @@ export default function Layout({ children }) {
       <Link
         to={target}
         onClick={() => mobile && setIsOpen(false)}
-        className={isActive ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.5)] dark:text-[rgba(244,240,233,0.55)]'}
+        className={isActive ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[#585B55] dark:text-[rgba(244,240,233,0.55)]'}
         style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 500,
@@ -161,7 +161,7 @@ export default function Layout({ children }) {
               <Link
                 key={item.page}
                 to={createPageUrl(item.page)}
-                className={location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]'}
+                className={location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[#585B55] dark:text-[rgba(244,240,233,0.55)]'}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 500,
@@ -186,7 +186,7 @@ export default function Layout({ children }) {
               <Link
                 key={item.page}
                 to={createPageUrl(item.page)}
-                className={`hidden md:flex ${location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]'}`}
+                className={`hidden md:flex ${location.pathname === createPageUrl(item.page) ? 'text-[#2C2C2A] dark:text-[#F4F0E9]' : 'text-[#585B55] dark:text-[rgba(244,240,233,0.55)]'}`}
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 500,
@@ -202,11 +202,11 @@ export default function Layout({ children }) {
               </Link>
             )}
             {user ? (
-              <button onClick={handleLogout} className="hidden md:flex items-center text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.5)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
+              <button onClick={handleLogout} className="hidden md:flex items-center text-[#585B55] dark:text-[rgba(244,240,233,0.7)]" style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem'}} title="Logg ut">
                 <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
             ) : (
-              <button onClick={() => setLoginOpen(true)} className="hidden md:flex text-[rgba(44,44,42,0.45)] dark:text-[rgba(244,240,233,0.55)]" style={{background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
+              <button onClick={() => setLoginOpen(true)} className="hidden md:flex text-[#585B55] dark:text-[rgba(244,240,233,0.55)]" style={{background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
                 Logg inn
               </button>
             )}
@@ -250,7 +250,7 @@ export default function Layout({ children }) {
                     <div className="h-px mb-4 bg-[#DECCB4] dark:bg-[rgba(244,240,233,0.2)]" />
                     {user ?
                       <div>
-                        <p className="text-[#6A6A6A] dark:text-[rgba(244,240,233,0.4)]" style={{padding: '0 1rem 0.5rem', fontSize: '0.7rem', fontFamily: "'Montserrat', sans-serif"}}>{user.display_name || user.full_name || user.email}</p>
+                        <p className="text-[#6A6A6A] dark:text-[rgba(244,240,233,0.7)]" style={{padding: '0 1rem 0.5rem', fontSize: '0.7rem', fontFamily: "'Montserrat', sans-serif"}}>{user.display_name || user.full_name || user.email}</p>
                         <button onClick={handleLogout} className="text-[#4A4A4A] dark:text-[rgba(244,240,233,0.55)]" style={{width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
                           <LogOut className="w-4 h-4" /> Logg ut
                         </button>
@@ -281,11 +281,11 @@ export default function Layout({ children }) {
           modus via @media i index.css. */}
       <footer className="app-footer sticky bottom-0 z-40 bg-[#F4F0E9] dark:bg-[#2C2C2A] py-6" style={{borderTop: '0.5px solid #DECCB4'}}>
         <div className="max-w-4xl mx-auto px-4" style={{textAlign: 'center'}}>
-          <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B6B9B3'}}>
+          <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.55rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tb-muted)'}}>
             Tidebønn &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp;{' '}
-            <a href="https://areopagos.no" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#8a8d87] dark:hover:text-[#d8d4cc] transition-colors">Areopagos</a>
+            <a href="https://areopagos.no" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#2C2C2A] dark:hover:text-[#d8d4cc] transition-colors">Areopagos</a>
             {' / '}
-            <a href="https://løys.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#8a8d87] dark:hover:text-[#d8d4cc] transition-colors">Løys</a>
+            <a href="https://løys.com" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-[#2C2C2A] dark:hover:text-[#d8d4cc] transition-colors">Løys</a>
           </p>
         </div>
       </footer>

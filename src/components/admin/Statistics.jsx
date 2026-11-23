@@ -81,7 +81,7 @@ function StatCard({ icon: Icon, label, value, sub, color = '#4A6B65' }) {
           <div>
             <p className="text-xs text-[#6A6A6A] dark:text-gray-400 uppercase tracking-wide mb-1">{label}</p>
             <p className="text-3xl font-bold" style={{ color }}>{value}</p>
-            {sub && <p className="text-xs text-[#6A6A6A] dark:text-gray-500 mt-1">{sub}</p>}
+            {sub && <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">{sub}</p>}
           </div>
           <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
             <Icon className="w-5 h-5" style={{ color }} />
@@ -328,7 +328,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             onClick={() => setPeriod(opt.id)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               period === opt.id
-                ? 'bg-[#4A6B65] dark:bg-[#BD7B59] text-[#F4F0E9]'
+                ? 'bg-[#4A6B65] dark:bg-[#8C563A] text-[#F4F0E9]'
                 : 'bg-[#E8E3DC] dark:bg-[#2A2A2A] text-[#4A4A4A] dark:text-gray-300 hover:bg-[#DDD8D0]'
             }`}
           >
@@ -354,22 +354,22 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#4A6B65]" />
+            <Activity className="w-4 h-4 text-[#4A6B65] dark:text-[#8DBBB5]" />
             Aktive brukere
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active24h}</p>
+              <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.active24h}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 24 timer</p>
             </div>
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active7d}</p>
+              <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.active7d}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 7 dager</p>
             </div>
             <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-              <p className="text-2xl font-bold text-[#4A6B65]">{stats.active30d}</p>
+              <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.active30d}</p>
               <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Siste 30 dager</p>
             </div>
           </div>
@@ -445,10 +445,10 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
       <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#BD7B59]" />
+            <Users className="w-4 h-4 text-[color:var(--tb-accent)]" />
             Grupper
           </CardTitle>
-          <p className="text-xs text-[#6A6A6A] dark:text-gray-500 mt-1">
+          <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">
             Lesninger av samme bønn som starter innen {GROUP_GAP_MS / 60000} minutter etter hverandre regnes som én gruppe.
             Anonyme lesere kan ikke skilles fra hverandre, så tallene er et anslag.
           </p>
@@ -460,19 +460,19 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             <div className="space-y-5">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.groups.length}</p>
+                  <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.groups.length}</p>
                   <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Grupper</p>
                 </div>
                 <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.largestGroup}</p>
+                  <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.largestGroup}</p>
                   <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Største gruppe</p>
                 </div>
                 <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.avgGroupSize.toFixed(1)}</p>
+                  <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.avgGroupSize.toFixed(1)}</p>
                   <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Snittstørrelse</p>
                 </div>
                 <div className="text-center p-3 bg-[#F5F0EB] dark:bg-[#1A1917] rounded-lg">
-                  <p className="text-2xl font-bold text-[#4A6B65]">{stats.groupShare !== null ? `${Math.round(stats.groupShare * 100)}%` : '–'}</p>
+                  <p className="text-2xl font-bold text-[#4A6B65] dark:text-[#8DBBB5]">{stats.groupShare !== null ? `${Math.round(stats.groupShare * 100)}%` : '–'}</p>
                   <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mt-1">Av lesningene i gruppe</p>
                 </div>
               </div>
@@ -526,7 +526,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
         <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
           <CardHeader>
             <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#4A6B65]" />
+              <Users className="w-4 h-4 text-[#4A6B65] dark:text-[#8DBBB5]" />
               Kjønnsfordeling
             </CardTitle>
           </CardHeader>
@@ -581,7 +581,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
               <CardHeader>
                 <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#4A6B65]" />
+                  <MapPin className="w-4 h-4 text-[#4A6B65] dark:text-[#8DBBB5]" />
                   Fordelt på land
                 </CardTitle>
               </CardHeader>
@@ -608,7 +608,7 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
             <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
               <CardHeader>
                 <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] text-sm flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#BD7B59]" />
+                  <MapPin className="w-4 h-4 text-[color:var(--tb-accent)]" />
                   Topp byer
                 </CardTitle>
               </CardHeader>
@@ -641,9 +641,9 @@ export default function Statistics({ prayerLogs, prayerSeries, userProgressList 
           </CardHeader>
           <CardContent>
             <p className="text-sm text-[#4A4A4A] dark:text-gray-300">
-              <strong className="text-[#4A6B65]">{stats.topPrayer.series}</strong>
+              <strong className="text-[#4A6B65] dark:text-[#8DBBB5]">{stats.topPrayer.series}</strong>
               {' '}— dag {stats.topPrayer.day}, {stats.topPrayer.time}
-              {' '}<span className="text-[#6A6A6A]">({stats.topPrayer.count} bønner)</span>
+              {' '}<span className="text-[#6A6A6A] dark:text-gray-400">({stats.topPrayer.count} bønner)</span>
             </p>
           </CardContent>
         </Card>

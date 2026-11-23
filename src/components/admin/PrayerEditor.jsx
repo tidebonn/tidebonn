@@ -302,7 +302,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
         {!showPreview && (
           <div ref={editorRef} className="w-full overflow-y-auto p-3 space-y-2">
             {blocks.length === 0 && (
-              <div className="text-center py-12 text-[#9A9A9A] text-sm">
+              <div className="text-center py-12 text-[color:var(--tb-muted)] text-sm">
                 Ingen innhold ennå. Klikk «+ Overskrift» eller «+ Linje» for å starte.
               </div>
             )}
@@ -320,7 +320,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDrop={() => handleDrop(index)}
                   onDragEnd={handleDragEnd}
-                  className={`transition-all ${isDragOver ? 'border-t-2 border-[#6B9EA0]' : ''} ${dragIndex === index ? 'opacity-40' : ''}`}
+                  className={`transition-all ${isDragOver ? 'border-t-2 border-[#4A6B65]' : ''} ${dragIndex === index ? 'opacity-40' : ''}`}
                 >
                   {block.type === 'heading' ? (
                     <PrayerHeadingBlock
@@ -354,7 +354,7 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
             onScroll={handlePreviewScroll}
             className="w-full overflow-y-auto p-4 bg-[#F5F0EB] dark:bg-[#1A1917]"
           >
-            <p className="text-xs text-[#9A9A9A] mb-3 font-medium uppercase tracking-wider">Forhåndsvisning</p>
+            <p className="text-xs text-[color:var(--tb-muted)] mb-3 font-medium uppercase tracking-wider">Forhåndsvisning</p>
             <PrayerContent
               prayer={{ ...(prayer || {}), free_text_content: previewHtml, content_type: 'freetext' }}
               readingMode="alone"
@@ -370,20 +370,20 @@ export default function PrayerEditor({ value, onChange, onFullscreenChange, onSa
       <div className="flex gap-2 p-2 bg-[#F5F0EB] dark:bg-[#161513] border-t border-[#E8E0D8] dark:border-gray-800">
         {fullscreen ? (
           <div className="ml-auto flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-7 gap-1 text-xs text-[#C8602A] border-[#E8E0D8]">
+            <Button type="button" variant="outline" size="sm" onClick={onCancel} className="h-7 gap-1 text-xs text-[#A04820] dark:text-[#E58A57] border-[#E8E0D8]">
               Avbryt
             </Button>
-            <Button type="button" size="sm" onClick={onSave} className="h-7 gap-1 text-xs bg-[#6B9EA0] hover:bg-[#4D8082] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-white border-0">
+            <Button type="button" size="sm" onClick={onSave} className="h-7 gap-1 text-xs bg-[#4A6B65] hover:bg-[#3A5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-white border-0">
               Lagre og avslutt
             </Button>
           </div>
         ) : (
           <>
-            <Button type="button" variant="ghost" size="sm" onClick={addLineBlock} className="h-7 gap-1 text-xs text-[#6A6A6A]">
+            <Button type="button" variant="ghost" size="sm" onClick={addLineBlock} className="h-7 gap-1 text-xs text-[#6A6A6A] dark:text-gray-400">
               <Plus className="w-3 h-3" />
               Legg til linje
             </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={addHeadingBlock} className="h-7 gap-1 text-xs text-[#6A6A6A]">
+            <Button type="button" variant="ghost" size="sm" onClick={addHeadingBlock} className="h-7 gap-1 text-xs text-[#6A6A6A] dark:text-gray-400">
               <Plus className="w-3 h-3" />
               Legg til overskrift
             </Button>

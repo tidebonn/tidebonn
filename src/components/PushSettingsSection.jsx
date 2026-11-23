@@ -194,7 +194,7 @@ export default function PushSettingsSection({ user, series }) {
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]">
-          <Bell className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+          <Bell className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
           Pushvarsler
         </CardTitle>
         <CardDescription>
@@ -206,7 +206,7 @@ export default function PushSettingsSection({ user, series }) {
           <Button
             onClick={subscribe}
             disabled={subscribing}
-            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
           >
             <Bell className="w-4 h-4 mr-2" />
             {subscribing ? 'Aktiverer…' : 'Aktiver varsler på denne enheten'}
@@ -230,7 +230,7 @@ export default function PushSettingsSection({ user, series }) {
             </div>
 
             {loading ? (
-              <p className="text-sm text-[#9A9A9A]">Laster…</p>
+              <p className="text-sm text-[color:var(--tb-muted)]">Laster…</p>
             ) : (
               <div className="space-y-2">
                 {availableTimes.map((t) => {
@@ -267,7 +267,7 @@ export default function PushSettingsSection({ user, series }) {
                     </div>
                   );
                 })}
-                <p className="text-xs text-[#9A9A9A] pt-1">
+                <p className="text-xs text-[color:var(--tb-muted)] pt-1">
                   Varsler sendes hvert 10. minutt — tidspunkt rundes til nærmeste 10 minutter.
                 </p>
               </div>

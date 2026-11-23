@@ -68,7 +68,7 @@ export default function InstallAppSection() {
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]">
-          <Smartphone className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+          <Smartphone className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
           Installer app
         </CardTitle>
         <CardDescription>
@@ -81,7 +81,7 @@ export default function InstallAppSection() {
         {deferredPrompt && (
           <Button
             onClick={triggerInstall}
-            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
           >
             <Download className="w-4 h-4 mr-2" />
             Installer app
@@ -127,7 +127,7 @@ export default function InstallAppSection() {
                 <li>Bekreft navnet og trykk <strong>Legg til</strong>. Tidebønn vises nå i Dock-en og kan startes som egen app.</li>
               </ol>
             )}
-            <p className="text-xs text-[#9A9A9A] dark:text-gray-500">
+            <p className="text-xs text-[color:var(--tb-muted)] dark:text-gray-400">
               Krever macOS Sonoma (14) eller nyere.
             </p>
           </>

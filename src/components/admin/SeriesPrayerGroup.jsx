@@ -55,7 +55,7 @@ export default function SeriesPrayerGroup({
           {hidden ? (
             <div className="flex items-center gap-3">
               <CardTitle className="text-lg text-[#2C2C2A] dark:text-[#F4F0E9]">{series.title}</CardTitle>
-              <Badge variant="outline" className="text-[#6A6A6A]">Skjult</Badge>
+              <Badge variant="outline" className="text-[#6A6A6A] dark:text-gray-400">Skjult</Badge>
             </div>
           ) : (
             <CardTitle className="text-lg text-[#2C2C2A] dark:text-[#F4F0E9]">
@@ -125,7 +125,7 @@ export default function SeriesPrayerGroup({
                                   />
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium uppercase text-[#4A6B65] dark:text-[#BD7B59] shrink-0">
+                                      <span className="text-xs font-medium uppercase text-[#4A6B65] dark:text-[#D4936F] shrink-0">
                                         <span className="sm:hidden">{TIME_SHORT[prayer.time_of_day] || prayer.time_of_day}</span>
                                         <span className="hidden sm:inline capitalize">{TIME_LONG[prayer.time_of_day] || prayer.time_of_day}</span>
                                       </span>
@@ -169,7 +169,7 @@ export default function SeriesPrayerGroup({
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8 text-[#C8602A] hover:text-[#A04820]"
+                                      className="h-8 w-8 text-[#A04820] dark:text-[#E58A57] hover:text-[#7F3718] dark:hover:text-[#F0A77F]"
                                       onClick={() => onSoftDelete(prayer)}
                                     >
                                       <Trash2 className="w-4 h-4" />

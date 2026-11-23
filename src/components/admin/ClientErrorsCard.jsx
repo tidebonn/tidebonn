@@ -68,14 +68,14 @@ export default function ClientErrorsCard() {
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-sm text-[#2C2C2A] dark:text-[#F4F0E9]">
-          <AlertTriangle className="w-4 h-4 text-[#BD7B59]" />
+          <AlertTriangle className="w-4 h-4 text-[color:var(--tb-accent)]" />
           Klientfeil
-          <span className="text-xs font-normal text-[#9A9A9A]">({rows.length})</span>
-          <span className="font-normal text-[10px] text-[#9A9A9A]" title="Versjonen du kjører nå">build {BUILD_ID}</span>
+          <span className="text-xs font-normal text-[color:var(--tb-muted)]">({rows.length})</span>
+          <span className="font-normal text-[10px] text-[color:var(--tb-muted)]" title="Versjonen du kjører nå">build {BUILD_ID}</span>
         </CardTitle>
         <div className="flex gap-1">
           {rows.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="h-7 text-xs text-[#9A9A9A]">
+            <Button variant="ghost" size="sm" onClick={clearAll} className="h-7 text-xs text-[color:var(--tb-muted)]">
               <Trash2 className="w-3.5 h-3.5 mr-1" />
               Tøm
             </Button>
@@ -92,9 +92,9 @@ export default function ClientErrorsCard() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-[#9A9A9A]">Laster …</p>
+          <p className="text-sm text-[color:var(--tb-muted)]">Laster …</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-[#9A9A9A]">Ingen feil rapportert.</p>
+          <p className="text-sm text-[color:var(--tb-muted)]">Ingen feil rapportert.</p>
         ) : (
           <>
             {/* Sammendrag per context — tag og antall, med forklaring i parentes */}
@@ -109,7 +109,7 @@ export default function ClientErrorsCard() {
                     <span className="font-mono">{ctx}:</span>
                     <strong className="text-[#2C2C2A] dark:text-[#F4F0E9]">{n}</strong>
                     {desc && (
-                      <span className="italic text-[#9A9A9A]">({desc})</span>
+                      <span className="italic text-[color:var(--tb-muted)]">({desc})</span>
                     )}
                   </div>
                 );
@@ -132,28 +132,28 @@ export default function ClientErrorsCard() {
                       className="text-xs border-l-2 border-[#BD7B59]/50 pl-3 py-1"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-semibold text-[#BD7B59]">
+                        <span className="font-mono font-semibold text-[color:var(--tb-accent)]">
                           {r.context}
                         </span>
-                        <span className="text-[#9A9A9A]">
+                        <span className="text-[color:var(--tb-muted)]">
                           {new Date(r.created_at).toLocaleString('nb-NO')}
                         </span>
                         {r.user_id ? (
-                          <span className="text-[#9A9A9A]">user: {r.user_id.slice(0, 8)}</span>
+                          <span className="text-[color:var(--tb-muted)]">user: {r.user_id.slice(0, 8)}</span>
                         ) : (
-                          <span className="text-[#9A9A9A]">anonym</span>
+                          <span className="text-[color:var(--tb-muted)]">anonym</span>
                         )}
                       </div>
                       <div className="text-[#4A4A4A] dark:text-gray-300 font-mono break-words">
                         {r.message}
                       </div>
                       {r.extra?.build && (
-                        <div className={`text-[10px] ${r.extra.build === BUILD_ID ? 'text-[#9A9A9A]' : 'text-[#BD7B59]'}`} title="App-versjonen feilen kom fra">
+                        <div className={`text-[10px] ${r.extra.build === BUILD_ID ? 'text-[color:var(--tb-muted)]' : 'text-[color:var(--tb-accent)]'}`} title="App-versjonen feilen kom fra">
                           build {r.extra.build}{r.extra.build !== BUILD_ID ? ' (eldre enn din)' : ''}
                         </div>
                       )}
                       {r.url && (
-                        <div className="text-[#9A9A9A] text-[10px] truncate" title={r.url}>
+                        <div className="text-[color:var(--tb-muted)] text-[10px] truncate" title={r.url}>
                           {r.url}
                         </div>
                       )}

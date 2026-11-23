@@ -8,7 +8,7 @@ export default function PrayerHeadingBlock({ block, onChange, onDelete, onAddLin
       {/* Main row: drag | level buttons | divider | heading text | divider | reference | delete */}
       <div className="flex items-center gap-2 p-2">
         {/* Drag handle */}
-        <div {...dragHandleProps} className="cursor-grab text-[#C8C0B8] hover:text-[#C8602A] flex-shrink-0">
+        <div {...dragHandleProps} className="cursor-grab text-[#7D807A] dark:text-gray-400 hover:text-[#A04820] dark:hover:text-[#E58A57] flex-shrink-0">
           <GripVertical className="w-4 h-4" />
         </div>
 
@@ -21,8 +21,8 @@ export default function PrayerHeadingBlock({ block, onChange, onDelete, onAddLin
               onClick={() => onChange({ ...block, level })}
               className={`text-xs px-1.5 py-0.5 rounded border transition-colors font-semibold ${
                 block.level === level
-                  ? 'bg-[#C8602A] text-white border-[#C8602A]'
-                  : 'bg-white dark:bg-[#2a2826] text-[#4A4A4A] dark:text-gray-200 border-[#E8E0D8] dark:border-gray-700 hover:border-[#C8602A]'
+                  ? 'bg-[#A94E1D] text-white border-[#A94E1D]'
+                  : 'bg-white dark:bg-[#2a2826] text-[#4A4A4A] dark:text-gray-200 border-[#E8E0D8] dark:border-gray-700 hover:border-[#A94E1D]'
               }`}
             >
               {level.toUpperCase()}
@@ -58,7 +58,7 @@ export default function PrayerHeadingBlock({ block, onChange, onDelete, onAddLin
         <button
           type="button"
           onClick={onDelete}
-          className="text-[#C8C0B8] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+          className="text-[#7D807A] dark:text-gray-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -66,11 +66,11 @@ export default function PrayerHeadingBlock({ block, onChange, onDelete, onAddLin
 
       {/* Add after row */}
       <div className="flex gap-1 px-2 pb-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button type="button" onClick={onAddLine} className="flex items-center gap-1 text-xs text-[#9A9A9A] hover:text-[#6B9EA0] transition-colors">
+        <button type="button" onClick={onAddLine} className="flex items-center gap-1 text-xs text-[color:var(--tb-muted)] hover:text-[#4A6B65] dark:hover:text-[#8DBBB5] transition-colors">
           <Plus className="w-3 h-3" /> Linje her
         </button>
         <span className="text-[#D0C8C0]">|</span>
-        <button type="button" onClick={onAddHeading} className="flex items-center gap-1 text-xs text-[#9A9A9A] hover:text-[#C8602A] transition-colors">
+        <button type="button" onClick={onAddHeading} className="flex items-center gap-1 text-xs text-[color:var(--tb-muted)] hover:text-[#A04820] dark:hover:text-[#E58A57] transition-colors">
           <Plus className="w-3 h-3" /> Overskrift her
         </button>
       </div>

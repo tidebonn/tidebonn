@@ -72,7 +72,7 @@ export default function SeriesTab({ user, prayerSeries, reload }) {
             start_time: 'laudes',
             is_active: true
           })}
-          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
         >
           <Plus className="w-4 h-4 mr-2" />
           Ny serie
@@ -265,7 +265,7 @@ export default function SeriesTab({ user, prayerSeries, reload }) {
                   <Button
                     onClick={handleSaveSeries}
                     disabled={saving}
-                    className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+                    className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Lagre
@@ -325,7 +325,7 @@ export default function SeriesTab({ user, prayerSeries, reload }) {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleSoftDeleteSeries(series)}
-                      className="text-[#C8602A] hover:text-[#A04820]"
+                      className="text-[#A04820] dark:text-[#E58A57] hover:text-[#7F3718] dark:hover:text-[#F0A77F]"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

@@ -61,8 +61,8 @@ export default function SeriesStartDatePicker({ value, startDay, onChange }) {
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center gap-2 border border-input rounded-md px-3 py-2 text-sm bg-white dark:bg-[#2A2A2A] hover:bg-[#F5F0EB] dark:hover:bg-[#3A3A3A] transition-colors text-left"
       >
-        <Calendar className="w-4 h-4 text-[#6B9EA0] flex-shrink-0" />
-        <span className={displayValue ? 'text-[#1A1A1A] dark:text-white capitalize' : 'text-[#9A9A9A]'}>
+        <Calendar className="w-4 h-4 text-[#4A6B65] dark:text-[#8DBBB5] flex-shrink-0" />
+        <span className={displayValue ? 'text-[#1A1A1A] dark:text-white capitalize' : 'text-[color:var(--tb-muted)]'}>
           {displayValue || `Velg en ${DAY_NAMES_NO[startDay] || 'startdato'}`}
         </span>
       </button>
@@ -85,7 +85,7 @@ export default function SeriesStartDatePicker({ value, startDay, onChange }) {
           {/* Weekday headers (Mon-Sun) */}
           <div className="grid grid-cols-7 mb-1">
             {['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'].map(d => (
-              <div key={d} className="text-center text-xs text-[#9A9A9A] py-1">{d}</div>
+              <div key={d} className="text-center text-xs text-[color:var(--tb-muted)] py-1">{d}</div>
             ))}
           </div>
 
@@ -106,9 +106,9 @@ export default function SeriesStartDatePicker({ value, startDay, onChange }) {
                   disabled={!allowed}
                   className={`
                     h-9 w-9 mx-auto rounded-full text-sm transition-colors flex items-center justify-center
-                    ${selected ? 'bg-[#6B9EA0] dark:bg-[#BD7B59] text-white font-semibold' : ''}
+                    ${selected ? 'bg-[#4A6B65] dark:bg-[#8C563A] text-white font-semibold' : ''}
                     ${allowed && !selected ? 'hover:bg-[#E8F4F4] text-[#1A1A1A] dark:text-white font-medium cursor-pointer' : ''}
-                    ${!allowed ? 'text-[#C8C0B8] dark:text-gray-600 cursor-not-allowed' : ''}
+                    ${!allowed ? 'text-[#7D807A] dark:text-gray-600 cursor-not-allowed' : ''}
                   `}
                 >
                   {date.getDate()}
@@ -117,7 +117,7 @@ export default function SeriesStartDatePicker({ value, startDay, onChange }) {
             })}
           </div>
 
-          <p className="text-xs text-[#9A9A9A] mt-3 text-center">
+          <p className="text-xs text-[color:var(--tb-muted)] mt-3 text-center">
             Kun {DAY_NAMES_NO[startDay] || 'valgt ukedag'}er kan velges
           </p>
         </div>

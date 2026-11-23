@@ -202,7 +202,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
               content_type: 'freetext',
               free_text_content: ''
             })}
-            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
             >
             <Plus className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Ny bønn</span>
@@ -330,7 +330,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                   <Button
                     onClick={handleSavePrayer}
                     disabled={saving || contentPending}
-                    className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+                    className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
                   >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Lagre
@@ -352,7 +352,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                 variant="outline"
                 size="sm"
                 onClick={handleBulkHidePrayers}
-                className="text-gray-700 border-gray-300 hover:bg-gray-100"
+                className="text-gray-700 border-gray-300 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800"
               >
                 <EyeOff className="w-3 h-3 mr-1" />
                 Skjul
@@ -362,7 +362,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                   variant="outline"
                   size="sm"
                   onClick={handleBulkSoftDeletePrayers}
-                  className="text-[#C8602A] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
+                  className="text-[#A04820] dark:text-[#E58A57] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
                             >
                               <Trash2 className="w-3 h-3 mr-1" />
                               Slett
@@ -465,7 +465,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                     variant="outline"
                     size="sm"
                     onClick={handleBulkDeletePrayers}
-                    className="text-[#C8602A] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
+                    className="text-[#A04820] dark:text-[#E58A57] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
                   >
                     <Trash2 className="w-3 h-3 mr-1" />
                     Slett valgte ({selectedDeletedPrayers.length})
@@ -525,7 +525,7 @@ export default function PrayersTab({ user, prayers, prayerSeries, reload }) {
                             variant="outline"
                             size="sm"
                             onClick={() => handlePermanentDeletePrayer(prayer)}
-                             className="text-[#C8602A] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
+                             className="text-[#A04820] dark:text-[#E58A57] border-[#C8602A]/30 hover:bg-[#C8602A]/5"
                           >
                             <Trash2 className="w-3 h-3 mr-1" />
                             Slett nå

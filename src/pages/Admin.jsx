@@ -161,7 +161,7 @@ export default function Admin() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-[#4A6B65] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#4A6B65] dark:text-[#8DBBB5] animate-spin" />
       </div>
     );
   }
@@ -169,7 +169,7 @@ export default function Admin() {
   if (!user || (user.role !== 'admin' && user.role !== 'owner')) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <Shield className="w-16 h-16 text-[#4A6B65] mx-auto mb-4" />
+        <Shield className="w-16 h-16 text-[#4A6B65] dark:text-[#8DBBB5] mx-auto mb-4" />
         <h2 className="text-2xl font-semibold text-[#2C2C2A] dark:text-[#F4F0E9] mb-4">
           Ingen tilgang
         </h2>
@@ -203,24 +203,24 @@ export default function Admin() {
 
         <Tabs value={activeTab} onValueChange={changeTab}>
           <TabsList className="mb-8 bg-transparent p-0 h-auto" style={{borderBottom: '1px solid #DECCB4'}}>
-            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="statistics" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[color:var(--tb-muted)] data-[state=active]:font-semibold" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'statistics' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <BarChart3 className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Statistikk</span>
             </TabsTrigger>
-            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="series" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[color:var(--tb-muted)]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'series' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <BookOpen className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønneserier</span>
             </TabsTrigger>
-            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="prayers" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[color:var(--tb-muted)]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'prayers' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Bønner</span>
             </TabsTrigger>
-            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
+            <TabsTrigger value="content" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[color:var(--tb-muted)]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'content' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
               <FileEdit className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Innhold</span>
             </TabsTrigger>
             {user.role === 'owner' && (
-              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[#B6B9B3]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
+              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-[#2C2C2A] dark:data-[state=active]:text-[#F4F0E9] text-[color:var(--tb-muted)]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.625rem 0.75rem', borderBottom: activeTab === 'users' ? `2px solid ${tabAccent}` : '2px solid transparent', marginBottom: '-1px'}}>
                 <Users className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Brukere</span>
               </TabsTrigger>

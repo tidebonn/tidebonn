@@ -38,8 +38,8 @@ function TBtn({ active, onClick, title, disabled, children }) {
       disabled={disabled}
       className={`inline-flex items-center justify-center w-8 h-8 rounded border transition-colors ${
         active
-          ? 'bg-[#4A6B65] text-[#F4F0E9] border-[#4A6B65] dark:bg-[#BD7B59] dark:border-[#BD7B59]'
-          : 'bg-transparent text-[#4A4A4A] border-[#DECCB4] hover:bg-[#F5F0EB]'
+          ? 'bg-[#4A6B65] text-[#F4F0E9] border-[#4A6B65] dark:bg-[#8C563A] dark:border-[#8C563A]'
+          : 'bg-transparent text-[#4A4A4A] dark:text-gray-300 border-[#DECCB4] hover:bg-[#F5F0EB]'
       } disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       {children}
@@ -138,7 +138,7 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
             className="text-sm"
           />
           {!!page.id && (
-            <p className="text-[10px] text-[#9A9A9A] mt-1 leading-tight">
+            <p className="text-[10px] text-[color:var(--tb-muted)] mt-1 leading-tight">
               Endring bryter eksisterende lenker/bokmerker.
             </p>
           )}
@@ -252,7 +252,7 @@ export default function ContentPageEditor({ page, onChange, onSave, onCancel, sa
         <Button
           onClick={onSave}
           disabled={saving}
-          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+          className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
           Lagre

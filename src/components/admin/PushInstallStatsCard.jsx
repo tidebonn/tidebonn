@@ -83,7 +83,7 @@ export default function PushInstallStatsCard({ users = [] }) {
     <Card className="border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)]">
       <CardHeader>
         <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
-          <Smartphone className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+          <Smartphone className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
           App & push
         </CardTitle>
         <p className="text-xs text-[#6A6A6A] dark:text-gray-400">

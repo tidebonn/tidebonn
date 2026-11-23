@@ -31,7 +31,7 @@ export default function PageNotFound() {
         style={{ fontFamily: "'Spectral', Georgia, serif" }}
       >
         <div className="space-y-2">
-          <h1 className="text-7xl font-light text-[#B6B9B3]">404</h1>
+          <h1 className="text-7xl font-light text-[color:var(--tb-muted)]">404</h1>
           <div className="h-0.5 w-16 bg-[#E8E0D8] dark:bg-gray-700 mx-auto"></div>
         </div>
 
@@ -44,7 +44,7 @@ export default function PageNotFound() {
         </div>
 
         {isAdmin && (
-          <p className="text-sm text-[#7A7A76] dark:text-[#B6B9B3] text-left p-4 rounded-lg border border-[#E8E0D8] dark:border-gray-700">
+          <p className="text-sm text-[#7A7A76] dark:text-[color:var(--tb-muted)] text-left p-4 rounded-lg border border-[#E8E0D8] dark:border-gray-700">
             Admin-merknad: innholdssider ligger under <code>/Side/&lt;slug&gt;</code> og
             opprettes under Admin → Innhold. Faste sider må registreres i{' '}
             <code>src/pages.config.js</code>.

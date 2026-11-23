@@ -73,7 +73,7 @@ export default function Info() {
             ))}
           </div>
         ) : pages.length === 0 ? (
-          <p className="text-[#B6B9B3] italic" style={{ fontFamily: "'Spectral', Georgia, serif" }}>
+          <p className="text-[color:var(--tb-muted)] italic" style={{ fontFamily: "'Spectral', Georgia, serif" }}>
             Ingen sider er lagt inn ennå.
           </p>
         ) : (
@@ -85,7 +85,7 @@ export default function Info() {
                 <Link
                   key={p.slug}
                   to={`/Side/${p.slug}`}
-                  className="group block border border-[#DECCB4] dark:border-[rgba(244,240,233,0.15)] rounded-md p-5 bg-white dark:bg-[rgba(255,255,255,0.03)] hover:border-[#4A6B65] dark:hover:border-[#BD7B59] transition-colors"
+                  className="group block border border-[#DECCB4] dark:border-[rgba(244,240,233,0.15)] rounded-md p-5 bg-white dark:bg-[rgba(255,255,255,0.03)] hover:border-[#4A6B65] dark:hover:border-[#D4936F] transition-colors"
                   style={{ textDecoration: 'none' }}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -101,7 +101,7 @@ export default function Info() {
                       {title}
                     </h2>
                     <ArrowRight
-                      className="text-[#B6B9B3] group-hover:text-[#4A6B65] dark:group-hover:text-[#BD7B59] transition-colors flex-shrink-0 mt-1"
+                      className="text-[color:var(--tb-muted)] group-hover:text-[#4A6B65] dark:group-hover:text-[#D4936F] transition-colors flex-shrink-0 mt-1"
                       size={18}
                       strokeWidth={1.5}
                     />

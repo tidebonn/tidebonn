@@ -99,11 +99,19 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
           margin-top: 0.75rem;
           margin-bottom: 0.5rem;
         }
+
+        .dark .prayer-rich-text h4 {
+          color: #B0B0B0;
+        }
         
         .prayer-rich-text strong {
-          color: #6B9EA0 !important;
+          color: #4A6B65 !important;
           font-weight: 700;
           margin-right: 0.5rem;
+        }
+
+        .dark .prayer-rich-text strong {
+          color: #8DBBB5 !important;
         }
         
         .prayer-rich-text small {
@@ -129,11 +137,19 @@ export default function PrayerContent({ prayer, onScrollComplete, noInternalScro
         }
         
         .prayer-rich-text a {
-          color: #6B9EA0;
+          color: #4A6B65;
         }
         
         .prayer-rich-text a:hover {
-          color: #4D8082;
+          color: #3A5550;
+        }
+
+        .dark .prayer-rich-text a {
+          color: #8DBBB5;
+        }
+
+        .dark .prayer-rich-text a:hover {
+          color: #B4D4CF;
         }
         
         .prayer-rich-text .linje {

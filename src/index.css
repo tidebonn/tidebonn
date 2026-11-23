@@ -6,6 +6,11 @@
 
 @layer base {
   :root {
+    /* Tekst- og kantfarger som holder WCAG AA: minst 4,5:1 for tekst mot
+       krem/hvit (lyst tema) og mot mørk bakgrunn (mørkt tema), 3:1 for kanter. */
+    --tb-muted: #585B55;
+    --tb-accent: #8C563A;
+    --tb-kant: #858881;
     --background: 40 29% 94%;
     --foreground: 60 1% 17%;
     --card: 0 0% 100%;
@@ -17,7 +22,7 @@
     --secondary: 40 29% 94%;
     --secondary-foreground: 60 1% 17%;
     --muted: 40 29% 94%;
-    --muted-foreground: 110 3% 71%;
+    --muted-foreground: 90 3% 35%; /* = #585B55, 6:1 mot krem */
     --accent: 175 14% 84%;
     --accent-foreground: 60 1% 17%;
     --destructive: 0 84.2% 60.2%;
@@ -37,6 +42,9 @@
   }
 
   .dark {
+    --tb-muted: #B6B9B3;
+    --tb-accent: #D4936F;
+    --tb-kant: #B6B9B3;
     --background: 60 1% 17%;
     --foreground: 40 29% 94%;
     --card: 60 2% 20%;
@@ -199,7 +207,7 @@
   margin: 0;
   font-size: 0.8rem;
   font-style: italic;
-  color: rgba(85, 85, 85, 0.7);
+  color: #5F5F5F;
   white-space: nowrap;
 }
 
@@ -215,13 +223,17 @@
 
 .dark .bønn header.header-henvisning h3.henvisning,
 .dark .bønn h3.henvisning {
-  color: rgba(220, 215, 200, 0.55);
+  color: rgba(220, 215, 200, 0.72);
 }
 
 .bønn p.info {
   font-size: 0.85rem;
   font-style: italic;
-  color: rgba(102, 102, 102, 0.85);
+  color: #5F5F5F;
+}
+
+.dark .bønn p.info {
+  color: rgba(220, 215, 200, 0.72);
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -287,7 +299,7 @@
   text-underline-offset: 3px;
 }
 .content-body a:hover, .prose-editor a:hover { color: #3a5550; }
-.dark .content-body a, .dark .prose-editor a { color: #BD7B59; }
+.dark .content-body a, .dark .prose-editor a { color: #D4936F; }
 .content-body ul, .prose-editor ul {
   list-style: disc;
   padding-left: 1.25rem;
@@ -355,7 +367,7 @@
 .prose-editor p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #B6B9B3;
+  color: var(--tb-muted);
   pointer-events: none;
   height: 0;
 }

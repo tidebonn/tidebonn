@@ -147,7 +147,7 @@ export default function UsersTab({ user, allUsers, reload }) {
         <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
           <div>
             <CardTitle className="text-[#2C2C2A] dark:text-[#F4F0E9] flex items-center gap-2">
-              <UserCog className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+              <UserCog className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
               Brukerstyring
             </CardTitle>
             <p className="text-xs text-[#6A6A6A] dark:text-gray-400 pt-1">
@@ -186,12 +186,12 @@ export default function UsersTab({ user, allUsers, reload }) {
                   <TableRow key={u.id}>
                     <TableCell className="text-sm">
                       {u.display_name || u.full_name || '–'}
-                      {isSelf && <span className="ml-2 text-xs text-[#B6B9B3]">(deg)</span>}
+                      {isSelf && <span className="ml-2 text-xs text-[color:var(--tb-muted)]">(deg)</span>}
                     </TableCell>
-                    <TableCell className="text-sm text-[#6A6A6A]">{u.email}</TableCell>
+                    <TableCell className="text-sm text-[#6A6A6A] dark:text-gray-400">{u.email}</TableCell>
                     <TableCell>
                       {isOwner ? (
-                        <Badge className="border-0 dark:!bg-[#BD7B59]" style={{backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Eier</Badge>
+                        <Badge className="border-0 dark:!bg-[#8C563A]" style={{backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>Eier</Badge>
                       ) : isSelf ? (
                         <Badge className="border-0" style={{backgroundColor: '#CFD9D6', color: '#2C2C2A', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}>{u.role === 'admin' ? 'Admin' : 'Bruker'}</Badge>
                       ) : (
@@ -211,18 +211,18 @@ export default function UsersTab({ user, allUsers, reload }) {
                     </TableCell>
                     <TableCell>
                       {u.wants_newsletter ? (
-                        <span className="text-xs font-medium uppercase tracking-wide text-[#4A6B65] dark:text-[#BD7B59]">Ja</span>
+                        <span className="text-xs font-medium uppercase tracking-wide text-[#4A6B65] dark:text-[#D4936F]">Ja</span>
                       ) : (
-                        <span className="text-xs text-[#B6B9B3]">–</span>
+                        <span className="text-xs text-[color:var(--tb-muted)]">–</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-[#6A6A6A]">{created}</TableCell>
+                    <TableCell className="text-xs text-[#6A6A6A] dark:text-gray-400">{created}</TableCell>
                     <TableCell className="text-right">
                       {!isSelf && !isOwner && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-[#BD7B59] hover:text-[#A04820] hover:bg-[#BD7B59]/10"
+                          className="text-[color:var(--tb-accent)] hover:text-[#7F3718] dark:hover:text-[#F0A77F] hover:bg-[#BD7B59]/10"
                           onClick={() => handleDeleteUser(u.id, u.email)}
                           title="Slett bruker"
                         >

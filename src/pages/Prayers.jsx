@@ -354,12 +354,12 @@ export default function Prayers() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Today's date bar */}
       <div className="mb-4 flex items-center gap-2">
-        <span style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontStyle: 'italic', fontSize: '0.95rem', color: '#B6B9B3'}}>{formatNorwegianDate(new Date())}</span>
+        <span style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--tb-muted)'}}>{formatNorwegianDate(new Date())}</span>
         {currentSeriesData && (
           <div className="ml-auto flex items-center gap-3">
             <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
               <PopoverTrigger asChild>
-                <button style={{display: 'flex', alignItems: 'center', gap: '0.25rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B6B9B3', background: 'none', border: 'none', cursor: 'pointer'}}>
+                <button style={{display: 'flex', alignItems: 'center', gap: '0.25rem', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tb-muted)', background: 'none', border: 'none', cursor: 'pointer'}}>
                   <CalendarDays className="w-3.5 h-3.5" />
                   Planlegg
                 </button>
@@ -380,7 +380,7 @@ export default function Prayers() {
             </Popover>
             <button
               onClick={() => applyCurrentPosition(currentSeriesData)}
-              style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#BD7B59', background: 'none', border: 'none', cursor: 'pointer'}}
+              style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tb-accent)', background: 'none', border: 'none', cursor: 'pointer'}}
             >
               Gå til i dag
             </button>
@@ -398,7 +398,7 @@ export default function Prayers() {
       {/* Series Selector */}
       {prayerSeries.length > 0 && (
         <div className="mb-6">
-          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.5rem'}}>Bønneserie</h2>
+          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.5rem'}}>Bønneserie</h2>
           <Select value={selectedSeries} onValueChange={setSelectedSeries}>
             <SelectTrigger style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300}} className="border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)] bg-white dark:bg-[rgba(255,255,255,0.04)] dark:text-[#F4F0E9]">
               <SelectValue placeholder="Velg bønneserie" />
@@ -417,7 +417,7 @@ export default function Prayers() {
         <>
           {/* Week selector – only show weeks that have prayers */}
           <div className="mb-4">
-            <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.5rem'}}>Uke i bønneserien</h2>
+            <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.5rem'}}>Uke i bønneserien</h2>
             <div className="flex items-center gap-3">
               <Button variant="outline" size="icon" onClick={() => setSelectedWeek(prev => prev > 1 ? prev - 1 : totalWeeks)} className="border-[#E8E0D8] dark:border-gray-700 shrink-0">
                 <ChevronLeft className="w-5 h-5" />
@@ -428,8 +428,8 @@ export default function Prayers() {
                     <button
                       key={week}
                       onClick={() => setSelectedWeek(week)}
-                      style={week === selectedWeek ? {padding: '0 1rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', flexShrink: 0, textTransform: 'uppercase'} : {padding: '0 1rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid #B6B9B3', cursor: 'pointer', flexShrink: 0, textTransform: 'uppercase'}}
-                    className={week === selectedWeek ? 'dark:!bg-[#BD7B59]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
+                      style={week === selectedWeek ? {padding: '0 1rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', flexShrink: 0, textTransform: 'uppercase'} : {padding: '0 1rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid var(--tb-kant)', cursor: 'pointer', flexShrink: 0, textTransform: 'uppercase'}}
+                    className={week === selectedWeek ? 'dark:!bg-[#8C563A]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
                   >
                       Uke {week}
                     </button>
@@ -444,14 +444,14 @@ export default function Prayers() {
 
           {/* Weekday selector – always show all 7 */}
           <div className="mb-5">
-            <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.5rem'}}>Dag i uken</h2>
+            <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.5rem'}}>Dag i uken</h2>
             <div className="flex flex-wrap gap-2">
               {orderedWeekdays.map((jsDay, offset) => (
                 <button
                   key={offset}
                   onClick={() => setSelectedWeekday(offset)}
-                  style={offset === (selectedWeekday ?? 0) ? {padding: '0 0.75rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', textTransform: 'uppercase'} : {padding: '0 0.75rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid #B6B9B3', cursor: 'pointer', textTransform: 'uppercase'}}
-                  className={offset === (selectedWeekday ?? 0) ? 'dark:!bg-[#BD7B59]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
+                  style={offset === (selectedWeekday ?? 0) ? {padding: '0 0.75rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', textTransform: 'uppercase'} : {padding: '0 0.75rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid var(--tb-kant)', cursor: 'pointer', textTransform: 'uppercase'}}
+                  className={offset === (selectedWeekday ?? 0) ? 'dark:!bg-[#8C563A]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
                 >
                   {WEEKDAY_NAMES_NO[jsDay]}
                 </button>
@@ -461,7 +461,7 @@ export default function Prayers() {
         </>
       ) : (
         <div className="mb-5">
-          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.5rem'}}>Dag i bønneserien</h2>
+          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.5rem'}}>Dag i bønneserien</h2>
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" onClick={goToPrevDay} className="border-[#E8E0D8] dark:border-gray-700 shrink-0">
               <ChevronLeft className="w-5 h-5" />
@@ -472,8 +472,8 @@ export default function Prayers() {
                   <button
                     key={day}
                     onClick={() => setSelectedDay(day)}
-                    style={day === selectedDay ? {width: '2.25rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', flexShrink: 0} : {width: '2.25rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid #B6B9B3', cursor: 'pointer', flexShrink: 0}}
-                    className={day === selectedDay ? 'dark:!bg-[#BD7B59]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
+                    style={day === selectedDay ? {width: '2.25rem', height: '2.25rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.06em', border: 'none', cursor: 'pointer', flexShrink: 0} : {width: '2.25rem', height: '2.25rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', border: '0.5px solid var(--tb-kant)', cursor: 'pointer', flexShrink: 0}}
+                    className={day === selectedDay ? 'dark:!bg-[#8C563A]' : 'text-[#2C2C2A] dark:text-[rgba(244,240,233,0.65)] dark:border-[rgba(244,240,233,0.25)]'}
                   >
                     {day}
                   </button>
@@ -489,7 +489,7 @@ export default function Prayers() {
 
       {/* Time Selector */}
       <div className="mb-7">
-        <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.5rem'}}>Tidebønn</h2>
+        <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.5rem'}}>Tidebønn</h2>
         <div className="overflow-x-auto">
           <Tabs value={selectedTime} onValueChange={setSelectedTime}>
             <TabsList className="inline-flex bg-[#F5F0EB] dark:bg-[#2A2A2A] p-1 h-auto">
@@ -498,7 +498,7 @@ export default function Prayers() {
                   key={time.id}
                   value={time.id}
                   style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.06em', textTransform: 'uppercase'}}
-                  className="py-2 px-3 data-[state=active]:bg-[#4A6B65] dark:data-[state=active]:bg-[#BD7B59] data-[state=active]:text-[#F4F0E9] data-[state=inactive]:text-[#B6B9B3] data-[state=inactive]:bg-transparent"
+                  className="py-2 px-3 data-[state=active]:bg-[#4A6B65] dark:data-[state=active]:bg-[#8C563A] data-[state=active]:text-[#F4F0E9] data-[state=inactive]:text-[color:var(--tb-muted)] data-[state=inactive]:bg-transparent"
                 >
                   <span className="hidden sm:inline">{time.name}</span>
                   <span className="sm:hidden">{time.short}</span>
@@ -564,7 +564,7 @@ export default function Prayers() {
       {/* Other prayers for this day */}
       {filteredPrayers.filter(p => p.time_of_day !== selectedTime).length > 0 && (
         <div className="mt-8">
-          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '0.75rem'}}>Andre bønner for {currentDayLabel}</h2>
+          <h2 style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.6rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '0.75rem'}}>Andre bønner for {currentDayLabel}</h2>
           <div>
             {filteredPrayers
               .filter(p => p.time_of_day !== selectedTime)

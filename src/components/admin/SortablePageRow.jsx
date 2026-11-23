@@ -25,7 +25,7 @@ export default function SortablePageRow({ page, onEdit, onDelete }) {
             type="button"
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing p-1 text-[#B6B9B3] hover:text-[#4A6B65] dark:hover:text-[#BD7B59] transition-colors flex-shrink-0"
+            className="cursor-grab active:cursor-grabbing p-1 text-[color:var(--tb-muted)] hover:text-[#4A6B65] dark:hover:text-[#D4936F] transition-colors flex-shrink-0"
             aria-label="Dra for å endre rekkefølge"
             title="Dra for å endre rekkefølge"
           >
@@ -33,11 +33,11 @@ export default function SortablePageRow({ page, onEdit, onDelete }) {
           </button>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-[#2C2C2A] dark:text-[#F4F0E9] truncate">
-              {page.title || <span className="italic text-[#B6B9B3]">(uten tittel)</span>}
+              {page.title || <span className="italic text-[color:var(--tb-muted)]">(uten tittel)</span>}
             </h3>
             <p className="text-xs text-[#6A6A6A] dark:text-gray-400 flex items-center gap-2 flex-wrap">
               <span>/Side/{page.slug}</span>
-              <span className="text-[#B6B9B3]">·</span>
+              <span className="text-[color:var(--tb-muted)]">·</span>
               <span>{visibilityLabel}</span>
             </p>
           </div>

@@ -26,7 +26,7 @@ const subtitleStyle = {
   fontWeight: 300,
   fontStyle: 'italic',
   fontSize: '1.1rem',
-  color: '#B6B9B3',
+  color: 'var(--tb-muted)',
   lineHeight: 1.7,
   textAlign: 'center',
   marginBottom: '1rem',
@@ -38,7 +38,7 @@ const retryStyle = {
   fontSize: '0.6rem',
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
-  color: '#BD7B59',
+  color: 'var(--tb-accent)',
   background: 'none',
   border: 'none',
   cursor: 'pointer',
@@ -174,7 +174,7 @@ export default function Home() {
             style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '320px'}}
           >
             {/* SVG Cross - upper part */}
-            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '0.75rem'}}>
+            <div className="text-[#4A6B65] dark:text-[#D4936F]" style={{marginBottom: '0.75rem'}}>
             <svg width="32" height="72" viewBox="0 0 32 72">
               <circle cx="16" cy="6" r="4" fill="none" stroke="currentColor" strokeWidth="0.7"/>
               <circle cx="16" cy="6" r="1.5" fill="none" stroke="currentColor" strokeWidth="0.5"/>
@@ -186,7 +186,7 @@ export default function Home() {
             </div>
 
             {/* Welcome label */}
-            <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B6B9B3', marginBottom: '1.25rem', textAlign: 'center'}}>
+            <p style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.6rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--tb-muted)', marginBottom: '1.25rem', textAlign: 'center'}}>
               VELKOMMEN TIL TIDEBØNN
             </p>
 
@@ -212,7 +212,7 @@ export default function Home() {
             {/* Liten vertikal strek — visuell forlengelse av korset
                 ovenfor, så det ses at korsets stamme fortsetter ned
                 gjennom knappene og ender i den nedre dekorasjonen. */}
-            <div className="text-[#4A6B65] dark:text-[#BD7B59]" style={{marginBottom: '0.75rem'}}>
+            <div className="text-[#4A6B65] dark:text-[#D4936F]" style={{marginBottom: '0.75rem'}}>
               <svg width="32" height="10" viewBox="0 0 32 10" aria-hidden="true">
                 <line x1="16" y1="0" x2="16" y2="10" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
               </svg>
@@ -223,20 +223,20 @@ export default function Home() {
               <button
                 onClick={openPrayer}
                 disabled={!nextPrayer}
-                className="dark:!bg-[#BD7B59] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="dark:!bg-[#8C563A] disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: '#4A6B65', color: '#F4F0E9', fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}
               >
                 Be neste bønn <ArrowRight className="w-4 h-4" />
               </button>
               <Link to={createPageUrl('Prayers')} style={{width: '100%'}}>
-                <button style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer'}} className="text-[#7A9994] border border-[#7A9994] dark:text-[#BD7B59] dark:border-[#BD7B59]/60">
+                <button style={{width: '100%', padding: '0.875rem 1.5rem', backgroundColor: 'transparent', fontFamily: "'Montserrat', sans-serif", fontWeight: 500, fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer'}} className="text-[#4A6B65] border border-[#4A6B65] dark:text-[#D4936F] dark:border-[#D4936F]/60">
                   Se alle bønner
                 </button>
               </Link>
             </div>
 
             {/* SVG Cross - lower part */}
-            <div className="home-lower-cross text-[#4A6B65] dark:text-[#BD7B59]" style={{marginTop: '0.75rem'}}>
+            <div className="home-lower-cross text-[#4A6B65] dark:text-[#D4936F]" style={{marginTop: '0.75rem'}}>
             <svg width="32" height="56" viewBox="0 0 32 56">
               <line x1="16" y1="0" x2="16" y2="55" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
               <circle cx="16" cy="50" r="4" fill="none" stroke="currentColor" strokeWidth="0.6"/>

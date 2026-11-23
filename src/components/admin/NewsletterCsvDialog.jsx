@@ -33,7 +33,7 @@ export default function NewsletterCsvDialog({ pending, onClose, onConfirm }) {
           </Button>
           <Button
             onClick={onConfirm}
-            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
           >
             Marker som behandlet
           </Button>

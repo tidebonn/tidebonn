@@ -205,7 +205,7 @@ export default function LoginDialog({ open, onOpenChange }) {
               </Button>
             </div>
 
-            <p className="text-xs text-[#B6B9B3] pt-1">
+            <p className="text-xs text-[color:var(--tb-muted)] pt-1">
               Har du ikke passord ennå? Logg inn med lenke først – så kan du
               sette et passord under Oppsett.
             </p>

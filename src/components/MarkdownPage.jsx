@@ -56,7 +56,7 @@ export default function MarkdownPage({ slug, fallbackTitle }) {
             <div className="h-4 w-10/12 bg-[#E8E0D8] dark:bg-gray-800 rounded animate-pulse" />
           </div>
         ) : !page?.content ? (
-          <p className="text-[#B6B9B3] italic" style={{ fontFamily: "'Spectral', Georgia, serif" }}>
+          <p className="text-[color:var(--tb-muted)] italic" style={{ fontFamily: "'Spectral', Georgia, serif" }}>
             Innhold er ikke lagt inn ennå. Administrator kan redigere denne siden under Admin → Innhold.
           </p>
         ) : (

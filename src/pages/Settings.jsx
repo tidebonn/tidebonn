@@ -208,7 +208,7 @@ export default function Settings() {
           </h2>
           <Button
             onClick={() => setLoginOpen(true)}
-            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+            className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
           >
             Logg inn
           </Button>
@@ -223,7 +223,7 @@ export default function Settings() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <h1 style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem'}} className="text-[#2C2C2A] dark:text-[#F4F0E9] mb-2">Oppsett</h1>
-        <p style={{color: '#B6B9B3', fontFamily: "'Spectral', Georgia, serif", fontWeight: 300}} className="mb-8">Tilpass din bønneopplevelse</p>
+        <p style={{color: 'var(--tb-muted)', fontFamily: "'Spectral', Georgia, serif", fontWeight: 300}} className="mb-8">Tilpass din bønneopplevelse</p>
 
         <div className="space-y-6">
           <InstallAppSection />
@@ -236,7 +236,7 @@ export default function Settings() {
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <User className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                <User className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
                 Personlig informasjon
               </CardTitle>
               <CardDescription>Din profil</CardDescription>
@@ -292,7 +292,7 @@ export default function Settings() {
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <BookOpen className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                <BookOpen className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
                 Bønneprogresjon
               </CardTitle>
               <CardDescription>Velg aktiv bønneserie</CardDescription>
@@ -318,12 +318,12 @@ export default function Settings() {
               {userProgress && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 text-center bg-[#F4F0E9] dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-                    <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem'}} className="text-[#4A6B65] dark:text-[#BD7B59]">{userProgress.total_prayers_completed || 0}</p>
-                    <p style={{fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B6B9B3'}} className="mt-0.5">Bønner fullført</p>
+                    <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem'}} className="text-[#4A6B65] dark:text-[#D4936F]">{userProgress.total_prayers_completed || 0}</p>
+                    <p style={{fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tb-muted)'}} className="mt-0.5">Bønner fullført</p>
                   </div>
                   <div className="p-4 text-center bg-[#F4F0E9] dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
-                    <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem'}} className="text-[#4A6B65] dark:text-[#BD7B59]">{userProgress.total_minutes || 0}</p>
-                    <p style={{fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#B6B9B3'}} className="mt-0.5">Minutter i bønn</p>
+                    <p style={{fontFamily: "'Spectral', Georgia, serif", fontWeight: 300, fontSize: '2rem'}} className="text-[#4A6B65] dark:text-[#D4936F]">{userProgress.total_minutes || 0}</p>
+                    <p style={{fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tb-muted)'}} className="mt-0.5">Minutter i bønn</p>
                   </div>
                 </div>
               )}
@@ -333,7 +333,7 @@ export default function Settings() {
                 <div>
                   <button
                     onClick={handleShowIncomplete}
-                    className="flex items-center gap-2 text-sm text-[#6A6A6A] dark:text-gray-400 hover:text-[#C8602A] transition-colors"
+                    className="flex items-center gap-2 text-sm text-[#6A6A6A] dark:text-gray-400 hover:text-[#A04820] dark:hover:text-[#E58A57] transition-colors"
                   >
                     {showIncomplete ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     {loadingIncomplete ? 'Laster...' : `Ikke fullførte bønner i serien`}
@@ -342,7 +342,7 @@ export default function Settings() {
                   {showIncomplete && !loadingIncomplete && (
                     <div className="mt-3">
                       {seriesPrayers.length > 0 && (
-                        <p className="text-xs text-[#6A6A6A] dark:text-gray-500 mb-2">
+                        <p className="text-xs text-[#6A6A6A] dark:text-gray-400 mb-2">
                           {completedCount} av {seriesPrayers.length} fullført
                         </p>
                       )}
@@ -359,13 +359,13 @@ export default function Settings() {
                               className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-[#E8E3DC] dark:hover:bg-[#1A1917] transition-colors group"
                             >
                               <span className="text-sm text-[#4A4A4A] dark:text-gray-300 truncate">{prayer.title}</span>
-                              <span className="text-xs text-[#9A9A9A] dark:text-gray-500 ml-2 shrink-0">
+                              <span className="text-xs text-[color:var(--tb-muted)] dark:text-gray-400 ml-2 shrink-0">
                                 Dag {prayer.day}
                               </span>
                             </Link>
                           ))}
                           {incompletePrayers.length > 30 && (
-                            <p className="text-xs text-[#9A9A9A] dark:text-gray-500 pt-1 pl-2">
+                            <p className="text-xs text-[color:var(--tb-muted)] dark:text-gray-400 pt-1 pl-2">
                               + {incompletePrayers.length - 30} til
                             </p>
                           )}
@@ -382,7 +382,7 @@ export default function Settings() {
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Sun className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                <Sun className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
                 Utseende
               </CardTitle>
               <CardDescription>Fargetema og tekststørrelse</CardDescription>
@@ -399,7 +399,7 @@ export default function Settings() {
                     <button
                       key={value}
                       onClick={() => { setTheme(value); saveSettings({ progress: { theme: value } }); }}
-                      className={theme === value ? 'dark:!border-[#BD7B59]' : ''}
+                      className={theme === value ? 'dark:!border-[#D4936F]' : ''}
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -407,12 +407,12 @@ export default function Settings() {
                         gap: '0.5rem',
                         padding: '1rem',
                         backgroundColor: 'transparent',
-                        border: theme === value ? '1.5px solid #4A6B65' : '0.5px solid #B6B9B3',
+                        border: theme === value ? '1.5px solid #4A6B65' : '0.5px solid var(--tb-kant)',
                         cursor: 'pointer',
                       }}
                     >
-                      <Icon className={`w-6 h-6 ${theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}`} />
-                      <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: theme === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={theme === value ? 'text-[#4A6B65] dark:text-[#BD7B59]' : 'text-[#B6B9B3]'}>{label}</span>
+                      <Icon className={`w-6 h-6 ${theme === value ? 'text-[#4A6B65] dark:text-[#D4936F]' : 'text-[color:var(--tb-muted)]'}`} />
+                      <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: theme === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={theme === value ? 'text-[#4A6B65] dark:text-[#D4936F]' : 'text-[color:var(--tb-muted)]'}>{label}</span>
                     </button>
                   ))}
                 </div>
@@ -437,7 +437,7 @@ export default function Settings() {
                           setLargeTextPref(value);
                           saveSettings({ progress: { large_text: value } });
                         }}
-                        className={largeText === value ? 'dark:!border-[#BD7B59]' : ''}
+                        className={largeText === value ? 'dark:!border-[#D4936F]' : ''}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -445,13 +445,13 @@ export default function Settings() {
                           gap: '0.4rem',
                           padding: '0.9rem',
                           backgroundColor: 'transparent',
-                          border: largeText === value ? '1.5px solid #4A6B65' : '0.5px solid #B6B9B3',
+                          border: largeText === value ? '1.5px solid #4A6B65' : '0.5px solid var(--tb-kant)',
                           cursor: 'pointer',
                         }}
                       >
                         <span className="font-serif leading-none" style={{ fontSize: '0.75rem' }}>T</span>
                         <span className="font-serif leading-none" style={{ fontSize: big }}>T</span>
-                        <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: largeText === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={largeText === value ? 'text-[#4A6B65] dark:text-[#BD7B59] ml-1' : 'text-[#B6B9B3] ml-1'}>{label}</span>
+                        <span style={{fontFamily: "'Montserrat', sans-serif", fontWeight: largeText === value ? 600 : 500, fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase'}} className={largeText === value ? 'text-[#4A6B65] dark:text-[#D4936F] ml-1' : 'text-[color:var(--tb-muted)] ml-1'}>{label}</span>
                       </button>
                     ))}
                   </div>
@@ -465,7 +465,7 @@ export default function Settings() {
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Mail className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                <Mail className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
                 Nyhetsbrev
               </CardTitle>
               <CardDescription>Hold deg oppdatert fra Areopagos.</CardDescription>
@@ -492,7 +492,7 @@ export default function Settings() {
           <Card className="bg-white dark:bg-[rgba(255,255,255,0.04)] border border-[#DECCB4] dark:border-[rgba(244,240,233,0.1)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-[#2C2C2A] dark:text-[#F4F0E9]" style={{fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-                <Lock className="w-5 h-5 text-[#4A6B65] dark:text-[#BD7B59]" />
+                <Lock className="w-5 h-5 text-[#4A6B65] dark:text-[#D4936F]" />
                 Passord
               </CardTitle>
               <CardDescription>Sett eller endre passord (minst 8 tegn). Du kan også logge inn med magic-link.</CardDescription>
@@ -544,7 +544,7 @@ export default function Settings() {
                 <Button
                   type="submit"
                   disabled={savingPassword || !newPassword || !confirmPassword}
-                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#BD7B59] dark:hover:bg-[#A56347] text-[#F4F0E9]"
+                  className="bg-[#4A6B65] hover:bg-[#3a5550] dark:bg-[#8C563A] dark:hover:bg-[#7A4B32] text-[#F4F0E9]"
                 >
                   {savingPassword ? 'Lagrer …' : 'Lagre passord'}
                 </Button>
